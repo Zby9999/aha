@@ -72,6 +72,8 @@ async function openPage(url, browser) {
     cookieJar: browser.cookieJar,
     beforeParse(window) {
       for (const [key, value] of browser.storage) window.localStorage.setItem(key, value);
+      // jsdom has no fetch. Use Node's, with jsdom's cookie jar, so a fix
+      // that switches to cookies is checked as fairly as one using headers.
       window.fetch = async (input, init = {}) => {
         const target = new URL(input, window.location.href).href;
         const headers = new Headers(init.headers);

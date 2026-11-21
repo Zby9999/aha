@@ -2,6 +2,9 @@
   "name": "portfolio-check",
   "private": true,
   "description": "Team-only check that the example portfolio project still reproduces its seeded bug. See docs/example-project.md.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node --test"
   },

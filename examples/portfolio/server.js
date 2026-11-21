@@ -10,7 +10,6 @@ const users = {
 };
 
 // Everyone who is logged in right now, looked up by their session token.
-// Each session also holds that user's portfolio projects.
 const sessions = {};
 let nextProjectId = 1;
 

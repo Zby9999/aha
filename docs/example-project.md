@@ -2,7 +2,7 @@
 
 The demo scenario, every module's fixtures and the final demo all use one example project: `examples/portfolio/`, a small portfolio site written the way a novice vibe coder would write it (Express backend, plain HTML and JavaScript front end, no framework). It has one seeded bug: **after you log in and refresh the page, your projects are gone.**
 
-This note is for the team. It explains the bug and its fix, so it lives here and not inside `examples/portfolio/`. Nothing inside the project hints at the cause, so Pi and the user have to discover it.
+This note is for the team. It explains the bug and its fix, so it lives here and not inside `examples/portfolio/`. Nothing inside the project states the cause; its comments are the kind a novice would write, so Pi and the user have to work it out.
 
 ## Run it
 
@@ -32,10 +32,10 @@ cd examples/portfolio && npm install && cd ../portfolio-check && npm install && 
 
 Two pieces of code work together to lose the data:
 
-- `public/app.js` line 2 makes a new random `sessionToken` every time the script runs, which is every page load. The token lives only in a JavaScript variable, so a refresh throws it away and makes a new one.
-- `server.js` stores each logged-in user's data under that token (`sessions[token] = { username, projects: [] }`, line 35, looked up in `getSession`, line 21). The projects belong to the token, not to the user.
+- `public/app.js` makes a new random `sessionToken` at the top of the file every time the script runs, which is every page load. The token lives only in a JavaScript variable, so a refresh throws it away and makes a new one.
+- `server.js` stores each logged-in user's data under that token (`sessions[token] = { username, projects: [] }` in the `/api/login` route, looked up in `getSession`). The projects belong to the token, not to the user.
 
-After a refresh the browser sends a token the server has never seen, so `GET /api/me` answers 401 and the page shows the login form. Logging in again creates a fresh, empty session under the new token. The old projects are still in server memory, but nothing points to them any more.
+After a refresh the browser sends a token the server has never seen, so `GET /api/me` answers 401 and the page shows the login form. Logging in again creates a fresh, empty session under the new token. The old projects are still in server memory, but nothing points to them any more. Logging out and back in without a refresh loses them too, because login overwrites the session for the same token.
 
 The concepts a lesson can build on: a page reload restarts the page's JavaScript and forgets its variables; a session token is how the server recognises the same visitor across requests, so it must survive across page loads; data should belong to the user, not to one login session.
 
@@ -51,12 +51,11 @@ Make the server create the token at login, keep it in the browser across page lo
  const path = require('path');
  const express = require('express');
  
-@@ -9,16 +10,18 @@
+@@ -9,15 +10,18 @@
    alex: 'portfolio123',
  };
  
 -// Everyone who is logged in right now, looked up by their session token.
--// Each session also holds that user's portfolio projects.
 +// Who is logged in: session token -> username.
  const sessions = {};
 +// Each user's projects: username -> list of projects.
@@ -73,7 +72,7 @@ Make the server create the token at login, keep it in the browser across page lo
  }
  
  app.post('/api/login', (req, res) => {
-@@ -27,13 +30,10 @@
+@@ -26,13 +29,10 @@
      return res.status(401).json({ error: 'Wrong username or password' });
    }
  
@@ -127,13 +126,15 @@ The smallest fix that stops the symptom is front-end only: read the token from `
 
 A wrong fix to watch for (a good moment for the user to catch the agent's mistake): saving the projects themselves in `localStorage`. The list survives a refresh, but the server no longer has the user's data, it does not follow the user to another browser, and the session bug is still there.
 
+Not part of the scenario: `public/app.js` puts the project link straight into `href`, so a `javascript:` link would run when clicked. It is realistic novice code and is left in; if Pi raises it, it is a side issue, not the seeded bug.
+
 To verify a fix, apply it to a copy of the project and run the check against the copy:
 
 ```bash
 cd examples/portfolio-check && PORTFOLIO_DIR=/path/to/fixed/copy EXPECT_FIXED=1 npm test
 ```
 
-Both the intended fix and the smallest fix above pass this check. The check finds elements by their ids (`login`, `portfolio`, `login-form`, `username`, `password`, `project-form`, `project-title`, `project-description`, `projects`), so a fix must keep those.
+Both the intended fix and the smallest fix above pass this check. The check needs Node 20 or newer. It finds elements by their ids (`login`, `portfolio`, `login-form`, `username`, `password`, `project-form`, `project-title`, `project-description`, `projects`), so a fix must keep those.
 
 ## Demo script
 
@@ -143,7 +144,7 @@ Copy `examples/portfolio/` to a fresh folder outside this repo before the demo (
 
 ## File paths
 
-Fixtures refer to files by their path relative to the project root. These names are stable:
+Fixtures refer to files by their path relative to the project root, and to code by symbol (`sessionToken`, `getSession`, `sessions`) rather than line number. These names are stable:
 
 | Path | What it is |
 |---|---|
