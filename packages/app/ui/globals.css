@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 /* Tailwind must also scan the prebuilt json-render shadcn components. */
 @source "../node_modules/@json-render/shadcn/dist";

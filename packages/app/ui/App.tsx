@@ -1,10 +1,28 @@
 import { useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, FilePen, Lightbulb } from "lucide-react";
+import { AlertTriangle, FilePen, FileText, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
-import { Conversation, ConversationContent, ConversationScrollButton } from "./components/ai-elements/conversation.tsx";
-import { Message, MessageContent, MessageResponse } from "./components/ai-elements/message.tsx";
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "./components/ai-elements/tool.tsx";
+import { Markdown } from "@/components/markdown";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
+import { Message, MessageContent } from "@/components/ui/message";
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@/components/ui/message-scroller";
+import {
+  Trace,
+  TraceCollapsible,
+  TraceCollapsibleContent,
+  TraceCollapsibleTrigger,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
 import { Input } from "./components/ui/input.tsx";
@@ -26,14 +44,20 @@ export function App() {
         <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
         <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
       </header>
-      <Conversation aria-label="Timeline">
-        <ConversationContent className="gap-4">
-          {items.map((item) => (
-            <ViewItemView key={item.key} item={item} dispatch={dispatch} answered={answered} responded={responded} />
-          ))}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
+      <MessageScrollerProvider autoScroll>
+        <MessageScroller aria-label="Timeline">
+          <MessageScrollerViewport>
+            <MessageScrollerContent className="gap-4 px-4 py-6">
+              {items.map((item) => (
+                <MessageScrollerItem key={item.key} messageId={item.key} scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}>
+                  <ViewItemView item={item} dispatch={dispatch} answered={answered} responded={responded} />
+                </MessageScrollerItem>
+              ))}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
+      </MessageScrollerProvider>
       {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
       <form
         className="flex gap-2 border-t px-4 py-3"
@@ -57,25 +81,14 @@ export function App() {
 function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem; dispatch: Dispatch; answered: Set<string>; responded: Set<string> }) {
   if (item.type === "agent_message") {
     return (
-      <Message from="assistant">
+      <Message>
         <MessageContent>
-          <MessageResponse isAnimating={item.streaming} mode={item.streaming ? "streaming" : "static"}>{item.text}</MessageResponse>
+          <Markdown streaming={item.streaming}>{item.text}</Markdown>
         </MessageContent>
       </Message>
     );
   }
-  if (item.type === "tool") {
-    const path = typeof item.args.path === "string" ? item.args.path : "";
-    return (
-      <Tool>
-        <ToolHeader title={`${item.toolName} ${path}`} state={item.state} />
-        <ToolContent>
-          <ToolInput input={item.args} />
-          <ToolOutput {...(item.state === "error" ? { errorText: item.output } : { output: item.output })} />
-        </ToolContent>
-      </Tool>
-    );
-  }
+  if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
   const done = answered.has(entry.id) || (entry.kind === "offer" && responded.has(entry.impasseId));
   return <Entry entry={entry} dispatch={dispatch} done={done} />;
@@ -83,9 +96,58 @@ function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem;
 
 function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <Message from="user">
-      <MessageContent>{children}</MessageContent>
+    <Message align="end">
+      <MessageContent>
+        <Bubble align="end" variant="muted">
+          <BubbleContent>{children}</BubbleContent>
+        </Bubble>
+      </MessageContent>
     </Message>
+  );
+}
+
+const TOOL_VERBS: Record<string, [running: string, done: string]> = {
+  read: ["Reading", "Read"],
+  edit: ["Editing", "Edited"],
+  write: ["Writing", "Wrote"],
+  grep: ["Searching", "Searched"],
+  find: ["Finding", "Found"],
+  ls: ["Listing", "Listed"],
+  bash: ["Running", "Ran"],
+};
+
+/** A tool call as a Trace line (shadcn/ui "Tool" pattern): a plain line while it runs, collapsible once output arrives. */
+function ToolLine({ item }: { item: Extract<ViewItem, { type: "tool" }> }) {
+  const [running, done] = TOOL_VERBS[item.toolName] ?? ["Running", "Ran"];
+  const target = typeof item.args.path === "string" ? item.args.path : typeof item.args.command === "string" ? item.args.command : item.toolName;
+  const icon = item.toolName === "read" ? <FileText /> : item.toolName === "grep" || item.toolName === "find" ? <Search /> : <Wrench />;
+  if (item.state === "running") {
+    return (
+      <Trace>
+        <TraceLine status="running">
+          <TraceIcon>{icon}</TraceIcon>
+          <TraceTitle>{running} {target}</TraceTitle>
+        </TraceLine>
+      </Trace>
+    );
+  }
+  const failed = item.state === "error";
+  return (
+    <Trace>
+      <TraceCollapsible>
+        <TraceCollapsibleTrigger>
+          <TraceLine status={failed ? "error" : undefined}>
+            <TraceIcon>{icon}</TraceIcon>
+            <TraceTitle>{failed ? `Failed to ${running.toLowerCase()}` : done} {target}</TraceTitle>
+          </TraceLine>
+        </TraceCollapsibleTrigger>
+        <TraceCollapsibleContent>
+          <CodeBlock size="sm">
+            <CodeBlockContent wrap className="max-h-64">{item.output ?? ""}</CodeBlockContent>
+          </CodeBlock>
+        </TraceCollapsibleContent>
+      </TraceCollapsible>
+    </Trace>
   );
 }
 
@@ -106,7 +168,11 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
             <Badge variant="outline" className="font-mono">{entry.path}</Badge>
             <Button size="xs" variant="secondary" className="ml-auto" onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
-          {entry.diff && <pre className="mt-2 overflow-x-auto text-xs text-muted-foreground">{entry.diff}</pre>}
+          {entry.diff && (
+            <CodeBlock size="sm" className="mt-2">
+              <CodeBlockContent>{entry.diff}</CodeBlockContent>
+            </CodeBlock>
+          )}
         </div>
       );
     case "error":

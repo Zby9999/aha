@@ -34,7 +34,7 @@
 
 ## 规则
 
-- **界面统一用 shadcn/ui + Tailwind（ADR-0004）。** 颜色、圆角等只改 `packages/app/ui/globals.css` 里的变量，不写零散的颜色值。新增课程卡片：在 `packages/contracts/src/catalog.ts` 加 props，在 `packages/app/ui/cards/registry.tsx` 加渲染。缺 shadcn 组件时在 `packages/app` 下运行 `pnpm dlx shadcn@latest add <组件>`。聊天区用 AI Elements（`packages/app/ui/components/ai-elements`）：消息、流式回复、工具调用。
+- **界面统一用 shadcn/ui + Tailwind（ADR-0004）。** 颜色、圆角等只改 `packages/app/ui/globals.css` 里的变量，不写零散的颜色值。新增课程卡片：在 `packages/contracts/src/catalog.ts` 加 props，在 `packages/app/ui/cards/registry.tsx` 加渲染。缺 shadcn 组件时在 `packages/app` 下运行 `pnpm dlx shadcn@latest add <组件>`。风格是 `base-rhea`（Base UI）；聊天区按 shadcn 的 AI Elements 写法用 Message Scroller、Message、Bubble、Trace、Code Block。
 
 - **只改自己模块的 package。** 需要改共享契约（`contracts`）时单独开一个 PR，并 @ 所有受影响模块的负责人。
 - **测试只测接口行为，用共享的 fixture 数据**，不依赖别人模块的真实实现。

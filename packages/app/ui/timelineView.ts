@@ -1,5 +1,5 @@
 import type { TimelineEntry } from "@aha/contracts";
-/** Matches `ToolState` of the AI Elements Tool component. */
+/** A tool call's state as the Trace line shows it. */
 export type ToolState = "running" | "completed" | "error";
 
 /** What the chat shows: Timeline entries folded into messages that may still be streaming, and tool calls with their results. */
