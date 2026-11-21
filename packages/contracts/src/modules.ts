@@ -97,7 +97,7 @@ export class BackgroundAgentError extends Error {
   }
 }
 
-/** Runs restricted Pi sessions with the user's `pi login` credentials. Used by Dreaming and lesson content. */
+/** Runs restricted Pi sessions with the user's `pi auth login` credentials. Used by Dreaming and lesson content. */
 export interface BackgroundAgent {
   run(request: BackgroundRunRequest): Promise<BackgroundRunResult>;
 }
