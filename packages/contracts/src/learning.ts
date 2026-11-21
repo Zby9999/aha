@@ -19,8 +19,8 @@ export type ImpasseTrigger = "why" | "teach_me" | "detected";
 export interface Impasse {
   id: string;
   trigger: ImpasseTrigger;
-  /** Short human-readable topic, e.g. "Why the profile disappears after refresh". */
-  topic: string;
+  /** Short human-readable title, e.g. "Why the profile disappears after refresh". */
+  title: string;
   /** Concepts the Impasse is about, when known. */
   conceptIds: ConceptId[];
   /** Timeline entries that caused it: the change behind a Why, or the repeated errors. */
@@ -31,6 +31,10 @@ export interface Impasse {
 
 export const LESSON_STEPS = ["probe", "explain", "articulate"] as const;
 export type LessonStep = (typeof LESSON_STEPS)[number];
+/** Steps whose card the user answers. */
+export type AnsweredStep = Exclude<LessonStep, "explain">;
+
+export type OfferResponse = "accept" | "decline" | "let_agent_continue";
 
 /**
  * Behavioural evidence types. Self-report is never Evidence, and declining an Offer is never Evidence.

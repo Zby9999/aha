@@ -17,7 +17,7 @@ export const CATALOG_COMPONENTS = [
   "SequenceDiagram",
   "ContrastView",
   "TextExplanation",
-  "MemoryPanel",
+  "LearnerModelPanel",
 ] as const;
 export type CatalogComponent = (typeof CATALOG_COMPONENTS)[number];
 

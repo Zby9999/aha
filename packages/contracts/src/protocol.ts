@@ -1,12 +1,16 @@
 import type { CardAnswer } from "./cards.ts";
+import type { OfferResponse } from "./learning.ts";
 import type { Timeline, TimelineEntry } from "./timeline.ts";
 
-/** 2 App Shell: user actions routed from the UI to the backend. */
+/**
+ * 2 App Shell: user actions routed from the UI to the backend.
+ * Layout choice (three-pane or tabbed) is a UI preference kept in the browser, not a backend action.
+ */
 export type UserAction =
   | { type: "send_message"; text: string }
   | { type: "why"; entryId: string }
   | { type: "teach_me"; text: string }
-  | { type: "offer_response"; impasseId: string; response: "accept" | "decline" | "let_agent_continue" }
+  | { type: "offer_response"; impasseId: string; response: OfferResponse }
   | { type: "card_answer"; lessonId: string; cardEntryId: string; answer: CardAnswer }
   | { type: "flag_explanation"; lessonId: string; cardEntryId: string; reason?: string }
   | { type: "end_session" };

@@ -4,10 +4,8 @@ import type {
   Concept,
   ConceptId,
   ConceptSummary,
+  MasteryLevel,
   Evidence,
-  EvidenceOutcome,
-  EvidenceStrength,
-  EvidenceType,
   Impasse,
   LearnerContext,
   LessonStep,
@@ -19,9 +17,6 @@ import type { NewTimelineEntry, Timeline, TimelineEntry } from "./timeline.ts";
  * Module interfaces. Each module implements its interface in its own package and receives
  * the others only through these types, wired by the backend (ADR-0002).
  */
-
-export const MODULE_NAMES = ["agent-host", "app", "decisions", "learner-model", "teaching"] as const;
-export type ModuleName = (typeof MODULE_NAMES)[number];
 
 // ---------------------------------------------------------------- 1 Agent Host
 
@@ -45,10 +40,14 @@ export interface AgentSessionOptions {
   timeline: Timeline;
 }
 
+/**
+ * A running agent. If Pi exits or crashes, the agent host appends an `error` entry (origin "agent")
+ * and a `session_end` entry with reason "agent_exit"; it never throws into the app.
+ */
 export interface AgentSession {
   /** Appends a user_message entry and sends it to the agent. Resolves once the agent accepted it, not when it finishes. */
   sendUserMessage(text: string): Promise<void>;
-  /** Learner context the bridge adds to each following request; null sends requests unchanged. */
+  /** Learner context the bridge extension adds to each following Pi request; null sends requests unchanged. */
   setLearnerContext(context: LearnerContext | null): void;
   /** Stops the agent. Safe to call twice. */
   stop(): Promise<void>;
@@ -135,24 +134,16 @@ export interface EvidenceGateInput {
   concepts: readonly ConceptSummary[];
 }
 
-export interface EvidenceDecision {
-  entryIds: string[];
-  /** An existing Concept id, or the id of `newConcept`. */
-  conceptId: ConceptId;
-  /** Set only when no existing Concept fits. */
+/** An Evidence the gate lets through; the backend adds id, sessionId and time before appending it. */
+export interface EvidenceDecision extends Pick<Evidence, "conceptId" | "type" | "outcome" | "strength" | "entryIds" | "note"> {
+  /** Set only when no existing Concept fits; then `conceptId` is its id. */
   newConcept?: { id: ConceptId; name: string };
-  type: EvidenceType;
-  outcome: EvidenceOutcome;
-  strength: EvidenceStrength;
-  note: string;
 }
 
 export interface ComponentChoiceInput {
   impasse: Impasse;
   step: LessonStep;
   learner: LearnerContext;
-  /** Allowed components; defaults to the whole catalog. */
-  allowed?: readonly CatalogComponent[];
 }
 
 export interface GroundingInput {
@@ -179,22 +170,27 @@ export interface LearnerModelFile {
 }
 
 export interface DreamingReport {
+  /** Path (relative to the learner model folder) of the change log entry this run wrote. */
+  changeLogPath: string;
   merged: { from: ConceptId[]; into: ConceptId }[];
-  masteryChanges: { conceptId: ConceptId; from: Concept["mastery"]; to: Concept["mastery"] }[];
+  masteryChanges: { conceptId: ConceptId; from: MasteryLevel; to: MasteryLevel }[];
   /** Concepts left untouched because the user edited them. */
   skippedUserEdits: ConceptId[];
 }
 
-/** The per-user, per-project Learner Model, stored as Markdown in the project folder. */
+/**
+ * The per-user, per-project Learner Model, stored as Markdown in the project folder.
+ * A store for a project without a model starts from the seed Concepts.
+ */
 export interface LearnerModelStore {
   /** Appends to the session log only; never rewrites Concept files. Called only via the evidence write gate. */
   appendEvidence(evidence: Evidence): Promise<void>;
   listConcepts(): Promise<ConceptSummary[]>;
   /** Full Concepts (Mastery Level, Evidence, related files) for the given ids; unknown ids are skipped. */
   readConcepts(ids: readonly ConceptId[]): Promise<Concept[]>;
-  /** Memory panel: every file of the model. */
+  /** Learner model panel: every file of the model. */
   readFiles(): Promise<LearnerModelFile[]>;
-  /** Memory panel: a user edit. User edits take precedence over Dreaming. */
+  /** Learner model panel: a user edit. User edits take precedence over Dreaming. */
   writeFile(file: LearnerModelFile): Promise<void>;
   /** Consolidates the model; the only writer of Concept files besides the user. */
   dream(trigger: "session_end" | "idle"): Promise<DreamingReport>;
@@ -222,8 +218,8 @@ export interface LessonInput {
  * the backend appends them, so Teaching never writes the Timeline itself.
  */
 export interface Teaching {
-  /** The Offer card for a detected Impasse. */
-  offer(impasse: Impasse): Promise<CardSpec>;
+  /** The Offer card for a detected Impasse, or null when the Mastery Level says not to interrupt. */
+  offer(input: { impasse: Impasse; learner: LearnerContext }): Promise<CardSpec | null>;
   startLesson(input: LessonInput): Promise<NewTimelineEntry[]>;
   answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
   /** Back to work without Evidence. */

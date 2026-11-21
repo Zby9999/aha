@@ -16,8 +16,8 @@ Every entry has a `kind`, a `version` (currently 1) and the `source` module that
 
 | Kind | Written by | When |
 |---|---|---|
-| `session_start`, `session_end` | app | Session opens / closes |
-| `user_message`, `agent_message`, `tool_call`, `tool_result`, `file_edit`, `error`, `unknown_agent_event` | agent-host | Mapped from Pi RPC events |
+| `session_start`, `session_end` | app (agent-host for `session_end` with reason `agent_exit`) | Session opens / closes, or Pi exits |
+| `user_message`, `agent_message_delta`, `agent_message`, `tool_call`, `tool_result`, `file_edit`, `error`, `unknown_agent_event` | agent-host | Mapped from Pi RPC events |
 | `impasse` | app (Why, teach-me) or decisions (detected repeated gap) | A learning moment starts |
 | `offer` | teaching, appended by the backend | Only for detected Impasses |
 | `offer_response` | app | User accepts, declines or lets the agent continue. Declining is never Evidence |
@@ -27,10 +27,12 @@ Every entry has a `kind`, a `version` (currently 1) and the `source` module that
 ## Flow through the modules
 
 1. The agent host appends agent events.
-2. After each turn the backend asks `DecisionService.detectImpasse`; a detection becomes an `impasse` entry plus an `offer`.
+2. After each turn the backend asks `DecisionService.detectImpasse`; a detection becomes an `impasse` entry plus an `offer`, unless `Teaching.offer` returns null because the Mastery Level says not to interrupt.
 3. Why and teach-me become an `impasse` entry directly and start a Lesson without an Offer.
 4. On accept, the backend asks `selectConcepts` (read gate), reads those Concepts from the `LearnerModelStore`, and calls `Teaching.startLesson`; answers go to `Teaching.answer`.
-5. New entries go through `gateEvidence` (write gate); passing decisions are appended with `LearnerModelStore.appendEvidence`.
+5. New entries go through `gateEvidence` (write gate); passing decisions are appended with `LearnerModelStore.appendEvidence`. An `answer_assessment` is Evidence by construction and is recorded without the gate.
 6. At `session_end` or idle the backend calls `LearnerModelStore.dream`.
+
+Layout choice stays in the browser and is not a backend action. `createTimeline` and the WebSocket messages live here because every module's tests and the app's two halves share them.
 
 Every `DecisionService` question may return `null` ("no decision"); callers then take the safe default and carry on.

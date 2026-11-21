@@ -1,6 +1,6 @@
 import type { CardAnswer, CardSpec } from "./cards.ts";
-import type { ModuleName } from "./modules.ts";
-import type { Impasse, LessonStep } from "./learning.ts";
+import type { AnsweredStep, ConceptId, Impasse, LessonStep, OfferResponse } from "./learning.ts";
+import type { ModuleName } from "./module-name.ts";
 
 /**
  * The Timeline: the single, agent-independent record of a session.
@@ -12,11 +12,14 @@ export const TIMELINE_VERSION = 1 as const;
 /** Payload of each Timeline entry kind. Adding a kind or field is a contracts change. */
 export interface TimelinePayloads {
   session_start: { projectDir: string };
+  /** Written by the app, or by the agent host with reason "agent_exit" when Pi exits or crashes (after an `error` entry). */
   session_end: { reason: "user" | "idle" | "agent_exit" };
 
   // Agent events, written by the agent host.
   user_message: { text: string };
-  agent_message: { text: string };
+  /** A chunk of an agent reply while it streams, for live display. The complete text follows as agent_message with the same messageId. */
+  agent_message_delta: { messageId: string; delta: string };
+  agent_message: { messageId: string; text: string };
   tool_call: { toolCallId: string; toolName: string; args: Record<string, unknown> };
   tool_result: { toolCallId: string; toolName: string; output: string; isError: boolean };
   /** A change to a project file. `path` is project-relative. */
@@ -29,15 +32,19 @@ export interface TimelinePayloads {
   // Learning, written by the app, decisions and teaching.
   impasse: { impasse: Impasse };
   offer: { impasseId: string; card: CardSpec };
-  offer_response: { impasseId: string; response: "accept" | "decline" | "let_agent_continue" };
+  offer_response: { impasseId: string; response: OfferResponse };
   lesson_start: { lessonId: string; impasseId: string };
   lesson_card: { lessonId: string; step: LessonStep; card: CardSpec };
-  card_answer: { lessonId: string; cardEntryId: string; step: LessonStep; answer: CardAnswer };
-  /** Teaching's judgement of a Probe or Articulation answer; the evidence write gate reads it. */
+  card_answer: { lessonId: string; cardEntryId: string; step: AnsweredStep; answer: CardAnswer };
+  /**
+   * Teaching's judgement of a Probe or Articulation answer. It is behavioural Evidence by construction:
+   * the backend records one Evidence per Concept for it without asking the write gate whether it is relevant.
+   */
   answer_assessment: {
     lessonId: string;
     answerEntryId: string;
-    step: "probe" | "articulate";
+    step: AnsweredStep;
+    conceptIds: ConceptId[];
     result: "correct" | "partial" | "incorrect";
   };
   explanation_flagged: { lessonId: string; cardEntryId: string; reason?: string };
@@ -72,7 +79,7 @@ export type TimelineListener = (entry: TimelineEntry) => void;
 
 export interface Timeline {
   readonly sessionId: string;
-  /** Every entry so far, in seq order. */
+  /** A copy of every entry so far, in seq order. */
   entries(): readonly TimelineEntry[];
   append(entry: NewTimelineEntry): TimelineEntry;
   /** Called for each entry appended after subscribing. Returns an unsubscribe function. */
@@ -97,11 +104,12 @@ export function createTimeline({ sessionId, initial = [], now = () => new Date()
   const listeners = new Set<TimelineListener>();
   initial.forEach((entry, i) => {
     if (entry.seq !== i) throw new Error(`Initial Timeline entry ${entry.id} has seq ${entry.seq}, expected ${i}`);
+    if (entry.sessionId !== sessionId) throw new Error(`Initial Timeline entry ${entry.id} belongs to session ${entry.sessionId}, not ${sessionId}`);
     entries.push(entry);
   });
   return {
     sessionId,
-    entries: () => entries,
+    entries: () => [...entries],
     append(newEntry) {
       const seq = entries.length;
       const entry = {

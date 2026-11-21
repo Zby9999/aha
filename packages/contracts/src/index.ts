@@ -4,6 +4,7 @@
  */
 export * from "./cards.ts";
 export * from "./learning.ts";
+export * from "./module-name.ts";
 export * from "./modules.ts";
 export * from "./protocol.ts";
 export * from "./timeline.ts";
