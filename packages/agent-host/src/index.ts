@@ -1,3 +1,1 @@
-import type { ModuleName } from "@aha/contracts";
-
-export const moduleName: ModuleName = "agent-host";
+export { createBackgroundAgent, type BackgroundAgentOptions } from "./background-agent.ts";
