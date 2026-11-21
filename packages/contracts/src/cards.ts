@@ -39,7 +39,7 @@ export const EXPLANATION_COMPONENTS = [
 export type ExplanationComponent = (typeof EXPLANATION_COMPONENTS)[number];
 
 /** Actions the app routes back to the backend when a card is used. */
-export const CARD_ACTIONS = ["accept_offer", "decline_offer", "let_agent_continue", "submit_answer", "flag_explanation"] as const;
+export const CARD_ACTIONS = ["accept_offer", "skip_offer", "submit_answer", "flag_explanation"] as const;
 export type CardAction = (typeof CARD_ACTIONS)[number];
 
 export type OfferCardProps = z.infer<typeof offerCardSchema>;

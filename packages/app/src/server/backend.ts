@@ -124,8 +124,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         timeline.append({ kind: "impasse", source: "app", impasse: newImpasse(timeline.entries(), "why", `Why: ${describe(source)}`, [source.id]) });
         return;
       }
-      case "teach_me":
-        timeline.append({ kind: "impasse", source: "app", impasse: { ...newImpasse(timeline.entries(), "teach_me", action.text, []), text: action.text } });
+      case "ask_why":
+        timeline.append({ kind: "impasse", source: "app", impasse: { ...newImpasse(timeline.entries(), "ask_why", action.text, []), text: action.text } });
         return;
       case "offer_response":
         timeline.append({ kind: "offer_response", source: "app", impasseId: action.impasseId, response: action.response });

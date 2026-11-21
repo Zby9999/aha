@@ -13,8 +13,8 @@ export const MASTERY_LEVELS = [
 ] as const;
 export type MasteryLevel = (typeof MASTERY_LEVELS)[number];
 
-/** What started an Impasse: the Why button, a "teach me this" request, or detection of a repeated gap. */
-export type ImpasseTrigger = "why" | "teach_me" | "detected";
+/** What started an Impasse: the Why button on an agent change, a question sent with Ask why, or detection of a repeated gap. */
+export type ImpasseTrigger = "why" | "ask_why" | "detected";
 
 export interface Impasse {
   id: string;
@@ -25,7 +25,7 @@ export interface Impasse {
   conceptIds: ConceptId[];
   /** Timeline entries that caused it: the change behind a Why, or the repeated errors. */
   sourceEntryIds: string[];
-  /** The user's own words, for teach_me. */
+  /** The user's own words, for ask_why. */
   text?: string;
 }
 
@@ -34,10 +34,14 @@ export type LessonStep = (typeof LESSON_STEPS)[number];
 /** Steps whose card the user answers. */
 export type AnsweredStep = Exclude<LessonStep, "explain">;
 
-export type OfferResponse = "accept" | "decline" | "let_agent_continue";
+/**
+ * "accept" (Show me why) starts the Lesson. "skip" declines the Offer, starts the topic's cooldown and lets the agent
+ * carry on. Skipping is never Evidence.
+ */
+export type OfferResponse = "accept" | "skip";
 
 /**
- * Behavioural evidence types. Self-report is never Evidence, and declining an Offer is never Evidence.
+ * Behavioural evidence types. Self-report is never Evidence, and skipping an Offer is never Evidence.
  */
 export type EvidenceType =
   | "probe_result"

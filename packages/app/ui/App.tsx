@@ -1,11 +1,12 @@
 import { useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, FilePen, FileText, Lightbulb, Search, Wrench } from "lucide-react";
+import { AlertTriangle, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
 import { Message, MessageContent } from "@/components/ui/message";
+import { Toggle } from "@/components/ui/toggle";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -34,6 +35,7 @@ type Dispatch = (action: UserAction) => void;
 export function App() {
   const { entries, error, dispatch } = useTimeline();
   const [text, setText] = useState("");
+  const [askWhy, setAskWhy] = useState(false);
   const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
   const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
   const items = toViewItems(entries);
@@ -70,15 +72,29 @@ export function App() {
         onSubmit={(e) => {
           e.preventDefault();
           if (!text.trim()) return;
-          dispatch({ type: "send_message", text });
+          // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
+          dispatch(askWhy ? { type: "ask_why", text } : { type: "send_message", text });
           setText("");
+          setAskWhy(false);
         }}
       >
-        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message your agent…" aria-label="Message" />
-        <Button type="submit">Send</Button>
-        <Button type="button" variant="outline" onClick={() => text.trim() && (dispatch({ type: "teach_me", text }), setText(""))}>
-          Teach me this
-        </Button>
+        <Toggle
+          pressed={askWhy}
+          onPressedChange={setAskWhy}
+          variant="outline"
+          aria-label="Ask why"
+          className="shrink-0 data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+        >
+          <HelpCircle />
+          Ask why
+        </Toggle>
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={askWhy ? "What do you want to understand?" : "Message your agent…"}
+          aria-label="Message"
+        />
+        <Button type="submit">{askWhy ? "Ask" : "Send"}</Button>
       </form>
     </main>
   );
@@ -190,11 +206,22 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
         </p>
       );
     case "impasse":
+      // The user's own Ask why question shows as their turn; Why and detected Impasses as a quiet line.
+      if (entry.impasse.trigger === "ask_why") {
+        return (
+          <UserMessage>
+            <span className="inline-flex items-center gap-1.5">
+              <HelpCircle className="size-3.5 shrink-0 text-muted-foreground" />
+              {entry.impasse.text ?? entry.impasse.title}
+            </span>
+          </UserMessage>
+        );
+      }
       return <Meta icon={<Lightbulb className="size-3.5" />}>{entry.impasse.title}</Meta>;
     case "offer":
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
-      return <Meta>You chose: {entry.response.replaceAll("_", " ")}</Meta>;
+      return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
     case "lesson_card":
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "card_answer":

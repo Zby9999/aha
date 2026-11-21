@@ -109,7 +109,7 @@ export interface BackgroundAgent {
  * Callers treat null as the safe default: no Impasse, no Evidence, no Concepts.
  */
 export interface DecisionService {
-  /** Is the user at an Impasse from a repeated gap? Applies the threshold and the post-decline cooldown. */
+  /** Is the user at an Impasse from a repeated gap? Applies the threshold and the cooldown after a skipped Offer. */
   detectImpasse(input: { timeline: readonly TimelineEntry[] }): Promise<ImpasseDetection | null>;
   /** Which of these new entries become Evidence. Prefers existing Concepts over new ones. */
   gateEvidence(input: EvidenceGateInput): Promise<EvidenceDecision[] | null>;

@@ -47,7 +47,7 @@ export const textExplanationSchema = z.object({
 export const cardComponentDefinitions = {
   OfferCard: {
     props: offerCardSchema,
-    description: "A light, skippable suggestion to start a Lesson at a detected Impasse. The user can accept, decline or let the agent continue.",
+    description: "A light, skippable suggestion to start a Lesson at a detected Impasse. The user can accept it (Show me why) or skip it, which lets the agent carry on.",
   },
   ProbeCard: {
     props: probeCardSchema,

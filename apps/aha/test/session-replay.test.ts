@@ -67,13 +67,23 @@ describe("session replay with stub modules", () => {
     await expect(backend.dispatch(answer)).rejects.toThrow(/already answered/);
   });
 
-  test("declining the Offer starts no Lesson and records no Evidence", async () => {
+  test("skipping the Offer starts no Lesson and records no Evidence", async () => {
     const { backend, store, entries } = await replayDemo();
     const before = await store.listConcepts();
-    await backend.dispatch({ type: "offer_response", impasseId: last(entries(), "offer")!.impasseId, response: "decline" });
+    await backend.dispatch({ type: "offer_response", impasseId: last(entries(), "offer")!.impasseId, response: "skip" });
     await backend.settled();
     expect(kinds(entries())).not.toContain("lesson_start");
     expect(await store.listConcepts()).toEqual(before);
+  });
+
+  test("a message sent with Ask why starts a Lesson and never reaches the agent", async () => {
+    const { backend, entries } = await replayDemo();
+    const userMessagesBefore = entries().filter((e) => e.kind === "user_message").length;
+    await backend.dispatch({ type: "ask_why", text: "Why does a refresh log me out?" });
+    await backend.settled();
+    expect(last(entries(), "impasse")?.impasse).toMatchObject({ trigger: "ask_why", text: "Why does a refresh log me out?" });
+    expect(last(entries(), "lesson_card")?.step).toBe("probe");
+    expect(entries().filter((e) => e.kind === "user_message")).toHaveLength(userMessagesBefore);
   });
 
   test("Why on an agent change starts a Lesson directly, without an Offer", async () => {

@@ -46,7 +46,7 @@ export const { registry } = defineRegistry(cardCatalog, {
   components: {
     OfferCard: ({ props }) => {
       const { dispatch, done } = useCard();
-      const respond = (response: "accept" | "decline" | "let_agent_continue") =>
+      const respond = (response: "accept" | "skip") =>
         dispatch({ type: "offer_response", impasseId: props.impasseId, response });
       return (
         <Card aria-label="Offer" className="bg-lesson ring-lesson-border">
@@ -55,9 +55,8 @@ export const { registry } = defineRegistry(cardCatalog, {
             <CardDescription>{props.body}</CardDescription>
           </CardHeader>
           <CardFooter className="flex-wrap gap-2">
-            <Button disabled={done} onClick={() => respond("accept")}>Show me</Button>
-            <Button disabled={done} variant="outline" onClick={() => respond("decline")}>Not now</Button>
-            <Button disabled={done} variant="ghost" onClick={() => respond("let_agent_continue")}>Let the agent continue</Button>
+            <Button disabled={done} onClick={() => respond("accept")}>Show me why</Button>
+            <Button disabled={done} variant="ghost" onClick={() => respond("skip")}>Skip</Button>
           </CardFooter>
         </Card>
       );
