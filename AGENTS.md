@@ -17,3 +17,7 @@ The five default triage labels: `needs-triage`, `needs-info`, `ready-for-agent`,
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Team workflow
+
+Each teammate owns one module; pick an unblocked sub-ticket labelled with your `owner:` label, branch from `main`, run `/implement #<issue>`, and open a PR that closes the issue. See `docs/workflow.md`. The `implement`, `tdd`, `code-review`, `codebase-design` and `diagnosing-bugs` skills are vendored in `.agents/skills/`.
