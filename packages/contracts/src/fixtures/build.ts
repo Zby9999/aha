@@ -21,3 +21,9 @@ export function fixtureTimeline(sessionId: string, start: string) {
 export function card(type: CatalogComponent, props: object): CardSpec {
   return { root: "card", elements: { card: { type, props: props as Record<string, unknown>, children: [] } } };
 }
+
+/** Strips the fields the Timeline assigns, so a recorded entry can be appended to another Timeline. */
+export function asNewEntry(entry: TimelineEntry): NewTimelineEntry {
+  const { id: _id, sessionId: _sessionId, seq: _seq, at: _at, version: _version, ...rest } = entry;
+  return rest as NewTimelineEntry;
+}

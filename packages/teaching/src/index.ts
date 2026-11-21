@@ -1,3 +1,1 @@
-import type { ModuleName } from "@aha/contracts";
-
-export const moduleName: ModuleName = "teaching";
+export { createStubTeaching } from "./stub.ts";
