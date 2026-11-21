@@ -138,9 +138,17 @@ Both the intended fix and the smallest fix above pass this check. The check need
 
 ## Demo script
 
-Copy `examples/portfolio/` to a fresh folder outside this repo before the demo (so Pi cannot read this note), run `npm install`, and open that folder in Aha. A user message that starts the scenario:
+Copy `examples/portfolio/` to a fresh folder outside this repo before the demo (so Pi cannot read this note), run `npm install`, and open that folder in Aha.
 
-> I added a login to my portfolio. Now every time I refresh the page I'm logged out and my projects are gone. Can you fix it?
+The demo does not need the agent to fail. It needs two related impasses, so the second Lesson can adapt to what the first one taught. A strong model may fix everything at once if it hears the whole symptom, so the first message describes only the logout:
+
+> I added a login to my portfolio, but every time I refresh the page I'm logged out. Can you fix it?
+
+1. **First fix and first impasse.** The agent most likely keeps the token in `localStorage` (the partial fix). Refresh now works. The user presses **Why** on the change and gets a Lesson on why a page reload forgets JavaScript variables and why the session token must survive it.
+2. **Second impasse.** The user logs out, logs back in, and the projects are gone again. They ask the agent about it, or the repeated symptom triggers an Offer. The Lesson is about data belonging to the user rather than to one login session, and it should be shorter or start from a Probe, because the learner model now records the first Lesson.
+3. **Articulation.** The user judges whether the agent's next change fixes the cause.
+
+If the agent goes straight to the intended fix, step 2 has no live symptom: the user still presses Why on the fix, and adaptation is shown with the replayed fixture session. If the agent saves the projects themselves in `localStorage` (the wrong fix above), use step 3 to let the user catch it; catching the agent's mistake is the highest Mastery Level.
 
 ## File paths
 
