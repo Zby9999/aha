@@ -47,7 +47,7 @@ export function App() {
       <MessageScrollerProvider autoScroll>
         <MessageScroller aria-label="Timeline">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="gap-4 px-4 py-6">
+            <MessageScrollerContent className="gap-4 px-4 pt-6 pb-16">
               {items.map((item) => (
                 <MessageScrollerItem key={item.key} messageId={item.key} scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}>
                   <ViewItemView item={item} dispatch={dispatch} answered={answered} responded={responded} />

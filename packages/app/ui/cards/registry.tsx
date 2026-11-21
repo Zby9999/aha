@@ -49,12 +49,12 @@ export const { registry } = defineRegistry(cardCatalog, {
       const respond = (response: "accept" | "decline" | "let_agent_continue") =>
         dispatch({ type: "offer_response", impasseId: props.impasseId, response });
       return (
-        <Card aria-label="Offer" className="border-lesson-border bg-lesson">
+        <Card aria-label="Offer" className="bg-lesson ring-lesson-border">
           <CardHeader>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.body}</CardDescription>
           </CardHeader>
-          <CardFooter>
+          <CardFooter className="flex-wrap gap-2">
             <Button disabled={done} onClick={() => respond("accept")}>Show me</Button>
             <Button disabled={done} variant="outline" onClick={() => respond("decline")}>Not now</Button>
             <Button disabled={done} variant="ghost" onClick={() => respond("let_agent_continue")}>Let the agent continue</Button>
@@ -73,7 +73,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardContent>
             <Citations citations={props.citations} />
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-wrap gap-2">
             {props.options ? (
               props.options.map((o) => (
                 <Button key={o.id} variant="outline" disabled={done} onClick={() => answer(props.lessonId, { type: "choice", optionId: o.id })}>
@@ -98,7 +98,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardContent>
             <Citations citations={props.citations} />
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-wrap gap-2">
             {props.mode === "judge_fix" ? (
               <>
                 <Button variant="outline" disabled={done} onClick={() => answer(props.lessonId, { type: "fix_judgement", addressesCause: true })}>Fixes the cause</Button>
