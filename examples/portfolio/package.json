@@ -1,0 +1,13 @@
+{
+  "name": "portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "My portfolio site: log in and show off the projects I have built.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

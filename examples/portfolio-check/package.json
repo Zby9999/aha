@@ -1,0 +1,11 @@
+{
+  "name": "portfolio-check",
+  "private": true,
+  "description": "Team-only check that the example portfolio project still reproduces its seeded bug. See docs/example-project.md.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}
