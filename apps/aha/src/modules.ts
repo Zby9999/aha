@@ -11,6 +11,8 @@ export type ModuleConfig = Record<keyof AhaModules, Implementation>;
 export interface BuildContext {
   /** Session the stub agent host replays. */
   script?: readonly TimelineEntry[];
+  /** Delay between streamed words of the stub agent; 0 sends whole messages. */
+  streamDelayMs?: number;
 }
 
 type Registry = { [K in keyof AhaModules]: Partial<Record<Implementation, (ctx: BuildContext) => AhaModules[K]>> };
@@ -20,7 +22,7 @@ type Registry = { [K in keyof AhaModules]: Partial<Record<Implementation, (ctx: 
  * until then asking for it fails with a clear message.
  */
 const REGISTRY: Registry = {
-  agentHost: { stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [] }) },
+  agentHost: { stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [], streamDelayMs: ctx.streamDelayMs ?? 0 }) },
   decisions: { stub: () => createStubDecisions() },
   learnerModel: { stub: () => createStubLearnerModel },
   teaching: { stub: () => createStubTeaching },

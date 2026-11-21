@@ -2,6 +2,7 @@
 
 /* Tailwind must also scan the prebuilt json-render shadcn components. */
 @source "../node_modules/@json-render/shadcn/dist";
+@source "../node_modules/streamdown/dist/*.js";
 
 /*
  * Design tokens (ADR-0004): shadcn/ui neutral theme. Change colours, radius and fonts here only;

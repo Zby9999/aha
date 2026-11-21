@@ -4,10 +4,12 @@ import { asNewEntry } from "@aha/contracts/fixtures";
 export interface StubAgentHostOptions {
   /** A recorded or synthetic session. Each user message replays the agent-host entries that followed the same message. */
   script?: readonly TimelineEntry[];
+  /** When above 0, agent messages stream word by word as agent_message_delta entries, this many ms apart. */
+  streamDelayMs?: number;
 }
 
 /** Agent host stub: no Pi. Replays scripted agent events, or echoes when the message is not in the script. */
-export function createStubAgentHost({ script = [] }: StubAgentHostOptions = {}): AgentHost {
+export function createStubAgentHost({ script = [], streamDelayMs = 0 }: StubAgentHostOptions = {}): AgentHost {
   return {
     async startSession({ timeline }): Promise<AgentSession> {
       const turns = splitIntoTurns(script);
@@ -17,12 +19,22 @@ export function createStubAgentHost({ script = [] }: StubAgentHostOptions = {}):
         async sendUserMessage(text) {
           if (stopped) throw new Error("The agent session has stopped.");
           timeline.append({ kind: "user_message", source: "agent-host", text });
+          const say = async (messageId: string, reply: string) => {
+            if (streamDelayMs > 0) {
+              for (const delta of reply.match(/\S+\s*/g) ?? []) {
+                timeline.append({ kind: "agent_message_delta", source: "agent-host", messageId, delta });
+                await new Promise((resolve) => setTimeout(resolve, streamDelayMs));
+              }
+            }
+            timeline.append({ kind: "agent_message", source: "agent-host", messageId, text: reply });
+          };
           const turn = turns.find((t) => t.text === text && !t.used);
-          if (turn) {
-            turn.used = true;
-            for (const entry of turn.entries) timeline.append(asNewEntry(entry));
-          } else {
-            timeline.append({ kind: "agent_message", source: "agent-host", messageId: `stub-${++replies}`, text: `(stub agent) You said: ${text}` });
+          if (!turn) return say(`stub-${++replies}`, `(stub agent) You said: ${text}`);
+          turn.used = true;
+          for (const entry of turn.entries) {
+            if (entry.kind === "agent_message_delta" && streamDelayMs > 0) continue;
+            if (entry.kind === "agent_message") await say(entry.messageId, entry.text);
+            else timeline.append(asNewEntry(entry));
           }
         },
         setLearnerContext() {},

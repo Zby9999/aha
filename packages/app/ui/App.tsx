@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, FilePen, Lightbulb, Wrench } from "lucide-react";
+import { AlertTriangle, FilePen, Lightbulb } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { Conversation, ConversationContent, ConversationScrollButton } from "./components/ai-elements/conversation.tsx";
+import { Message, MessageContent, MessageResponse } from "./components/ai-elements/message.tsx";
+import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "./components/ai-elements/tool.tsx";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
 import { Input } from "./components/ui/input.tsx";
-import { cn } from "./lib/utils.ts";
+import { toViewItems, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -15,24 +18,25 @@ export function App() {
   const [text, setText] = useState("");
   const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
   const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
-  const visible = entries.filter((e) => e.kind !== "agent_message_delta" && e.kind !== "tool_result");
+  const items = toViewItems(entries);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-6 pb-32">
-      <header className="mb-6 flex items-baseline gap-3">
+    <main className="mx-auto flex h-dvh max-w-3xl flex-col">
+      <header className="flex items-baseline gap-3 border-b px-4 py-3">
         <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
         <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
       </header>
-      <ol className="flex flex-col gap-3" aria-label="Timeline">
-        {visible.map((entry) => (
-          <li key={entry.id} className="flex flex-col">
-            <Entry entry={entry} dispatch={dispatch} done={answered.has(entry.id) || ("impasseId" in entry && entry.kind === "offer" && responded.has(entry.impasseId))} />
-          </li>
-        ))}
-      </ol>
-      {error && <p className="mt-4 text-sm text-destructive" role="alert">{error}</p>}
+      <Conversation aria-label="Timeline">
+        <ConversationContent className="gap-4">
+          {items.map((item) => (
+            <ViewItemView key={item.key} item={item} dispatch={dispatch} answered={answered} responded={responded} />
+          ))}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
       <form
-        className="fixed inset-x-0 bottom-0 border-t bg-background/95 backdrop-blur"
+        className="flex gap-2 border-t px-4 py-3"
         onSubmit={(e) => {
           e.preventDefault();
           if (!text.trim()) return;
@@ -40,23 +44,48 @@ export function App() {
           setText("");
         }}
       >
-        <div className="mx-auto flex max-w-3xl gap-2 px-4 py-3">
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message your agent…" aria-label="Message" />
-          <Button type="submit">Send</Button>
-          <Button type="button" variant="outline" onClick={() => text.trim() && (dispatch({ type: "teach_me", text }), setText(""))}>
-            Teach me this
-          </Button>
-        </div>
+        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message your agent…" aria-label="Message" />
+        <Button type="submit">Send</Button>
+        <Button type="button" variant="outline" onClick={() => text.trim() && (dispatch({ type: "teach_me", text }), setText(""))}>
+          Teach me this
+        </Button>
       </form>
     </main>
   );
 }
 
-function Bubble({ from, children }: { from: "user" | "agent"; children: React.ReactNode }) {
+function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem; dispatch: Dispatch; answered: Set<string>; responded: Set<string> }) {
+  if (item.type === "agent_message") {
+    return (
+      <Message from="assistant">
+        <MessageContent>
+          <MessageResponse isAnimating={item.streaming} mode={item.streaming ? "streaming" : "static"}>{item.text}</MessageResponse>
+        </MessageContent>
+      </Message>
+    );
+  }
+  if (item.type === "tool") {
+    const path = typeof item.args.path === "string" ? item.args.path : "";
+    return (
+      <Tool>
+        <ToolHeader title={`${item.toolName} ${path}`} state={item.state} />
+        <ToolContent>
+          <ToolInput input={item.args} />
+          <ToolOutput {...(item.state === "error" ? { errorText: item.output } : { output: item.output })} />
+        </ToolContent>
+      </Tool>
+    );
+  }
+  const { entry } = item;
+  const done = answered.has(entry.id) || (entry.kind === "offer" && responded.has(entry.impasseId));
+  return <Entry entry={entry} dispatch={dispatch} done={done} />;
+}
+
+function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <p className={cn("max-w-[85%] rounded-xl px-4 py-2.5 text-sm leading-relaxed", from === "user" ? "self-end bg-primary text-primary-foreground" : "border bg-card")}>
-      {children}
-    </p>
+    <Message from="user">
+      <MessageContent>{children}</MessageContent>
+    </Message>
   );
 }
 
@@ -67,11 +96,7 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
 function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean }) {
   switch (entry.kind) {
     case "user_message":
-      return <Bubble from="user">{entry.text}</Bubble>;
-    case "agent_message":
-      return <Bubble from="agent">{entry.text}</Bubble>;
-    case "tool_call":
-      return <Meta icon={<Wrench className="size-3.5" />}>{entry.toolName} {typeof entry.args.path === "string" ? entry.args.path : ""}</Meta>;
+      return <UserMessage>{entry.text}</UserMessage>;
     case "file_edit":
       return (
         <div className="rounded-lg border bg-card px-4 py-3 text-sm">
@@ -101,10 +126,12 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
     case "lesson_card":
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "card_answer":
-      return <Bubble from="user">{answerText(entry.answer)}</Bubble>;
+      return <UserMessage>{answerText(entry.answer)}</UserMessage>;
     case "lesson_end":
       return <Meta>Lesson {entry.outcome}. Back to work.</Meta>;
+    case "tool_call":
     case "tool_result":
+    case "agent_message":
     case "agent_message_delta":
     case "session_start":
     case "session_end":
