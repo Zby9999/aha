@@ -47,9 +47,15 @@ export function App() {
       <MessageScrollerProvider autoScroll>
         <MessageScroller aria-label="Timeline">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="gap-4 px-4 pt-6 pb-16">
+            <MessageScrollerContent className="gap-3 px-3 pt-6 pb-16">
               {items.map((item) => (
-                <MessageScrollerItem key={item.key} messageId={item.key} scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}>
+                <MessageScrollerItem
+                  key={item.key}
+                  messageId={item.key}
+                  scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}
+                  // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
+                  className="p-1"
+                >
                   <ViewItemView item={item} dispatch={dispatch} answered={answered} responded={responded} />
                 </MessageScrollerItem>
               ))}
