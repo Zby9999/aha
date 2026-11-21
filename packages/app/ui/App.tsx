@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, GraduationCap, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowUp, GraduationCap, RotateCw, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
@@ -152,7 +152,7 @@ function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: D
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
-  return <Entry entry={entry} dispatch={dispatch} done={session.isDone(entry)} canStartLesson={session.canStartLesson} />;
+  return <Entry entry={entry} dispatch={dispatch} done={session.isDone(entry)} canStartLesson={session.canStartLesson} canRetry={session.canRetry(entry)} />;
 }
 
 function UserMessage({ children }: { children: React.ReactNode }) {
@@ -216,7 +216,7 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean; canStartLesson: boolean }) {
+function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean; canStartLesson: boolean; canRetry: boolean }) {
   switch (entry.kind) {
     case "user_message":
       return <UserMessage>{entry.text}</UserMessage>;
@@ -267,6 +267,19 @@ function Entry({ entry, dispatch, done, canStartLesson }: { entry: TimelineEntry
       return <UserMessage>{answerText(entry.answer)}</UserMessage>;
     case "lesson_question":
       return <UserMessage>{entry.text}</UserMessage>;
+    case "lesson_error":
+      return (
+        <div role="alert" className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span className="flex-1">{entry.message} Your answer is saved.</span>
+          {canRetry && (
+            <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
+              <RotateCw />
+              Retry
+            </Button>
+          )}
+        </div>
+      );
     case "lesson_end":
       return <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>;
     case "tool_call":

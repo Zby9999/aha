@@ -209,6 +209,97 @@ describe("session Mode", () => {
   });
 });
 
+describe("Lesson failures and retries", () => {
+  async function backendWith(change: (m: AhaModules) => AhaModules) {
+    const errors: unknown[] = [];
+    const backend = await createBackend({
+      modules: change(buildModules(allStubs, { script: demoSession })),
+      projectDir,
+      sessionId: DEMO_SESSION_ID,
+      onLearningError: (e) => errors.push(e),
+    });
+    return { backend, errors, entries: () => backend.timeline.entries() };
+  }
+
+  test("a failing Evidence write gate never stops the Lesson from starting", async () => {
+    const { backend, errors, entries } = await backendWith((m) => ({
+      ...m,
+      decisions: { ...m.decisions, gateEvidence: async () => { throw new Error("write gate is down"); } },
+    }));
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.settled();
+    expect(last(entries(), "lesson_card")?.step).toBe("probe");
+    expect(currentMode(entries())).toBe("learning");
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  test("a Learner Model that cannot be read returns the session to work mode", async () => {
+    const { backend, errors, entries } = await backendWith((m) => ({
+      ...m,
+      learnerModel: (o) => ({ ...m.learnerModel(o), listConcepts: async () => { throw new Error("learner model is down"); } }),
+    }));
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.settled();
+    expect(kinds(entries())).not.toContain("lesson_start");
+    expect(currentMode(entries())).toBe("work");
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  test("when teaching fails after an answer, the card shows an error and the user can retry", async () => {
+    let failures = 1;
+    const { backend, entries } = await backendWith((m) => ({
+      ...m,
+      teaching: (o) => {
+        const inner = m.teaching(o);
+        return { ...inner, answer: async (input) => (failures-- > 0 ? Promise.reject(new Error("model timed out")) : inner.answer(input)) };
+      },
+    }));
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.settled();
+    const probe = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: probe.id, answer: { type: "text", text: "x" } });
+    await backend.settled();
+    expect(last(entries(), "lesson_error")).toMatchObject({ lessonId: probe.lessonId, cardEntryId: probe.id });
+    expect(currentMode(entries())).toBe("learning");
+
+    await backend.dispatch({ type: "retry_answer", lessonId: probe.lessonId, cardEntryId: probe.id });
+    await backend.settled();
+    expect(last(entries(), "lesson_card")?.step).toBe("articulate");
+    await expect(backend.dispatch({ type: "retry_answer", lessonId: probe.lessonId, cardEntryId: probe.id })).rejects.toThrow(/nothing to retry/i);
+  });
+
+  test("Back to work still works after a failed answer", async () => {
+    const { backend, entries } = await backendWith((m) => ({
+      ...m,
+      teaching: (o) => ({ ...m.teaching(o), answer: async () => { throw new Error("model timed out"); } }),
+    }));
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.settled();
+    const probe = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: probe.id, answer: { type: "text", text: "x" } });
+    await backend.settled();
+    await backend.dispatch({ type: "back_to_work" });
+    await backend.settled();
+    expect(currentMode(entries())).toBe("work");
+  });
+
+  test("after Back to work a new Lesson gets a new id, and the old Lesson's cards stay closed", async () => {
+    const { backend, entries } = await replayDemo();
+    await backend.dispatch({ type: "ask_why", text: "First?" });
+    await backend.settled();
+    const oldProbe = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "back_to_work" });
+    await backend.settled();
+    await backend.dispatch({ type: "ask_why", text: "Second?" });
+    await backend.settled();
+    const newProbe = last(entries(), "lesson_card")!;
+    expect(newProbe.lessonId).not.toBe(oldProbe.lessonId);
+    await expect(
+      backend.dispatch({ type: "card_answer", lessonId: oldProbe.lessonId, cardEntryId: oldProbe.id, answer: { type: "text", text: "late" } }),
+    ).rejects.toThrow(/no longer running/);
+  });
+});
+
 describe("module configuration", () => {
   test("each module can be set to stub or real in the config file or the environment", () => {
     const file = join(import.meta.dirname, "../aha.config.json");
