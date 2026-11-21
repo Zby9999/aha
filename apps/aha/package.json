@@ -15,5 +15,9 @@
     "@aha/decisions": "workspace:*",
     "@aha/learner-model": "workspace:*",
     "@aha/teaching": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "ws": "^8.23.0"
   }
 }

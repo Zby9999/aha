@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { describe, expect, test } from "vitest";
 import { createTimeline, isKind, type Citation, type TimelineEntry } from "../src/index.ts";
 import {
@@ -14,11 +14,21 @@ const repoRoot = join(import.meta.dirname, "../../..");
 const projectRoot = join(repoRoot, "examples/portfolio");
 const learnerModelDir = join(import.meta.dirname, "../fixtures/learner-model/after-demo");
 
+/** Project-relative path with `/` separators, as fixtures and citations write them on every OS. */
+function toPosix(path: string): string {
+  return path.split(sep).join("/");
+}
+
+/** File text with LF line endings, so assertions hold on a Windows CRLF checkout too. */
+function readText(path: string): string {
+  return readFileSync(path, "utf8").replace(/\r\n/g, "\n");
+}
+
 function filesUnder(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return name === "node_modules" ? [] : filesUnder(path);
-    return [relative(projectRoot, path)];
+    return [toPosix(relative(projectRoot, path))];
   });
 }
 
@@ -70,7 +80,7 @@ describe("demo session fixture", () => {
 
   test("cited line ranges exist in the cited files", () => {
     const bad = demoSession.flatMap((e) =>
-      citationsIn(e).filter((c) => (c.endLine ?? c.startLine ?? 0) > readFileSync(join(projectRoot, c.path), "utf8").split("\n").length),
+      citationsIn(e).filter((c) => (c.endLine ?? c.startLine ?? 0) > readText(join(projectRoot, c.path)).split("\n").length),
     );
     expect(bad).toEqual([]);
   });
@@ -125,7 +135,7 @@ describe("expected learner model after the demo session", () => {
     expect(existsSync(join(learnerModelDir, "index.md"))).toBe(true);
     expect(existsSync(join(learnerModelDir, "changelog.md"))).toBe(true);
     for (const concept of expectedConceptsAfterDemo) {
-      const markdown = readFileSync(join(learnerModelDir, "concepts", `${concept.id}.md`), "utf8");
+      const markdown = readText(join(learnerModelDir, "concepts", `${concept.id}.md`));
       expect(markdown).toContain(`mastery: ${concept.mastery}`);
       const evidenceIds = expectedEvidenceAfterDemo.filter((e) => e.conceptId === concept.id).map((e) => e.id);
       for (const id of evidenceIds) expect(markdown).toContain(`${id} ·`);
@@ -133,7 +143,7 @@ describe("expected learner model after the demo session", () => {
   });
 
   test("session log lists every Evidence", () => {
-    const log = readFileSync(join(learnerModelDir, "sessions", `${DEMO_SESSION_ID}.md`), "utf8");
+    const log = readText(join(learnerModelDir, "sessions", `${DEMO_SESSION_ID}.md`));
     for (const evidence of expectedEvidenceAfterDemo) {
       expect(log).toContain(`## ${evidence.id}\n- concept: ${evidence.conceptId}`);
     }

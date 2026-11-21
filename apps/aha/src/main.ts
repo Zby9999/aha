@@ -16,6 +16,6 @@ const backend = await createBackend({
 });
 
 await startServer({ backend, port, uiDir: join(here, "../../../packages/app/dist/ui") });
-console.log(`Aha is running at http://localhost:${port} (modules: ${JSON.stringify(config)})`);
+console.log(`Aha is running at http://127.0.0.1:${port} (modules: ${JSON.stringify(config)})`);
 // Replay after the server is up, so an open page shows the agent's replies streaming in.
 if (config.agentHost === "stub" && process.env.AHA_REPLAY !== "off") await replayUntilOffer(backend, demoSession);
