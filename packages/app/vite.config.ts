@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [react()],
   build: { outDir: "../dist/ui", emptyOutDir: true },
   // `pnpm dev:ui` talks to a backend started with `pnpm start` in apps/aha.
-  server: { proxy: { "/ws": { target: "ws://localhost:4317", ws: true } } },
+  // The backend only accepts its own Origin, so the proxy presents it.
+  server: { proxy: { "/ws": { target: "ws://127.0.0.1:4317", ws: true, headers: { origin: "http://127.0.0.1:4317" } } } },
 });

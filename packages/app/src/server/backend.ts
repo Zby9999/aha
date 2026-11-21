@@ -1,5 +1,6 @@
 import { readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import * as nodePath from "node:path";
+import { join } from "node:path";
 import {
   createTimeline,
   type AgentSession,
@@ -182,7 +183,15 @@ export function snapshot(projectDir: string): ProjectSnapshot {
     readdirSync(dir).flatMap((name) => {
       const path = join(dir, name);
       if (statSync(path).isDirectory()) return IGNORED_DIRS.has(name) ? [] : walk(path);
-      return [relative(projectDir, path)];
+      return [projectPath(projectDir, path)];
     });
   return { projectDir, files: walk(projectDir).sort() };
+}
+
+/**
+ * The path of `file` relative to `projectDir`, always with `/` separators, as citations and fixtures write it.
+ * `paths` is the platform's path module; tests pass `path.win32` to check the Windows case.
+ */
+export function projectPath(projectDir: string, file: string, paths: Pick<typeof nodePath, "relative" | "sep"> = nodePath): string {
+  return paths.relative(projectDir, file).split(paths.sep).join("/");
 }
