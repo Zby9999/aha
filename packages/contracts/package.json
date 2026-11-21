@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@json-render/core": "0.23.2"
+    "@json-render/core": "0.23.2",
+    "zod": "^4.6.7"
   }
 }
