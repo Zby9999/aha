@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { toViewItems } from "../ui/timelineView.ts";
+import { sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -20,4 +20,33 @@ test("a tool call shows as running until its result arrives", () => {
   expect(toViewItems(t.entries())).toEqual([
     { type: "tool", key: "s:0", toolName: "read", args: { path: "server.js" }, state: "error", output: "const x = 1;" },
   ]);
+});
+
+test("in learning mode Why, Ask why and Offers are off and only the running Lesson's cards can be used", () => {
+  const t = createTimeline({ sessionId: "s" });
+  const impasse = (id: string) => ({ id, trigger: "detected" as const, title: `Gap ${id}`, conceptIds: [], sourceEntryIds: [] });
+  t.append({ kind: "impasse", source: "decisions", impasse: impasse("i1") });
+  const offer1 = t.append({ kind: "offer", source: "teaching", impasseId: "i1", card: { root: "r", elements: {} } });
+  t.append({ kind: "impasse", source: "decisions", impasse: impasse("i2") });
+  const offer2 = t.append({ kind: "offer", source: "teaching", impasseId: "i2", card: { root: "r", elements: {} } });
+  expect(sessionView(t.entries())).toMatchObject({ mode: "work", canStartLesson: true });
+  expect(sessionView(t.entries()).isDone(offer2)).toBe(false);
+
+  t.append({ kind: "offer_response", source: "app", impasseId: "i1", response: "accept" });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "probe", card: { root: "r", elements: {} } });
+  const learning = sessionView(t.entries());
+  expect(learning).toMatchObject({ mode: "learning", canStartLesson: false, lessonTitle: "Gap i1" });
+  expect(learning.isDone(offer1)).toBe(true);
+  expect(learning.isDone(offer2)).toBe(true);
+  expect(learning.isDone(probe)).toBe(false);
+
+  t.append({ kind: "lesson_end", source: "teaching", lessonId: "l1", outcome: "abandoned" });
+  t.append({ kind: "mode_change", source: "app", mode: "work", impasseId: "i1" });
+  const work = sessionView(t.entries());
+  expect(work).toMatchObject({ mode: "work", canStartLesson: true });
+  expect(work.isDone(offer2)).toBe(false);
+  expect(work.isDone(probe)).toBe(true);
+  expect(toViewItems(t.entries()).some((i) => i.type === "entry" && i.entry.kind === "mode_change")).toBe(false);
 });

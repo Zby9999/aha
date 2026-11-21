@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowUp, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowUp, GraduationCap, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { toViewItems, type ViewItem } from "./timelineView.ts";
+import { sessionView, toViewItems, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -37,12 +37,15 @@ export function App() {
   const [text, setText] = useState("");
   const [askWhy, setAskWhy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
-  const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
   const items = toViewItems(entries);
+  const session = sessionView(entries);
+  const learning = session.mode === "learning";
+  // Ask why starts a Lesson, so it cannot be on in learning mode.
+  const asking = askWhy && !learning;
 
   return (
-    <main className="mx-auto flex h-dvh max-w-3xl flex-col">
+    // data-mode lets a layout follow the Mode (Explain in learning mode, Preview in work mode; #27).
+    <main className="mx-auto flex h-dvh max-w-3xl flex-col" data-mode={session.mode}>
       <header className="flex items-baseline gap-3 border-b px-4 py-3">
         <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
         <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
@@ -59,7 +62,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} answered={answered} responded={responded} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -75,12 +78,25 @@ export function App() {
           e.preventDefault();
           if (!text.trim()) return;
           // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
-          dispatch(askWhy ? { type: "ask_why", text } : { type: "send_message", text });
+          // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
+          dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text });
           setText("");
           setAskWhy(false);
         }}
       >
-        <InputGroup className={askWhy ? "ring-1 ring-lesson-border" : undefined}>
+        {learning && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
+            <GraduationCap className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">
+              Learning: {session.lessonTitle ?? "starting a Lesson…"}
+            </span>
+            <Button type="button" size="sm" variant="outline" onClick={() => dispatch({ type: "back_to_work" })}>
+              <ArrowLeft />
+              Back to work
+            </Button>
+          </div>
+        )}
+        <InputGroup className={asking || learning ? "ring-1 ring-lesson-border" : undefined}>
           <InputGroupTextarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -90,13 +106,14 @@ export function App() {
                 formRef.current?.requestSubmit();
               }
             }}
-            placeholder={askWhy ? "What do you want to understand?" : "Message your agent…"}
+            placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
             aria-label="Message"
             className="p-3"
           />
           <InputGroupAddon align="block-end">
             <Toggle
-              pressed={askWhy}
+              pressed={asking}
+              disabled={!session.canStartLesson}
               onPressedChange={setAskWhy}
               variant="outline"
               size="sm"
@@ -112,7 +129,7 @@ export function App() {
               variant="default"
               className="ml-auto rounded-full"
               disabled={!text.trim()}
-              aria-label={askWhy ? "Ask" : "Send"}
+              aria-label={asking || learning ? "Ask" : "Send"}
             >
               <ArrowUp />
             </InputGroupButton>
@@ -123,7 +140,7 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem; dispatch: Dispatch; answered: Set<string>; responded: Set<string> }) {
+function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: Dispatch; session: SessionView }) {
   if (item.type === "agent_message") {
     return (
       <Message>
@@ -135,8 +152,7 @@ function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem;
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
-  const done = answered.has(entry.id) || (entry.kind === "offer" && responded.has(entry.impasseId));
-  return <Entry entry={entry} dispatch={dispatch} done={done} />;
+  return <Entry entry={entry} dispatch={dispatch} done={session.isDone(entry)} canStartLesson={session.canStartLesson} />;
 }
 
 function UserMessage({ children }: { children: React.ReactNode }) {
@@ -200,7 +216,7 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean }) {
+function Entry({ entry, dispatch, done, canStartLesson }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean; canStartLesson: boolean }) {
   switch (entry.kind) {
     case "user_message":
       return <UserMessage>{entry.text}</UserMessage>;
@@ -211,7 +227,7 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
             <FilePen className="size-4 text-muted-foreground" />
             <span>Edited</span>
             <Badge variant="outline" className="font-mono">{entry.path}</Badge>
-            <Button size="xs" variant="secondary" className="ml-auto" onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
+            <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
             <CodeBlock size="sm" className="mt-2">
@@ -249,8 +265,10 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "card_answer":
       return <UserMessage>{answerText(entry.answer)}</UserMessage>;
+    case "lesson_question":
+      return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_end":
-      return <Meta>Lesson {entry.outcome}. Back to work.</Meta>;
+      return <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>;
     case "tool_call":
     case "tool_result":
     case "agent_message":
@@ -258,6 +276,7 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
     case "session_start":
     case "session_end":
     case "lesson_start":
+    case "mode_change":
     case "answer_assessment":
     case "explanation_flagged":
     case "unknown_agent_event":

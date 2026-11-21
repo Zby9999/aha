@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { createBackend } from "@aha/app";
-import type { AhaModules, LearnerModelStore, TimelineEntry } from "@aha/contracts";
+import { currentMode, type AhaModules, type Evidence, type LearnerModelStore, type TimelineEntry } from "@aha/contracts";
 import { DEMO_SESSION_ID, demoSession } from "@aha/contracts/fixtures";
 import { describe, expect, test } from "vitest";
 import { buildModules, MODULE_KEYS, readConfig, type ModuleConfig } from "../src/modules.ts";
@@ -14,10 +14,18 @@ const allStubs = Object.fromEntries(MODULE_KEYS.map((k) => [k, "stub"])) as Modu
 async function replayDemo() {
   const modules = buildModules(allStubs, { script: demoSession });
   let store: LearnerModelStore | undefined;
-  const withStore: AhaModules = { ...modules, learnerModel: (o) => (store = modules.learnerModel(o)) };
+  const evidence: Evidence[] = [];
+  const withStore: AhaModules = {
+    ...modules,
+    learnerModel: (o) => {
+      const inner = modules.learnerModel(o);
+      store = { ...inner, appendEvidence: async (e) => (evidence.push(e), inner.appendEvidence(e)) };
+      return store;
+    },
+  };
   const backend = await createBackend({ modules: withStore, projectDir, sessionId: DEMO_SESSION_ID, onLearningError: (e) => { throw e; } });
   await replayUntilOffer(backend, demoSession);
-  return { backend, store: store!, entries: () => backend.timeline.entries() };
+  return { backend, store: store!, evidence, entries: () => backend.timeline.entries() };
 }
 
 const kinds = (entries: readonly TimelineEntry[]) => entries.map((e) => e.kind);
@@ -95,6 +103,109 @@ describe("session replay with stub modules", () => {
     expect(last(entries(), "impasse")?.impasse).toMatchObject({ trigger: "why", sourceEntryIds: [edit.id] });
     expect(last(entries(), "lesson_card")?.step).toBe("probe");
     expect(entries().filter((e) => e.kind === "offer")).toHaveLength(offersBefore);
+  });
+});
+
+describe("session Mode", () => {
+  const modes = (entries: readonly TimelineEntry[]) => entries.flatMap((e) => (e.kind === "mode_change" ? [e.mode] : []));
+
+  async function inLesson() {
+    const demo = await replayDemo();
+    await demo.backend.dispatch({ type: "offer_response", impasseId: last(demo.entries(), "offer")!.impasseId, response: "accept" });
+    await demo.backend.settled();
+    return demo;
+  }
+
+  test("starting a Lesson switches to learning mode, and completing it returns to work mode", async () => {
+    const { backend, entries } = await replayDemo();
+    expect(currentMode(entries())).toBe("work");
+    await backend.dispatch({ type: "offer_response", impasseId: last(entries(), "offer")!.impasseId, response: "accept" });
+    expect(currentMode(entries())).toBe("learning");
+    await backend.settled();
+    const probe = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: probe.id, answer: { type: "text", text: "x" } });
+    await backend.settled();
+    const articulate = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: articulate.id, answer: { type: "text", text: "y" } });
+    await backend.settled();
+    expect(modes(entries())).toEqual(["learning", "work"]);
+    expect(last(entries(), "mode_change")!.seq).toBeGreaterThan(last(entries(), "lesson_end")!.seq);
+  });
+
+  test("a second Lesson cannot start while one is running, by Why, Ask why or an Offer", async () => {
+    const { backend, entries } = await inLesson();
+    const edit = last(entries(), "file_edit")!;
+    await expect(backend.dispatch({ type: "why", entryId: edit.id })).rejects.toThrow(/already running/);
+    await expect(backend.dispatch({ type: "ask_why", text: "And this?" })).rejects.toThrow(/already running/);
+    await expect(backend.dispatch({ type: "offer_response", impasseId: "impasse-9", response: "accept" })).rejects.toThrow(/already running/);
+    await backend.settled();
+    expect(entries().filter((e) => e.kind === "lesson_start")).toHaveLength(1);
+    expect(entries().filter((e) => e.kind === "impasse")).toHaveLength(1);
+  });
+
+  test("two Lesson requests in a row start only one Lesson, even before the first has started", async () => {
+    const { backend, entries } = await replayDemo();
+    const first = backend.dispatch({ type: "ask_why", text: "Why does a refresh log me out?" });
+    const second = backend.dispatch({ type: "why", entryId: last(entries(), "file_edit")!.id });
+    await first;
+    await expect(second).rejects.toThrow(/already running/);
+    await backend.settled();
+    expect(entries().filter((e) => e.kind === "lesson_start")).toHaveLength(1);
+  });
+
+  test("messages in learning mode are follow-ups inside the Lesson and never reach the agent", async () => {
+    const { backend, entries } = await inLesson();
+    const lessonId = last(entries(), "lesson_start")!.lessonId;
+    const userMessagesBefore = entries().filter((e) => e.kind === "user_message").length;
+    await backend.dispatch({ type: "send_message", text: "What is a token?" });
+    await backend.settled();
+    expect(last(entries(), "lesson_question")).toMatchObject({ lessonId, text: "What is a token?" });
+    expect(last(entries(), "lesson_card")).toMatchObject({ lessonId, step: "explain" });
+    expect(entries().filter((e) => e.kind === "user_message")).toHaveLength(userMessagesBefore);
+    expect(entries().filter((e) => e.kind === "lesson_start")).toHaveLength(1);
+    expect(currentMode(entries())).toBe("learning");
+  });
+
+  test("Back to work ends the Lesson early, returns to work mode and records no Evidence", async () => {
+    const { backend, entries, evidence } = await inLesson();
+    const evidenceBefore = evidence.length;
+    const probe = last(entries(), "lesson_card")!;
+    await backend.dispatch({ type: "back_to_work" });
+    await backend.settled();
+    expect(last(entries(), "lesson_end")).toMatchObject({ lessonId: probe.lessonId, outcome: "abandoned" });
+    expect(currentMode(entries())).toBe("work");
+    expect(evidence).toHaveLength(evidenceBefore);
+    // The abandoned Lesson's cards no longer accept answers; work messages go to the agent again.
+    await expect(
+      backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: probe.id, answer: { type: "text", text: "late" } }),
+    ).rejects.toThrow(/no longer running/);
+    await backend.dispatch({ type: "send_message", text: "Carry on" });
+    expect(last(entries(), "user_message")?.text).toBe("Carry on");
+  });
+
+  test("a Lesson that fails to start returns the session to work mode", async () => {
+    const modules = buildModules(allStubs, { script: demoSession });
+    const failing: AhaModules = {
+      ...modules,
+      teaching: (o) => ({ ...modules.teaching(o), startLesson: async () => { throw new Error("teaching is down"); } }),
+    };
+    const errors: unknown[] = [];
+    const backend = await createBackend({ modules: failing, projectDir, sessionId: DEMO_SESSION_ID, onLearningError: (e) => errors.push(e) });
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.settled();
+    expect(errors).toHaveLength(1);
+    expect(currentMode(backend.timeline.entries())).toBe("work");
+    await backend.dispatch({ type: "ask_why", text: "Why, again?" });
+    expect(currentMode(backend.timeline.entries())).toBe("learning");
+  });
+
+  test("Back to work right after a Lesson request abandons that Lesson once it has started", async () => {
+    const { backend, entries } = await replayDemo();
+    await backend.dispatch({ type: "ask_why", text: "Why?" });
+    await backend.dispatch({ type: "back_to_work" });
+    await backend.settled();
+    expect(kinds(entries()).filter((k) => k === "lesson_start" || k === "lesson_end")).toEqual(["lesson_start", "lesson_end"]);
+    expect(modes(entries())).toEqual(["learning", "work"]);
   });
 });
 

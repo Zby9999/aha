@@ -1,5 +1,5 @@
 import type { CardAnswer, CardSpec } from "./cards.ts";
-import type { AnsweredStep, ConceptId, Impasse, LessonStep, OfferResponse } from "./learning.ts";
+import type { AnsweredStep, ConceptId, Impasse, LessonStep, Mode, OfferResponse } from "./learning.ts";
 import type { ModuleName } from "./module-name.ts";
 
 /**
@@ -31,6 +31,12 @@ export interface TimelinePayloads {
 
   // Learning, written by the app, decisions and teaching.
   impasse: { impasse: Impasse };
+  /**
+   * The session's Mode changed; written by the app, which owns the Mode. "learning" is written when a Lesson is
+   * requested for the Impasse (accepting its Offer, Why or Ask why), before teaching starts it. "work" is written when
+   * that Lesson ends, completed or abandoned (Back to work). The Mode before the first entry is "work".
+   */
+  mode_change: { mode: Mode; impasseId: string };
   offer: { impasseId: string; card: CardSpec };
   offer_response: { impasseId: string; response: OfferResponse };
   lesson_start: { lessonId: string; impasseId: string };
@@ -47,6 +53,8 @@ export interface TimelinePayloads {
     conceptIds: ConceptId[];
     result: "correct" | "partial" | "incorrect";
   };
+  /** A composer message sent in learning mode: a follow-up question inside the Lesson. It never reaches the agent. */
+  lesson_question: { lessonId: string; text: string };
   explanation_flagged: { lessonId: string; cardEntryId: string; reason?: string };
   lesson_end: { lessonId: string; outcome: "completed" | "abandoned" };
 }
@@ -88,6 +96,22 @@ export interface Timeline {
 
 export function isKind<K extends TimelineKind>(entry: TimelineEntry, kind: K): entry is Extract<TimelineEntry, { kind: K }> {
   return entry.kind === kind;
+}
+
+/** The session's current Mode: the last `mode_change`, or "work" before any. */
+export function currentMode(entries: readonly TimelineEntry[]): Mode {
+  return entries.findLast((e) => e.kind === "mode_change")?.mode ?? "work";
+}
+
+/**
+ * The Lesson that learning mode is running, or null in work mode. `lessonId` is missing in the short time between
+ * entering learning mode and teaching writing `lesson_start`.
+ */
+export function activeLesson(entries: readonly TimelineEntry[]): { impasseId: string; lessonId?: string } | null {
+  const change = entries.findLast((e): e is TimelineEntryOf<"mode_change"> => e.kind === "mode_change");
+  if (change?.mode !== "learning") return null;
+  const start = entries.findLast((e): e is TimelineEntryOf<"lesson_start"> => e.kind === "lesson_start" && e.seq > change.seq && e.impasseId === change.impasseId);
+  return start ? { impasseId: change.impasseId, lessonId: start.lessonId } : { impasseId: change.impasseId };
 }
 
 export interface CreateTimelineOptions {

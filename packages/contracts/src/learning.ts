@@ -29,6 +29,12 @@ export interface Impasse {
   text?: string;
 }
 
+/**
+ * The session is always in exactly one Mode. In work mode the agent builds. In learning mode one Lesson runs:
+ * no other Lesson can start and composer messages are follow-up questions inside it.
+ */
+export type Mode = "work" | "learning";
+
 export const LESSON_STEPS = ["probe", "explain", "articulate"] as const;
 export type LessonStep = (typeof LESSON_STEPS)[number];
 /** Steps whose card the user answers. */
