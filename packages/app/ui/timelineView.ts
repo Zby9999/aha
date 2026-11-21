@@ -8,7 +8,7 @@ export type ViewItem =
   | { type: "tool"; key: string; toolName: string; args: Record<string, unknown>; state: ToolState; output?: string }
   | { type: "entry"; key: string; entry: TimelineEntry };
 
-const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "answer_assessment", "explanation_flagged"]);
+const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "lesson_card", "answer_assessment", "explanation_flagged"]);
 
 export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
   const items: ViewItem[] = [];

@@ -1,11 +1,14 @@
 import { useRef, useState } from "react";
-import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowUp, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
+import { isKind, type CardAnswer, type TimelineEntry, type UserAction } from "@aha/contracts";
+import { AlertTriangle, ArrowUp, FilePen, FileText, HelpCircle, Lightbulb, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { LearningPanel } from "./LearningPanel.tsx";
+import { ProjectPreview } from "./ProjectPreview.tsx";
+import { Workspace } from "./Workspace.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
-import { Message, MessageContent } from "@/components/ui/message";
+import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
 import {
@@ -33,24 +36,29 @@ import { useTimeline } from "./useTimeline.ts";
 type Dispatch = (action: UserAction) => void;
 
 export function App() {
-  const { entries, error, dispatch } = useTimeline();
+  const { entries, error, connected, dispatch } = useTimeline();
   const [text, setText] = useState("");
   const [askWhy, setAskWhy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
   const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
+  const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
   const items = toViewItems(entries);
+  const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
+  const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
+  const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
 
   return (
-    <main className="mx-auto flex h-dvh max-w-3xl flex-col">
-      <header className="flex items-baseline gap-3 border-b px-4 py-3">
-        <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
-        <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
-      </header>
+    <Workspace
+      projectName={projectName}
+      connected={connected}
+      preview={<ProjectPreview lastEdit={lastEdit} />}
+      explain={(visible) => <LearningPanel cards={lessonCards} answered={answered} dispatch={dispatch} visible={visible} />}
+    >
       <MessageScrollerProvider autoScroll>
-        <MessageScroller aria-label="Timeline">
+        <MessageScroller aria-label="Timeline" className="flex-1">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="gap-3 px-3 pt-6 pb-16">
+            <MessageScrollerContent className="workspace-chat-content gap-3">
               {items.map((item) => (
                 <MessageScrollerItem
                   key={item.key}
@@ -59,7 +67,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} answered={answered} responded={responded} />
+                  <ViewItemView item={item} dispatch={dispatch} responded={responded} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -70,17 +78,17 @@ export function App() {
       {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
       <form
         ref={formRef}
-        className="px-4 pt-2 pb-4"
+        className="workspace-composer"
         onSubmit={(e) => {
           e.preventDefault();
           if (!text.trim()) return;
           // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
-          dispatch(askWhy ? { type: "ask_why", text } : { type: "send_message", text });
+          if (!dispatch(askWhy ? { type: "ask_why", text } : { type: "send_message", text })) return;
           setText("");
           setAskWhy(false);
         }}
       >
-        <InputGroup className={askWhy ? "ring-1 ring-lesson-border" : undefined}>
+        <InputGroup className={askWhy ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
           <InputGroupTextarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -111,7 +119,7 @@ export function App() {
               size="icon-sm"
               variant="default"
               className="ml-auto rounded-full"
-              disabled={!text.trim()}
+              disabled={!connected || !text.trim()}
               aria-label={askWhy ? "Ask" : "Send"}
             >
               <ArrowUp />
@@ -119,15 +127,19 @@ export function App() {
           </InputGroupAddon>
         </InputGroup>
       </form>
-    </main>
+    </Workspace>
   );
 }
 
-function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem; dispatch: Dispatch; answered: Set<string>; responded: Set<string> }) {
+function ViewItemView({ item, dispatch, responded }: { item: ViewItem; dispatch: Dispatch; responded: Set<string> }) {
   if (item.type === "agent_message") {
     return (
-      <Message>
-        <MessageContent>
+      <Message className="gap-3">
+        <MessageAvatar className="workspace-reply-mark self-start">
+          <Sparkles className="size-4" aria-hidden="true" />
+        </MessageAvatar>
+        <MessageContent className="gap-1">
+          <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
           <Markdown streaming={item.streaming}>{item.text}</Markdown>
         </MessageContent>
       </Message>
@@ -135,7 +147,7 @@ function ViewItemView({ item, dispatch, answered, responded }: { item: ViewItem;
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
-  const done = answered.has(entry.id) || (entry.kind === "offer" && responded.has(entry.impasseId));
+  const done = entry.kind === "offer" && responded.has(entry.impasseId);
   return <Entry entry={entry} dispatch={dispatch} done={done} />;
 }
 
@@ -206,11 +218,11 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
       return <UserMessage>{entry.text}</UserMessage>;
     case "file_edit":
       return (
-        <div className="rounded-lg border bg-card px-4 py-3 text-sm">
-          <div className="flex items-center gap-2">
-            <FilePen className="size-4 text-muted-foreground" />
+        <div className="rounded-lg border bg-card px-3 py-3 text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <FilePen className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
-            <Badge variant="outline" className="font-mono">{entry.path}</Badge>
+            <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>
             <Button size="xs" variant="secondary" className="ml-auto" onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
@@ -245,8 +257,6 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
       return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
-    case "lesson_card":
-      return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "card_answer":
       return <UserMessage>{answerText(entry.answer)}</UserMessage>;
     case "lesson_end":
@@ -258,6 +268,7 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
     case "session_start":
     case "session_end":
     case "lesson_start":
+    case "lesson_card":
     case "answer_assessment":
     case "explanation_flagged":
     case "unknown_agent_event":
