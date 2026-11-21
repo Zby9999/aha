@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>My Portfolio</h1>
+    <p>Things I have built while learning to code.</p>
+  </header>
+
+  <main>
+    <section id="login" hidden>
+      <h2>Log in</h2>
+      <form id="login-form">
+        <label>
+          Username
+          <input id="username" name="username" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit">Log in</button>
+        <p id="login-error" class="error"></p>
+      </form>
+    </section>
+
+    <section id="portfolio" hidden>
+      <div class="toolbar">
+        <p>Logged in as <strong id="current-user"></strong></p>
+        <button id="logout" type="button">Log out</button>
+      </div>
+
+      <h2>My projects</h2>
+      <ul id="projects"></ul>
+
+      <h2>Add a project</h2>
+      <form id="project-form">
+        <label>
+          Title
+          <input id="project-title" name="title" required>
+        </label>
+        <label>
+          Description
+          <textarea id="project-description" name="description" rows="3"></textarea>
+        </label>
+        <label>
+          Link
+          <input id="project-link" name="link" type="url" placeholder="https://">
+        </label>
+        <button type="submit">Add project</button>
+        <p id="project-error" class="error"></p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
