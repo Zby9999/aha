@@ -24,11 +24,11 @@ export type AgentHostErrorCode = "pi_missing" | "not_logged_in" | "start_failed"
 
 /** Thrown (or reported) by the agent host with a message a novice can act on. */
 export class AgentHostError extends Error {
-  constructor(
-    readonly code: AgentHostErrorCode,
-    message: string,
-  ) {
+  readonly code: AgentHostErrorCode;
+
+  constructor(code: AgentHostErrorCode, message: string) {
     super(message);
+    this.code = code;
     this.name = "AgentHostError";
   }
 }
@@ -88,11 +88,11 @@ export interface BackgroundRunResult {
 export type BackgroundAgentErrorCode = "not_logged_in" | "tool_not_allowed" | "aborted" | "failed";
 
 export class BackgroundAgentError extends Error {
-  constructor(
-    readonly code: BackgroundAgentErrorCode,
-    message: string,
-  ) {
+  readonly code: BackgroundAgentErrorCode;
+
+  constructor(code: BackgroundAgentErrorCode, message: string) {
     super(message);
+    this.code = code;
     this.name = "BackgroundAgentError";
   }
 }
