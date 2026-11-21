@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowUp, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
 import { Message, MessageContent } from "@/components/ui/message";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
 import {
   MessageScroller,
@@ -26,7 +27,6 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { Input } from "./components/ui/input.tsx";
 import { toViewItems, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
@@ -36,6 +36,7 @@ export function App() {
   const { entries, error, dispatch } = useTimeline();
   const [text, setText] = useState("");
   const [askWhy, setAskWhy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
   const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
   const items = toViewItems(entries);
@@ -68,7 +69,8 @@ export function App() {
       </MessageScrollerProvider>
       {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
       <form
-        className="flex gap-2 border-t px-4 py-3"
+        ref={formRef}
+        className="px-4 pt-2 pb-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (!text.trim()) return;
@@ -78,23 +80,44 @@ export function App() {
           setAskWhy(false);
         }}
       >
-        <Toggle
-          pressed={askWhy}
-          onPressedChange={setAskWhy}
-          variant="outline"
-          aria-label="Ask why"
-          className="shrink-0 data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
-        >
-          <HelpCircle />
-          Ask why
-        </Toggle>
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={askWhy ? "What do you want to understand?" : "Message your agent…"}
-          aria-label="Message"
-        />
-        <Button type="submit">{askWhy ? "Ask" : "Send"}</Button>
+        <InputGroup className={askWhy ? "ring-1 ring-lesson-border" : undefined}>
+          <InputGroupTextarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                formRef.current?.requestSubmit();
+              }
+            }}
+            placeholder={askWhy ? "What do you want to understand?" : "Message your agent…"}
+            aria-label="Message"
+            className="p-3"
+          />
+          <InputGroupAddon align="block-end">
+            <Toggle
+              pressed={askWhy}
+              onPressedChange={setAskWhy}
+              variant="outline"
+              size="sm"
+              aria-label="Ask why"
+              className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+            >
+              <HelpCircle />
+              Ask why
+            </Toggle>
+            <InputGroupButton
+              type="submit"
+              size="icon-sm"
+              variant="default"
+              className="ml-auto rounded-full"
+              disabled={!text.trim()}
+              aria-label={askWhy ? "Ask" : "Send"}
+            >
+              <ArrowUp />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
       </form>
     </main>
   );
@@ -121,7 +144,7 @@ function UserMessage({ children }: { children: React.ReactNode }) {
     <Message align="end">
       <MessageContent>
         <Bubble align="end" variant="muted">
-          <BubbleContent>{children}</BubbleContent>
+          <BubbleContent className="whitespace-pre-wrap">{children}</BubbleContent>
         </Bubble>
       </MessageContent>
     </Message>
