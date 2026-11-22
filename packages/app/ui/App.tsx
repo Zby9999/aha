@@ -46,107 +46,103 @@ export function App() {
 
   return (
     // data-mode lets a layout follow the Mode (Explain in learning mode, Preview in work mode; #27).
+    // The live preview (#22, tech validation) sits beside the chat on wide screens.
     <div className="flex h-dvh">
-    <main className="mx-auto flex h-dvh w-full max-w-3xl flex-col" data-mode={session.mode}>
-      <header className="flex items-baseline gap-3 border-b px-4 py-3">
-        <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
-        <span className="text-sm text-muted-foreground">{agentStatus(entries)}</span>
-      </header>
-      <MessageScrollerProvider autoScroll>
-        <MessageScroller aria-label="Timeline">
-          <MessageScrollerViewport>
-            <MessageScrollerContent className="gap-3 px-3 pt-6 pb-16">
-              {items.map((item) => (
-                <MessageScrollerItem
-                  key={item.key}
-                  messageId={item.key}
-                  scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}
-                  // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
-                  className="p-1"
-                >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} />
-                </MessageScrollerItem>
-              ))}
-            </MessageScrollerContent>
-          </MessageScrollerViewport>
-          <MessageScrollerButton />
-        </MessageScroller>
-      </MessageScrollerProvider>
-      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
-      <form
-        ref={formRef}
-        className="px-4 pt-2 pb-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!text.trim()) return;
-          // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
-          // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
-          dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text });
-          setText("");
-          setAskWhy(false);
-        }}
-      >
-        {learning && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
-            <GraduationCap className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">
-              Learning: {session.lessonTitle ?? "starting a Lesson…"}
-            </span>
-            <Button type="button" size="sm" variant="outline" onClick={() => dispatch({ type: "back_to_work" })}>
-              <ArrowLeft />
-              Back to work
-            </Button>
-          </div>
-        )}
-        <InputGroup className={asking || learning ? "ring-1 ring-lesson-border" : undefined}>
-          <InputGroupTextarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                formRef.current?.requestSubmit();
-              }
-            }}
-            placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
-            aria-label="Message"
-            className="p-3"
-          />
-          <InputGroupAddon align="block-end">
-            <Toggle
-              pressed={asking}
-              disabled={!session.canStartLesson}
-              onPressedChange={setAskWhy}
-              variant="outline"
-              size="sm"
-              aria-label="Ask why"
-              className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
-            >
-              <HelpCircle />
-              Ask why
-            </Toggle>
-            <InputGroupButton
-              type="submit"
-              size="icon-sm"
-              variant="default"
-              className="ml-auto rounded-full"
-              disabled={!text.trim()}
-              aria-label={asking || learning ? "Ask" : "Send"}
-            >
-              <ArrowUp />
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </form>
-    </main>
-    <Preview entries={entries} />
+      <main className="mx-auto flex h-dvh w-full max-w-3xl flex-col" data-mode={session.mode}>
+        <header className="flex items-baseline gap-3 border-b px-4 py-3">
+          <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
+          <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
+        </header>
+        <MessageScrollerProvider autoScroll>
+          <MessageScroller aria-label="Timeline">
+            <MessageScrollerViewport>
+              <MessageScrollerContent className="gap-3 px-3 pt-6 pb-16">
+                {items.map((item) => (
+                  <MessageScrollerItem
+                    key={item.key}
+                    messageId={item.key}
+                    scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}
+                    // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
+                    className="p-1"
+                  >
+                    <ViewItemView item={item} dispatch={dispatch} session={session} />
+                  </MessageScrollerItem>
+                ))}
+              </MessageScrollerContent>
+            </MessageScrollerViewport>
+            <MessageScrollerButton />
+          </MessageScroller>
+        </MessageScrollerProvider>
+        {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
+        <form
+          ref={formRef}
+          className="px-4 pt-2 pb-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!text.trim()) return;
+            // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
+            // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
+            dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text });
+            setText("");
+            setAskWhy(false);
+          }}
+        >
+          {learning && (
+            <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
+              <GraduationCap className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">
+                Learning: {session.lessonTitle ?? "starting a Lesson…"}
+              </span>
+              <Button type="button" size="sm" variant="outline" onClick={() => dispatch({ type: "back_to_work" })}>
+                <ArrowLeft />
+                Back to work
+              </Button>
+            </div>
+          )}
+          <InputGroup className={asking || learning ? "ring-1 ring-lesson-border" : undefined}>
+            <InputGroupTextarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  formRef.current?.requestSubmit();
+                }
+              }}
+              placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
+              aria-label="Message"
+              className="p-3"
+            />
+            <InputGroupAddon align="block-end">
+              <Toggle
+                pressed={asking}
+                disabled={!session.canStartLesson}
+                onPressedChange={setAskWhy}
+                variant="outline"
+                size="sm"
+                aria-label="Ask why"
+                className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+              >
+                <HelpCircle />
+                Ask why
+              </Toggle>
+              <InputGroupButton
+                type="submit"
+                size="icon-sm"
+                variant="default"
+                className="ml-auto rounded-full"
+                disabled={!text.trim()}
+                aria-label={asking || learning ? "Ask" : "Send"}
+              >
+                <ArrowUp />
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </form>
+      </main>
+      <Preview entries={entries} />
     </div>
   );
-}
-
-/** Header subtitle: whether the agent is still running. */
-function agentStatus(entries: readonly TimelineEntry[]): string {
-  return entries.some((e) => e.kind === "session_end" && e.reason === "agent_exit") ? "The agent stopped" : "Chat with your agent";
 }
 
 function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: Dispatch; session: SessionView }) {

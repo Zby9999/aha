@@ -26,18 +26,40 @@ export function startPreview({ projectDir, port, log = (line) => process.stderr.
   const [command, args] = existsSync(join(projectDir, "server.js"))
     ? [process.execPath, ["--watch", "server.js"]]
     : ["npm", ["start"]];
-  const child = spawn(command, args, { cwd: projectDir, env: { ...process.env, PORT: String(port) }, stdio: ["ignore", "pipe", "pipe"] });
+  // Its own process group, so stopping it also stops the server `npm start` launches.
+  const child = spawn(command, args, { cwd: projectDir, env: { ...process.env, PORT: String(port) }, stdio: ["ignore", "pipe", "pipe"], detached: true });
   child.stdout.on("data", (chunk: Buffer) => log(chunk.toString("utf8")));
   child.stderr.on("data", (chunk: Buffer) => log(chunk.toString("utf8")));
-  child.on("error", (error) => log(`could not start the project: ${error.message}\n`));
-  const exited = new Promise<void>((resolve) => child.once("exit", () => resolve()));
+  let done = false;
+  let stopping = false;
+  const exited = new Promise<void>((resolve) => {
+    child.once("exit", (code, signal) => {
+      done = true;
+      if (!stopping) log(`the project stopped (${signal ?? `exit code ${code}`}); the preview is empty until Aha restarts\n`);
+      resolve();
+    });
+    // A failed spawn may never emit "exit".
+    child.once("error", (error) => {
+      done = true;
+      log(`could not start the project: ${error.message}\n`);
+      resolve();
+    });
+  });
+  const kill = (signal: NodeJS.Signals) => {
+    try {
+      process.kill(-child.pid!, signal);
+    } catch {
+      child.kill(signal);
+    }
+  };
 
   return {
     url: `http://localhost:${port}`,
     async stop() {
-      if (child.exitCode !== null || child.signalCode !== null) return;
-      child.kill("SIGTERM");
-      const timer = setTimeout(() => child.kill("SIGKILL"), 3000);
+      if (done || child.pid === undefined) return;
+      stopping = true;
+      kill("SIGTERM");
+      const timer = setTimeout(() => kill("SIGKILL"), 3000);
       await exited;
       clearTimeout(timer);
     },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { TimelineEntry } from "@aha/contracts";
 import { RotateCw } from "lucide-react";
-import { Button } from "./components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 
 /** Time for `node --watch` to restart the project after a server edit before the frame reloads. */
 const RELOAD_DELAY_MS = 1200;
@@ -39,7 +39,7 @@ export function Preview({ entries }: { entries: readonly TimelineEntry[] }) {
         </Button>
       </div>
       {/* A new key remounts the frame, which reloads it even though it is cross-origin. */}
-      <iframe key={reloads} src={url} title="Live preview of your project" className="min-h-0 flex-1 bg-white" />
+      <iframe key={reloads} src={url} title="Live preview of your project" className="min-h-0 flex-1 bg-background" />
     </aside>
   );
 }

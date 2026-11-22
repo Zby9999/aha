@@ -15,33 +15,29 @@ const realAgent = config.agentHost === "real";
 const previewOn = (process.env.AHA_PREVIEW ?? (realAgent ? "on" : "off")) === "on";
 const preview = previewOn ? startPreview({ projectDir, port: Number(process.env.AHA_PREVIEW_PORT ?? port + 1) }) : undefined;
 
-let backend: Awaited<ReturnType<typeof createBackend>>;
+let backend: Awaited<ReturnType<typeof createBackend>> | undefined;
+const shutdown = async (code = 0) => {
+  await Promise.allSettled([backend?.stop(), preview?.stop()]);
+  process.exit(code);
+};
+process.once("SIGINT", () => void shutdown());
+process.once("SIGTERM", () => void shutdown());
+
 try {
   backend = await createBackend({
     modules: buildModules(config, { script: demoSession, streamDelayMs: Number(process.env.AHA_STREAM_DELAY_MS ?? 40) }),
     projectDir,
     sessionId: "local-1",
   });
+  await startServer({ backend, port, uiDir: join(here, "../../../packages/app/dist/ui"), previewUrl: preview?.url ?? null });
 } catch (error) {
-  await preview?.stop();
   // Pi missing, not logged in or failing to start: the message says what to do.
-  if (error instanceof AgentHostError) {
-    console.error(`\nAha could not start your agent.\n${error.message}\n`);
-    process.exit(1);
-  }
-  throw error;
+  if (error instanceof AgentHostError) console.error(`\nAha could not start your agent.\n${error.message}\n`);
+  else console.error(error);
+  await shutdown(1);
 }
-
-await startServer({ backend, port, uiDir: join(here, "../../../packages/app/dist/ui"), previewUrl: preview?.url ?? null });
 console.log(`Aha is running at http://127.0.0.1:${port} (modules: ${JSON.stringify(config)})`);
 if (preview) console.log(`Live preview of ${projectDir} at ${preview.url}`);
 
-const shutdown = async () => {
-  await Promise.allSettled([backend.stop(), preview?.stop()]);
-  process.exit(0);
-};
-process.once("SIGINT", shutdown);
-process.once("SIGTERM", shutdown);
-
 // Replay after the server is up, so an open page shows the agent's replies streaming in.
-if (!realAgent && process.env.AHA_REPLAY !== "off") await replayUntilOffer(backend, demoSession);
+if (backend && !realAgent && process.env.AHA_REPLAY !== "off") await replayUntilOffer(backend, demoSession);

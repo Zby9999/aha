@@ -18,6 +18,7 @@ const config = { ...(Object.fromEntries(MODULE_KEYS.map((k) => [k, "stub"])) as 
 let root: string;
 let backend: Backend | undefined;
 let server: Server | undefined;
+let socket: WebSocket | undefined;
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "aha-live-"));
@@ -29,6 +30,8 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  socket?.terminate();
+  socket = undefined;
   await new Promise<void>((resolve) => (server ? server.close(() => resolve()) : resolve()));
   await backend?.stop();
   vi.unstubAllEnvs();
@@ -40,19 +43,19 @@ test("a message typed in the app reaches Pi, and the reply and file edits stream
   server = await startServer({ backend, port: 0, uiDir: root });
   const { port } = server.address() as AddressInfo;
 
-  const socket = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: `http://127.0.0.1:${port}` });
+  socket = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: `http://127.0.0.1:${port}` });
   const received: TimelineEntry[] = [];
-  const done = new Promise<void>((resolve) =>
-    socket.on("message", (data) => {
+  const done = new Promise<void>((resolve, reject) => {
+    setTimeout(() => reject(new Error(`no final reply; got ${received.map((e) => e.kind).join(", ")}`)), 4000).unref();
+    socket!.on("message", (data) => {
       const message = JSON.parse(String(data)) as ServerMessage;
       if (message.type === "entry") received.push(message.entry);
       if (message.type === "entry" && message.entry.kind === "agent_message" && message.entry.text.startsWith("Done.")) resolve();
-    }),
-  );
-  await new Promise((resolve) => socket.once("open", resolve));
+    });
+  });
+  await new Promise((resolve) => socket!.once("open", resolve));
   socket.send(JSON.stringify({ type: "action", action: { type: "send_message", text: "Fix my login" } }));
   await done;
-  socket.close();
 
   const prompts = readFileSync(join(root, "pi.log"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).filter((c) => c.type === "prompt");
   expect(prompts).toMatchObject([{ message: "Fix my login" }]);
