@@ -15,7 +15,7 @@ if (env.FAKE_PI_ON_START === "exit") {
   process.exit(1);
 }
 
-if (env.FAKE_PI_LOG) appendFileSync(env.FAKE_PI_LOG, `${JSON.stringify({ type: "__start__", argv: process.argv.slice(2), cwd: process.cwd() })}\n`);
+if (env.FAKE_PI_LOG) appendFileSync(env.FAKE_PI_LOG, `${JSON.stringify({ type: "__start__", argv: process.argv.slice(2), cwd: process.cwd(), learnerContextFile: env.AHA_LEARNER_CONTEXT_FILE })}\n`);
 
 const MODEL ={ id: "fake-model", name: "Fake Model", provider: "fake", api: "fake" };
 const events = env.FAKE_PI_EVENTS ? readFileSync(env.FAKE_PI_EVENTS, "utf8").split("\n").filter((line) => line.trim()) : [];
