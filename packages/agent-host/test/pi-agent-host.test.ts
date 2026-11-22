@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { AgentHostError, createTimeline, type AgentSession, type Timeline } from "@aha/contracts";
@@ -23,6 +23,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   await Promise.all(sessions.splice(0).map((s) => s.stop()));
+  rmSync(projectDir, { recursive: true, force: true });
 });
 
 function host(env: Record<string, string> = {}, options: PiAgentHostOptions = {}) {

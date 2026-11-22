@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createTimeline, type AgentSession, type Timeline, type TimelineEntry } from "@aha/contracts";
@@ -27,6 +27,8 @@ beforeEach(() => {
 afterEach(async () => {
   await session?.stop();
   session = undefined;
+  rmSync(projectDir, { recursive: true, force: true });
+  rmSync(log, { force: true });
 });
 
 async function replay(events: string, until: (entries: readonly TimelineEntry[]) => boolean) {
@@ -94,13 +96,37 @@ test("an extension dialog is cancelled so Pi does not wait for an answer Aha can
 });
 
 test("model, retry and extension failures become agent errors; a failed login says how to log in again", async () => {
-  const entries = await replay("model-errors.rpc.jsonl", (e) => e.filter((x) => x.kind === "error").length === 3);
+  const entries = await replay("model-errors.rpc.jsonl", (e) => e.some((x) => x.kind === "unknown_agent_event" && x.agentEventType === "agent_settled"));
   expect(entries.filter((e) => e.kind !== "user_message")).toEqual(
     [
+      // A failed request with no retry.
       { kind: "error", origin: "agent", message: expect.stringMatching(/^The model request failed: 401.*pi auth login/s) },
+      // A retry that fails again: one error for the whole run, not one per attempt.
       { kind: "unknown_agent_event", agentEventType: "auto_retry_start", raw: expect.objectContaining({ attempt: 1 }) },
       { kind: "error", origin: "agent", message: "The model request failed after retrying: 529 overloaded" },
+      // A retry that recovers: no error at all; a reply with two text blocks.
+      { kind: "unknown_agent_event", agentEventType: "auto_retry_start", raw: expect.objectContaining({ attempt: 1 }) },
+      { kind: "agent_message_delta", messageId: "pi-msg-5", delta: "Recovered." },
+      { kind: "agent_message_delta", messageId: "pi-msg-5", delta: "\n\n" },
+      { kind: "agent_message_delta", messageId: "pi-msg-5", delta: "Second block." },
+      { kind: "agent_message", messageId: "pi-msg-5", text: "Recovered.\n\nSecond block." },
+      { kind: "unknown_agent_event", agentEventType: "auto_retry_end", raw: expect.objectContaining({ success: true }) },
       { kind: "error", origin: "agent", message: "A Pi extension failed (tool_call): boom" },
+      { kind: "error", origin: "agent", message: "Pi could not compact the conversation: summary failed" },
+      // An aborted run is kept.
+      { kind: "unknown_agent_event", agentEventType: "agent_settled", raw: { type: "agent_settled", aborted: true } },
     ].map(fromAgentHost),
   );
+});
+
+test("a reply's deltas add up to its final text, also with several text blocks", async () => {
+  const entries = await replay("model-errors.rpc.jsonl", (e) => e.some((x) => x.kind === "unknown_agent_event" && x.agentEventType === "agent_settled"));
+  const message = entries.find((e) => e.kind === "agent_message")!;
+  const deltas = entries.filter((e) => e.kind === "agent_message_delta").map((d) => (d as { delta: string }).delta);
+  expect(deltas.join("")).toBe((message as { text: string }).text);
+});
+
+test("paths Pi resolves with a leading @ are recorded project-relative", async () => {
+  const entries = await replay("at-path.rpc.jsonl", (e) => e.some((x) => x.kind === "file_edit"));
+  expect(entries.find((e) => e.kind === "file_edit")).toMatchObject({ path: "public/app.js", change: "modify" });
 });
