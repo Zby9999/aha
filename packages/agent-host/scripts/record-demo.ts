@@ -29,7 +29,8 @@ const { values } = parseArgs({ options: { model: { type: "string" }, out: { type
 const repo = resolve(import.meta.dirname, "../../..");
 const out = resolve(values.out ?? join(repo, "packages/agent-host/test/fixtures/recorded"));
 
-const project = join(mkdtempSync(join(tmpdir(), "aha-record-")), "portfolio");
+// The real path, so the scrub matches what Pi reports (macOS's /var is a symlink to /private/var).
+const project = join(realpathSync(mkdtempSync(join(tmpdir(), "aha-record-"))), "portfolio");
 cpSync(join(repo, "examples/portfolio"), project, { recursive: true, filter: (src) => !src.includes("node_modules") });
 
 const records: unknown[] = [];
@@ -43,7 +44,10 @@ const host = createPiAgentHost({
   },
 });
 
-const session = await host.startSession({ projectDir: project, timeline });
+const session = await host.startSession({ projectDir: project, timeline }).catch((error: unknown) => {
+  rmSync(resolve(project, ".."), { recursive: true, force: true });
+  throw error;
+});
 try {
   for (const [i, message] of MESSAGES.entries()) {
     console.error(`turn ${i + 1}/${MESSAGES.length}: ${message}`);
@@ -65,7 +69,7 @@ function save() {
       .replaceAll(project, ".")
       .replaceAll(resolve(project, ".."), "..")
       .replaceAll(homedir(), "~")
-      .replaceAll(userInfo().username, "user");
+      .replace(new RegExp(`\\b${userInfo().username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g"), "user");
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "demo.rpc.jsonl"), records.map((r) => scrub(JSON.stringify(r))).join("\n") + "\n");
   writeFileSync(join(out, "demo.timeline.json"), scrub(JSON.stringify(timeline.entries(), null, 2)) + "\n");

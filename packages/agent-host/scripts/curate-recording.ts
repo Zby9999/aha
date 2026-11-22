@@ -8,7 +8,8 @@
  * - drops system messages, thinking, run/turn summaries, tool-result messages, partial tool output, tool-call
  *   argument streams, terminal UI state and extension session entries;
  * - strips `usage` from streaming records and thinking blocks from final messages;
- * - scrubs temp-folder and socket paths.
+ * - scrubs temp-folder and socket paths, and the recorder's extension session ids and home folders.
+ * Safe to run again on its own output.
  * Writes <dir>/demo.rpc.jsonl (curated in place) and <dir>/demo.timeline.json (the live Timeline, minus the entries
  * of dropped records), so a replay of the curated stream must give exactly the curated Timeline.
  */
@@ -48,7 +49,10 @@ const scrub = (text: string) =>
   text
     .replace(/\/private\.(?=[/"\\\s]|$)/g, ".") // the project folder through macOS's /private symlink
     .replace(/\/(?:private\/)?var\/folders\/[^"\\\s]*?\/T\//g, "<tmp>/")
-    .replace(/\/(?:private\/)?tmp\/[a-z]+-\d+/g, "<tmp>/agent-browser");
+    .replace(/\/(?:private\/)?tmp\/([a-z]+)-\d+/g, "<tmp>/$1")
+    // Stable ids and home folders of the recorder's own Pi extensions.
+    .replace(/pi-root-[0-9a-f]{8,}/g, "pi-root-session")
+    .replace(/~\/\.([a-z][a-z-]*)\//g, "<$1>/");
 
 const rawPath = join(dir, "demo.rpc.jsonl");
 const records = readFileSync(rawPath, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as Rec);
