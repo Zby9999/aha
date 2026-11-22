@@ -113,6 +113,9 @@ test("model, retry and extension failures become agent errors; a failed login sa
       { kind: "unknown_agent_event", agentEventType: "auto_retry_end", raw: expect.objectContaining({ success: true }) },
       { kind: "error", origin: "agent", message: "A Pi extension failed (tool_call): boom" },
       { kind: "error", origin: "agent", message: "Pi could not compact the conversation: summary failed" },
+      // Status-bar and widget updates add nothing; an error notification is an error; other notifications are kept.
+      { kind: "error", origin: "agent", message: "Pi extension: MCP server failed" },
+      { kind: "unknown_agent_event", agentEventType: "extension_ui_request", raw: expect.objectContaining({ method: "notify", notifyType: "info" }) },
       // An aborted run is kept.
       { kind: "unknown_agent_event", agentEventType: "agent_settled", raw: { type: "agent_settled", aborted: true } },
     ].map(fromAgentHost),
