@@ -42,11 +42,19 @@ _Avoid_: signal, score
 One of five ordered states of a concept: not encountered, seen an explanation, correct with hints, explains independently, catches the agent's mistakes.
 _Avoid_: score, proficiency
 
+**Learner Context**:
+The slice of the learner model the read gate picks as relevant to the current impasse; it reaches the lesson and, through the bridge extension, the agent.
+_Avoid_: user profile, memory context
+
 **Dreaming**:
 The background consolidation of the learner model after a session or during idle time: merging concepts, updating mastery levels and logging changes.
 _Avoid_: memory sync, summarization
 
 ## Work
+
+**Grounding**:
+An explanation is grounded when it cites real files in the user's project or the agent's latest change. Every explanation must pass the grounding check.
+_Avoid_: relevance, accuracy
 
 **Timeline**:
 The single, agent-independent record of everything that happens in a session: messages, tool calls, file edits, errors and lesson cards.
