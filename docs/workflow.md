@@ -17,7 +17,7 @@
 ## 第一次准备
 
 1. 接受仓库邀请，clone 仓库。
-2. 安装 Pi，并用 `pi auth login <provider>` 登录模型服务商（`pi auth check` 可以检查是否已就绪）。
+2. 安装 Pi，并用 `pi auth login <provider>` 登录模型服务商（`pi auth check --provider <provider>` 可以检查是否已就绪）。
 3. 需要 Jev 的人把 key 写进本地的 `.env.local`。**这个文件不提交。**
 4. 先读 `GLOSSARY.md` 和 `docs/adr/`，代码和 issue 里统一用这些词。
 
