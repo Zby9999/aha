@@ -5,7 +5,7 @@ import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOpt
 import { LEARNER_CONTEXT_FILE_ENV } from "./bridge-extension.ts";
 import { renderLearnerContext } from "./learner-context.ts";
 import { createPiEventMapper, LOGIN_HINT } from "./pi-events.ts";
-import { spawnRpc, type PiExit, type RpcConnection, type SpawnRpcOptions } from "./rpc-connection.ts";
+import { spawnRpc, type PiExit, type PiRecord, type RpcConnection, type SpawnRpcOptions } from "./rpc-connection.ts";
 
 export interface PiAgentHostOptions {
   /** Program to run. Defaults to `AHA_PI_COMMAND`, else `pi` on the PATH. */
@@ -16,6 +16,8 @@ export interface PiAgentHostOptions {
   env?: NodeJS.ProcessEnv;
   /** How long Pi may take to answer its first command. Default 20 s. */
   startTimeoutMs?: number;
+  /** Sees every record Pi sends after start, before it is mapped; used to record sessions as fixtures. */
+  onRecord?: (record: PiRecord) => void;
 }
 
 /** Aha's bridge extension, loaded into Pi next to the user's own extensions. */
@@ -52,6 +54,7 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
 
       const map = createPiEventMapper({ projectDir, timeline });
       pi.onRecord((record) => {
+        options.onRecord?.(record);
         map(record);
         if (record.type === "extension_ui_request" && DIALOGS.has(String(record.method))) {
           pi.send({ type: "extension_ui_response", id: record.id, cancelled: true });
