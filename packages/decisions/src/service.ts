@@ -14,7 +14,7 @@ const CONTEXT_EVENTS = 16;
 function signal(entry: TimelineEntry): string | null {
   switch (entry.kind) {
     case "user_message": return entry.text.slice(0, 600);
-    case "error": return entry.origin === "agent" ? null : entry.message.slice(0, 600);
+    case "error": return entry.origin === "project" ? entry.message.slice(0, 600) : null;
     default: return null;
   }
 }
@@ -49,6 +49,8 @@ export function createDecisions({ cooldownTurns = 3, ...jevOptions }: DecisionOp
 
   return {
     async detectImpasse({ timeline }) {
+      const latest = timeline.at(-1);
+      if (latest?.kind === "error" && latest.origin !== "project") return null;
       const signals = timeline
         .filter((entry) => signal(entry) !== null)
         .slice(-CONTEXT_EVENTS);
