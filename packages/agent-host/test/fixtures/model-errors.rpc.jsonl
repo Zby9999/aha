@@ -25,4 +25,8 @@
 {"type":"agent_settled","aborted":false}
 {"type":"extension_error","extensionPath":"ext.ts","event":"tool_call","error":"boom"}
 {"type":"compaction_end","reason":"threshold","aborted":false,"willRetry":false,"errorMessage":"summary failed"}
+{"type":"extension_ui_request","id":"ui-s","method":"setStatus","statusKey":"tps","statusText":"12 tok/s"}
+{"type":"extension_ui_request","id":"ui-w","method":"setWidget","widgetKey":"w"}
+{"type":"extension_ui_request","id":"ui-n","method":"notify","message":"MCP server failed","notifyType":"error"}
+{"type":"extension_ui_request","id":"ui-i","method":"notify","message":"MCP: 1 servers connected","notifyType":"info"}
 {"type":"agent_settled","aborted":true}
