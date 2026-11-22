@@ -1,4 +1,4 @@
-import { activeLesson, type Mode, type TimelineEntry } from "@aha/contracts";
+import { activeLesson, currentMode, pendingLessonError, type Mode, type TimelineEntry } from "@aha/contracts";
 /** A tool call's state as the Trace line shows it. */
 export type ToolState = "running" | "completed" | "error";
 
@@ -61,16 +61,18 @@ export interface SessionView {
   canStartLesson: boolean;
   /** True when an entry's card or buttons can no longer be used: already answered, or not part of the running Lesson. */
   isDone(entry: TimelineEntry): boolean;
+  /** True for the one `lesson_error` whose answer can be retried now. */
+  canRetry(entry: TimelineEntry): boolean;
 }
 
 export function sessionView(entries: readonly TimelineEntry[]): SessionView {
-  const modeChange = entries.findLast((entry) => entry.kind === "mode_change");
-  const mode = modeChange?.mode ?? "work";
+  const mode = currentMode(entries);
   const lesson = activeLesson(entries);
   const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
   const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
   const impasse = entries.find((e) => e.kind === "impasse" && e.impasse.id === lesson?.impasseId);
   const canStartLesson = mode === "work";
+  const retryable = pendingLessonError(entries);
   return {
     mode,
     lessonReady: Boolean(lesson?.lessonId),
@@ -79,9 +81,10 @@ export function sessionView(entries: readonly TimelineEntry[]): SessionView {
     isDone(entry) {
       if (entry.kind === "offer") return responded.has(entry.impasseId) || !canStartLesson;
       if (entry.kind === "lesson_card") {
-        return answered.has(entry.id) || entry.lessonId !== lesson?.lessonId || entry.seq <= (modeChange?.seq ?? -1);
+        return answered.has(entry.id) || entry.lessonId !== lesson?.lessonId || entry.seq < (lesson.startSeq ?? Infinity);
       }
       return false;
     },
+    canRetry: (entry) => entry.id === retryable?.id,
   };
 }

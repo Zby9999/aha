@@ -14,6 +14,8 @@ export type UserAction =
   | { type: "ask_why"; text: string }
   | { type: "offer_response"; impasseId: string; response: OfferResponse }
   | { type: "card_answer"; lessonId: string; cardEntryId: string; answer: CardAnswer }
+  /** Run teaching again on a card answer that failed (a `lesson_error`). */
+  | { type: "retry_answer"; lessonId: string; cardEntryId: string }
   | { type: "flag_explanation"; lessonId: string; cardEntryId: string; reason?: string }
   /** Leave the current Lesson early and return to work mode. Leaving early is never Evidence. */
   | { type: "back_to_work" }

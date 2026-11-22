@@ -55,6 +55,11 @@ export interface TimelinePayloads {
   };
   /** A composer message sent in learning mode: a follow-up question inside the Lesson. It never reaches the agent. */
   lesson_question: { lessonId: string; text: string };
+  /**
+   * Teaching failed to take the Lesson on after the user answered a card. The answer stays recorded; the user can
+   * retry (`retry_answer`) or go back to work. Written by the app.
+   */
+  lesson_error: { lessonId: string; cardEntryId: string; message: string };
   explanation_flagged: { lessonId: string; cardEntryId: string; reason?: string };
   lesson_end: { lessonId: string; outcome: "completed" | "abandoned" };
 }
@@ -98,20 +103,33 @@ export function isKind<K extends TimelineKind>(entry: TimelineEntry, kind: K): e
   return entry.kind === kind;
 }
 
+/**
+ * The card whose answer teaching failed to take on and that can be retried: the latest `lesson_error` of the running
+ * Lesson with nothing from teaching after it for that answer. Null when there is nothing to retry.
+ */
+export function pendingLessonError(entries: readonly TimelineEntry[]): TimelineEntryOf<"lesson_error"> | null {
+  const lesson = activeLesson(entries);
+  const error = entries.findLast((e): e is TimelineEntryOf<"lesson_error"> => e.kind === "lesson_error");
+  if (!lesson?.startSeq || !error || error.lessonId !== lesson.lessonId || error.seq < lesson.startSeq) return null;
+  const movedOn = entries.some((e) => e.seq > error.seq && e.source === "teaching" && "lessonId" in e && e.lessonId === error.lessonId);
+  return movedOn ? null : error;
+}
+
 /** The session's current Mode: the last `mode_change`, or "work" before any. */
 export function currentMode(entries: readonly TimelineEntry[]): Mode {
   return entries.findLast((e) => e.kind === "mode_change")?.mode ?? "work";
 }
 
 /**
- * The Lesson that learning mode is running, or null in work mode. `lessonId` is missing in the short time between
- * entering learning mode and teaching writing `lesson_start`.
+ * The Lesson that learning mode is running, or null in work mode. `lessonId` and `startSeq` (the seq of its
+ * `lesson_start`) are missing in the short time between entering learning mode and teaching writing `lesson_start`.
+ * A card belongs to the running Lesson only if it has the same `lessonId` and a seq after `startSeq`.
  */
-export function activeLesson(entries: readonly TimelineEntry[]): { impasseId: string; lessonId?: string } | null {
+export function activeLesson(entries: readonly TimelineEntry[]): { impasseId: string; lessonId?: string; startSeq?: number } | null {
   const change = entries.findLast((e): e is TimelineEntryOf<"mode_change"> => e.kind === "mode_change");
   if (change?.mode !== "learning") return null;
   const start = entries.findLast((e): e is TimelineEntryOf<"lesson_start"> => e.kind === "lesson_start" && e.seq > change.seq && e.impasseId === change.impasseId);
-  return start ? { impasseId: change.impasseId, lessonId: start.lessonId } : { impasseId: change.impasseId };
+  return start ? { impasseId: change.impasseId, lessonId: start.lessonId, startSeq: start.seq } : { impasseId: change.impasseId };
 }
 
 export interface CreateTimelineOptions {

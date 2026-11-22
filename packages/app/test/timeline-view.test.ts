@@ -50,3 +50,15 @@ test("in learning mode Why, Ask why and Offers are off and only the running Less
   expect(work.isDone(probe)).toBe(true);
   expect(toViewItems(t.entries()).some((i) => i.type === "entry" && i.entry.kind === "mode_change")).toBe(false);
 });
+
+test("a failed answer offers Retry until teaching moves the Lesson on", () => {
+  const t = createTimeline({ sessionId: "s" });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "probe", card: { root: "r", elements: {} } });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "x" } });
+  const error = t.append({ kind: "lesson_error", source: "app", lessonId: "l1", cardEntryId: probe.id, message: "Couldn't prepare the next step." });
+  expect(sessionView(t.entries()).canRetry(error)).toBe(true);
+  t.append({ kind: "answer_assessment", source: "teaching", lessonId: "l1", answerEntryId: probe.id, step: "probe", conceptIds: [], result: "correct" });
+  expect(sessionView(t.entries()).canRetry(error)).toBe(false);
+});
