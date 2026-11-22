@@ -101,9 +101,12 @@ test("each request uses the context of that moment: updated, then cleared", asyn
   expect(seen[2]).not.toContain("aha_learner_context");
 });
 
-test("the user's own extensions keep working with the bridge loaded", async () => {
+test.each([
+  ["before", () => [userExtension, BRIDGE]],
+  ["after", () => [BRIDGE, userExtension]],
+])("the user's own extensions keep working with the bridge loaded (user extension %s the bridge)", async (_order, extensions) => {
   writeFileSync(contextFile, "learner context");
-  const [prompt] = await promptsSeen([userExtension, BRIDGE], ["Fix my login"]);
+  const [prompt] = await promptsSeen(extensions(), ["Fix my login"]);
   expect(prompt).toContain("Always answer in haiku.");
   expect(prompt).toContain("learner context");
 });

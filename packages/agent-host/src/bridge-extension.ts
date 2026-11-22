@@ -15,7 +15,7 @@ export default function ahaBridge(pi: ExtensionAPI): void {
   pi.on("before_agent_start", (event) => {
     const text = readLearnerContext(process.env[LEARNER_CONTEXT_FILE_ENV]);
     const { sections } = event.systemPromptOptions;
-    // Editing sections (not the whole prompt) lets Pi patch only this section and keep the provider cache.
+    // Editing a section (not the whole prompt) lets Pi send only a patch for it when the context changes.
     if (text) sections[LEARNER_CONTEXT_SECTION] = text;
     else delete sections[LEARNER_CONTEXT_SECTION];
   });

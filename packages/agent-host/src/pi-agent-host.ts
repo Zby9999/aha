@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
@@ -59,8 +59,10 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
       });
 
       let stopping = false;
+      const removeContext = () => rmSync(contextDir, { recursive: true, force: true });
       pi.onExit((exit) => {
         if (stopping) return;
+        removeContext();
         timeline.append({ kind: "error", source: "agent-host", origin: "agent", message: crashMessage(exit) });
         timeline.append({ kind: "session_end", source: "agent-host", reason: "agent_exit" });
       });
@@ -81,14 +83,17 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
           }
         },
         setLearnerContext(context) {
+          if (stopping || pi.exited) return;
           const text = renderLearnerContext(context);
-          if (text) writeFileSync(contextFile, `${text}\n`);
-          else rmSync(contextFile, { force: true });
+          if (!text) return rmSync(contextFile, { force: true });
+          // Write then rename, so the bridge never reads a half-written file.
+          writeFileSync(`${contextFile}.tmp`, `${text}\n`);
+          renameSync(`${contextFile}.tmp`, contextFile);
         },
         async stop() {
           stopping = true;
           await pi.close();
-          rmSync(contextDir, { recursive: true, force: true });
+          removeContext();
         },
       };
     },
