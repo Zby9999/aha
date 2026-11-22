@@ -13,6 +13,12 @@ export const LOGIN_HINT = "Run `pi auth login <provider>` in a terminal (or `/lo
  */
 const STRUCTURAL = new Set(["agent_start", "agent_end", "turn_start", "turn_end", "tool_execution_update", "queue_update"]);
 
+/**
+ * Fire-and-forget extension UI requests that only set terminal UI state (status bar, widgets, title, editor text).
+ * A real Pi with the user's extensions sends many of these; they mean nothing to the Timeline.
+ */
+const TUI_STATE_METHODS = new Set(["setStatus", "setWidget", "setTitle", "set_editor_text"]);
+
 /** Pi tools that change one file, named by their `path` argument. */
 const FILE_TOOLS = new Set(["write", "edit"]);
 /** A `write` target born this recently counts as created by it (see isNew). */
@@ -132,6 +138,10 @@ export function createPiEventMapper({ projectDir, timeline }: { projectDir: stri
           return agentError(`The model request failed after retrying: ${String(record.finalError ?? "unknown error")}${hint}`);
         }
         heldError = undefined;
+        return keep(record);
+      case "extension_ui_request":
+        if (TUI_STATE_METHODS.has(String(record.method))) return;
+        if (record.method === "notify" && record.notifyType === "error") return agentError(`Pi extension: ${String(record.message)}`);
         return keep(record);
       case "agent_settled":
         if (record.aborted === true) keep(record);
