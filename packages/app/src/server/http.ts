@@ -13,6 +13,8 @@ export interface ServerOptions {
   host?: string;
   /** Folder with the built web UI (index.html and assets). */
   uiDir: string;
+  /** URL of the running project for the live preview pane, served at /api/preview. Null hides the pane. */
+  previewUrl?: string | null;
 }
 
 const TYPES: Record<string, string> = {
@@ -39,9 +41,13 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
  * Serves the web UI and a WebSocket at /ws: a snapshot of the Timeline, then each new entry; actions go to the backend.
  * Listens on loopback by default and accepts sockets only from its own page.
  */
-export function startServer({ backend, port, uiDir, host = "127.0.0.1" }: ServerOptions): Promise<Server> {
+export function startServer({ backend, port, uiDir, host = "127.0.0.1", previewUrl = null }: ServerOptions): Promise<Server> {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (url.pathname === "/api/preview") {
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ url: previewUrl }));
+      return;
+    }
     const path = normalize(join(uiDir, url.pathname === "/" ? "index.html" : url.pathname));
     if (!path.startsWith(normalize(uiDir)) || !existsSync(path) || !statSync(path).isFile()) {
       res.writeHead(404).end("Not found");

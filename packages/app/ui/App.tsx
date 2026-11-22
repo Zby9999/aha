@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
 import { AlertTriangle, ArrowLeft, ArrowUp, GraduationCap, RotateCw, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { Preview } from "./Preview.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
@@ -45,10 +46,11 @@ export function App() {
 
   return (
     // data-mode lets a layout follow the Mode (Explain in learning mode, Preview in work mode; #27).
-    <main className="mx-auto flex h-dvh max-w-3xl flex-col" data-mode={session.mode}>
+    <div className="flex h-dvh">
+    <main className="mx-auto flex h-dvh w-full max-w-3xl flex-col" data-mode={session.mode}>
       <header className="flex items-baseline gap-3 border-b px-4 py-3">
         <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
-        <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
+        <span className="text-sm text-muted-foreground">{agentStatus(entries)}</span>
       </header>
       <MessageScrollerProvider autoScroll>
         <MessageScroller aria-label="Timeline">
@@ -137,7 +139,14 @@ export function App() {
         </InputGroup>
       </form>
     </main>
+    <Preview entries={entries} />
+    </div>
   );
+}
+
+/** Header subtitle: whether the agent is still running. */
+function agentStatus(entries: readonly TimelineEntry[]): string {
+  return entries.some((e) => e.kind === "session_end" && e.reason === "agent_exit") ? "The agent stopped" : "Chat with your agent";
 }
 
 function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: Dispatch; session: SessionView }) {
