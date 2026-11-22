@@ -10,17 +10,18 @@
  *   <out>/demo.rpc.jsonl       every raw Pi RPC record (input for the agent host's contract tests)
  *   <out>/demo.timeline.json   the agent-host Timeline entries it produced (input for the fixture splice)
  */
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir, userInfo } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { createTimeline } from "@aha/contracts";
 import { createPiAgentHost } from "../src/index.ts";
 
+/** The user's messages from the demo script in docs/example-project.md. */
 const MESSAGES = [
-  "I added a login to my portfolio. Now every time I refresh the page I'm logged out and my projects are gone. Can you fix it?",
-  "Still logged out after refresh and the projects are gone again. Fix it again please.",
-  "OK, so the token has to survive the refresh. Can the server make the token at login and the page keep it?",
+  "I added a login to my portfolio, but every time I refresh the page I'm logged out. Can you fix it?",
+  "Refresh works now, but when I log out and log back in, my projects are gone. Can you fix that too?",
+  "Can the server create the token at login, and keep each user's projects by username instead of by token?",
 ];
 const TURN_TIMEOUT_MS = 5 * 60_000;
 
@@ -55,16 +56,19 @@ try {
   }
 } finally {
   await session.stop();
+  save();
 }
 
-const scrub = (text: string) =>
-  text
-    .replaceAll(project, ".")
-    .replaceAll(resolve(project, ".."), "..")
-    .replaceAll(homedir(), "~")
-    .replaceAll(userInfo().username, "user");
-mkdirSync(out, { recursive: true });
-writeFileSync(join(out, "demo.rpc.jsonl"), records.map((r) => scrub(JSON.stringify(r))).join("\n") + "\n");
-writeFileSync(join(out, "demo.timeline.json"), scrub(JSON.stringify(timeline.entries(), null, 2)) + "\n");
-rmSync(resolve(project, ".."), { recursive: true, force: true });
-console.error(`wrote ${records.length} Pi records and ${timeline.entries().length} Timeline entries to ${out}`);
+function save() {
+  const scrub = (text: string) =>
+    text
+      .replaceAll(project, ".")
+      .replaceAll(resolve(project, ".."), "..")
+      .replaceAll(homedir(), "~")
+      .replaceAll(userInfo().username, "user");
+  mkdirSync(out, { recursive: true });
+  writeFileSync(join(out, "demo.rpc.jsonl"), records.map((r) => scrub(JSON.stringify(r))).join("\n") + "\n");
+  writeFileSync(join(out, "demo.timeline.json"), scrub(JSON.stringify(timeline.entries(), null, 2)) + "\n");
+  rmSync(resolve(project, ".."), { recursive: true, force: true });
+  console.error(`wrote ${records.length} Pi records and ${timeline.entries().length} Timeline entries to ${out}`);
+}
