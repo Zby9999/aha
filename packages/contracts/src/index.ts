@@ -3,6 +3,7 @@
  * Changing anything here is a cross-team change reviewed by every affected owner.
  */
 export * from "./cards.ts";
+export * from "./catalog.ts";
 export * from "./learning.ts";
 export * from "./module-name.ts";
 export * from "./modules.ts";

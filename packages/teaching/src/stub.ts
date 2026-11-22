@@ -1,9 +1,11 @@
 import type { NewTimelineEntry, Teaching, TeachingFactory } from "@aha/contracts";
 import { card } from "@aha/contracts/fixtures";
 
-/** Teaching stub: fixed card text, the full Probe → Explain → Articulate sequence, no Pi. */
+/** Teaching stub: fixed card text, the full Probe → Explain → Articulate sequence, a plain-text answer to follow-ups, no Pi. */
 export const createStubTeaching: TeachingFactory = (): Teaching => {
   const lessons = new Map<string, { conceptIds: string[]; files: string[] }>();
+  // Never reused within a session, even after abandon() forgets a Lesson.
+  let lessonCount = 0;
 
   return {
     async offer({ impasse }) {
@@ -14,7 +16,7 @@ export const createStubTeaching: TeachingFactory = (): Teaching => {
       });
     },
     async startLesson({ impasse, project }) {
-      const lessonId = `lesson-${lessons.size + 1}`;
+      const lessonId = `lesson-${++lessonCount}`;
       lessons.set(lessonId, { conceptIds: impasse.conceptIds, files: project.files });
       return [
         { kind: "lesson_start", source: "teaching", lessonId, impasseId: impasse.id },
@@ -66,6 +68,22 @@ export const createStubTeaching: TeachingFactory = (): Teaching => {
         entries.push({ kind: "lesson_end", source: "teaching", lessonId, outcome: "completed" });
       }
       return entries;
+    },
+    async followUp({ lessonId, question }) {
+      if (!lessons.has(lessonId)) return [];
+      return [
+        {
+          kind: "lesson_card",
+          source: "teaching",
+          lessonId,
+          step: "explain",
+          card: card("TextExplanation", {
+            title: "Good question (stub)",
+            text: `A real answer to "${question}" will build on this Lesson and cite your files.`,
+            citations: [],
+          }),
+        },
+      ];
     },
     async abandon(lessonId) {
       lessons.delete(lessonId);

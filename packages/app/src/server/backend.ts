@@ -2,7 +2,11 @@ import { readdirSync, statSync } from "node:fs";
 import * as nodePath from "node:path";
 import { join } from "node:path";
 import {
+  activeLesson,
   createTimeline,
+  currentMode,
+  pendingLessonError,
+  startsLesson,
   type AgentSession,
   type AhaModules,
   type AppBackend,
@@ -12,6 +16,7 @@ import {
   type NewTimelineEntry,
   type ProjectSnapshot,
   type TimelineEntry,
+  type TimelineEntryOf,
   type UserAction,
 } from "@aha/contracts";
 
@@ -36,6 +41,10 @@ const IGNORED_DIRS = new Set(["node_modules", ".git", ".aha"]);
  * Wires the modules around one Timeline (packages/contracts/README.md, "Flow through the modules").
  * Agent work goes straight to the agent host; every learning step runs in one queue after it, so a slow
  * or failing learning module never blocks the user's work.
+ *
+ * The backend owns the session Mode and records each change as a `mode_change` entry. A Lesson request switches to
+ * learning mode at once, so a second request is rejected even before the first Lesson has started. In learning mode
+ * composer messages become follow-up questions inside the Lesson; when the Lesson ends the Mode returns to work.
  */
 export async function createBackend({ modules, projectDir, sessionId, onLearningError = console.error }: BackendOptions): Promise<Backend> {
   const timeline = createTimeline({ sessionId });
@@ -60,13 +69,51 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     return { concepts: ids.length > 0 ? await learner.readConcepts(ids) : [] };
   }
 
+  const enterLearning = (impasseId: string) => timeline.append({ kind: "mode_change", source: "app", mode: "learning", impasseId });
+
+  function backToWork() {
+    const lesson = activeLesson(timeline.entries());
+    if (lesson) timeline.append({ kind: "mode_change", source: "app", mode: "work", impasseId: lesson.impasseId });
+  }
+
   async function startLesson(impasse: Impasse) {
     const learnerContext = await learnerContextFor(impasse);
     agent?.setLearnerContext(learnerContext.concepts.length > 0 ? learnerContext : null);
     appendAll(await teaching.startLesson({ impasse, learner: learnerContext, project: snapshot(projectDir), timeline: timeline.entries() }));
   }
 
+  /** Runs the Lesson start requested for `impasseId`; whatever happens, a Lesson that did not start returns the Mode to work. */
+  async function startRequestedLesson(impasseId: string) {
+    try {
+      const impasse = findImpasse(timeline.entries(), impasseId);
+      if (impasse && activeLesson(timeline.entries())?.impasseId === impasseId) await startLesson(impasse);
+    } finally {
+      const lesson = activeLesson(timeline.entries());
+      if (lesson?.impasseId === impasseId && !lesson.lessonId) backToWork();
+    }
+  }
+
+  /** Teaching takes the Lesson on after an answer; on failure the card gets a `lesson_error` the user can retry. */
+  async function takeAnswer(answer: TimelineEntryOf<"card_answer">) {
+    try {
+      appendAll(await teaching.answer({ lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, answer: answer.answer, timeline: timeline.entries() }));
+    } catch (error) {
+      timeline.append({ kind: "lesson_error", source: "app", lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, message: "Couldn't prepare the next step." });
+      throw error;
+    }
+  }
+
   async function react(entry: TimelineEntry) {
+    // Evidence failures are reported but never block or skip the Lesson flow below.
+    try {
+      await gateEvidence(entry);
+    } catch (error) {
+      onLearningError(error);
+    }
+    await reactLearning(entry);
+  }
+
+  async function gateEvidence(entry: TimelineEntry) {
     // Write gate: every entry is a candidate; assessments are Evidence by construction.
     if (entry.kind === "answer_assessment") {
       for (const conceptId of entry.conceptIds) {
@@ -83,6 +130,9 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
       const decided = await decisions.gateEvidence({ timeline: timeline.entries(), newEntries: [entry], concepts: await learner.listConcepts() });
       for (const { newConcept: _new, ...decision } of decided ?? []) await recordEvidence(decision);
     }
+  }
+
+  async function reactLearning(entry: TimelineEntry) {
 
     if (entry.source === "agent-host" && (entry.kind === "error" || entry.kind === "agent_message")) {
       const detection = await decisions.detectImpasse({ timeline: timeline.entries() });
@@ -94,45 +144,90 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         const card = await teaching.offer({ impasse: entry.impasse, learner: learnerContext });
         if (card) timeline.append({ kind: "offer", source: "teaching", impasseId: entry.impasse.id, card });
       } else {
-        await startLesson(entry.impasse);
+        await startRequestedLesson(entry.impasse.id);
       }
     }
-    if (entry.kind === "offer_response" && entry.response === "accept") {
-      const impasse = findImpasse(timeline.entries(), entry.impasseId);
-      if (impasse) await startLesson(impasse);
+    if (entry.kind === "offer_response" && entry.response === "accept") await startRequestedLesson(entry.impasseId);
+    if (entry.kind === "lesson_question") {
+      appendAll(await teaching.followUp({ lessonId: entry.lessonId, question: entry.text, timeline: timeline.entries() }));
     }
-    if (entry.kind === "card_answer") {
-      appendAll(await teaching.answer({ lessonId: entry.lessonId, cardEntryId: entry.cardEntryId, answer: entry.answer, timeline: timeline.entries() }));
+    if (entry.kind === "card_answer") await takeAnswer(entry);
+    if (entry.kind === "lesson_end") {
+      agent?.setLearnerContext(null);
+      if (activeLesson(timeline.entries())?.lessonId === entry.lessonId) backToWork();
     }
-    if (entry.kind === "lesson_end") agent?.setLearnerContext(null);
     if (entry.kind === "session_end") await learner.dream("session_end");
   }
 
   let agent: AgentSession | undefined;
+  let retrying = false;
   timeline.append({ kind: "session_start", source: "app", projectDir });
   timeline.subscribe((entry) => void enqueue(() => react(entry)));
   agent = await modules.agentHost.startSession({ projectDir, timeline });
   const session = agent;
 
   async function dispatch(action: UserAction): Promise<void> {
+    if (startsLesson(action) && currentMode(timeline.entries()) === "learning") {
+      throw new Error("A Lesson is already running. Finish it or go back to work first.");
+    }
     switch (action.type) {
-      case "send_message":
-        await session.sendUserMessage(action.text);
+      case "send_message": {
+        if (currentMode(timeline.entries()) === "work") {
+          await session.sendUserMessage(action.text);
+          return;
+        }
+        // Learning mode: a follow-up question inside the current Lesson. It never reaches the agent.
+        const lessonId = activeLesson(timeline.entries())?.lessonId;
+        if (!lessonId) throw new Error("The Lesson is still starting. Try again in a moment.");
+        timeline.append({ kind: "lesson_question", source: "app", lessonId, text: action.text });
         return;
+      }
       case "why": {
         const source = timeline.entries().find((e) => e.id === action.entryId);
         if (!source) throw new Error(`No Timeline entry ${action.entryId}`);
-        timeline.append({ kind: "impasse", source: "app", impasse: newImpasse(timeline.entries(), "why", `Why: ${describe(source)}`, [source.id]) });
+        const impasse = newImpasse(timeline.entries(), "why", `Why: ${describe(source)}`, [source.id]);
+        timeline.append({ kind: "impasse", source: "app", impasse });
+        enterLearning(impasse.id);
         return;
       }
-      case "teach_me":
-        timeline.append({ kind: "impasse", source: "app", impasse: { ...newImpasse(timeline.entries(), "teach_me", action.text, []), text: action.text } });
+      case "ask_why": {
+        const impasse = { ...newImpasse(timeline.entries(), "ask_why", action.text, []), text: action.text };
+        timeline.append({ kind: "impasse", source: "app", impasse });
+        enterLearning(impasse.id);
         return;
+      }
       case "offer_response":
+        if (timeline.entries().some((e) => e.kind === "offer_response" && e.impasseId === action.impasseId)) {
+          throw new Error("This Offer was already answered");
+        }
         timeline.append({ kind: "offer_response", source: "app", impasseId: action.impasseId, response: action.response });
+        if (action.response === "accept") enterLearning(action.impasseId);
         return;
+      case "back_to_work":
+        // Queued after any Lesson start still in flight, so it always abandons the Lesson that is actually running.
+        await enqueue(async () => {
+          const lessonId = activeLesson(timeline.entries())?.lessonId;
+          if (lessonId) appendAll(await teaching.abandon(lessonId));
+          backToWork();
+        });
+        return;
+      case "retry_answer": {
+        const error = pendingLessonError(timeline.entries());
+        if (!error || error.cardEntryId !== action.cardEntryId || error.lessonId !== action.lessonId || retrying) {
+          throw new Error("There is nothing to retry for this card");
+        }
+        const answer = timeline.entries().findLast((e): e is TimelineEntryOf<"card_answer"> => e.kind === "card_answer" && e.cardEntryId === action.cardEntryId);
+        if (!answer) throw new Error("There is nothing to retry for this card");
+        retrying = true;
+        await enqueue(() => takeAnswer(answer).finally(() => (retrying = false)));
+        return;
+      }
       case "card_answer": {
+        const lesson = activeLesson(timeline.entries());
         const answered = timeline.entries().find((e) => e.id === action.cardEntryId);
+        if (lesson?.lessonId !== action.lessonId || answered?.kind !== "lesson_card" || answered.lessonId !== action.lessonId || answered.seq < (lesson.startSeq ?? Infinity)) {
+          throw new Error("This Lesson is no longer running");
+        }
         if (answered?.kind !== "lesson_card" || answered.step === "explain") throw new Error(`${action.cardEntryId} is not a Probe or Articulation card`);
         if (timeline.entries().some((e) => e.kind === "card_answer" && e.cardEntryId === action.cardEntryId)) throw new Error("This card was already answered");
         timeline.append({ kind: "card_answer", source: "app", lessonId: action.lessonId, cardEntryId: action.cardEntryId, step: answered.step, answer: action.answer });

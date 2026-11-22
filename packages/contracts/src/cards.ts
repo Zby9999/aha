@@ -1,10 +1,17 @@
 import type { Spec } from "@json-render/core";
+import type { z } from "zod";
+import type {
+  articulationCardSchema,
+  offerCardSchema,
+  probeCardSchema,
+  probeOptionSchema,
+  textExplanationSchema,
+} from "./catalog.ts";
 import type { Citation } from "./learning.ts";
 
 /**
  * A lesson card is a json-render Spec built from the Teaching catalog.
- * The catalog itself (Zod props, renderers) is owned by the teaching package;
- * the contracts fix only component names, the interactive cards' props and the action names.
+ * The catalog's structure (Zod props) is in `catalog.ts`; the app renders it with shadcn/ui (ADR-0004).
  */
 export type CardSpec = Spec;
 
@@ -32,35 +39,14 @@ export const EXPLANATION_COMPONENTS = [
 export type ExplanationComponent = (typeof EXPLANATION_COMPONENTS)[number];
 
 /** Actions the app routes back to the backend when a card is used. */
-export const CARD_ACTIONS = ["accept_offer", "decline_offer", "let_agent_continue", "submit_answer", "flag_explanation"] as const;
+export const CARD_ACTIONS = ["accept_offer", "skip_offer", "submit_answer", "flag_explanation"] as const;
 export type CardAction = (typeof CARD_ACTIONS)[number];
 
-export interface OfferCardProps {
-  impasseId: string;
-  title: string;
-  body: string;
-}
-
-export interface ProbeOption {
-  id: string;
-  label: string;
-}
-
-export interface ProbeCardProps {
-  lessonId: string;
-  question: string;
-  /** Multiple choice when present; free-text prediction otherwise. */
-  options?: ProbeOption[];
-  citations: Citation[];
-}
-
-export interface ArticulationCardProps {
-  lessonId: string;
-  prompt: string;
-  /** "restate": explain in own words. "judge_fix": decide whether the agent's fix addresses the cause. */
-  mode: "restate" | "judge_fix";
-  citations: Citation[];
-}
+export type OfferCardProps = z.infer<typeof offerCardSchema>;
+export type ProbeOption = z.infer<typeof probeOptionSchema>;
+export type ProbeCardProps = z.infer<typeof probeCardSchema>;
+export type ArticulationCardProps = z.infer<typeof articulationCardSchema>;
+export type TextExplanationProps = z.infer<typeof textExplanationSchema>;
 
 /** Every explanation component carries citations so the grounding check can verify them. */
 export interface ExplanationProps {

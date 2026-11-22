@@ -109,7 +109,7 @@ export interface BackgroundAgent {
  * Callers treat null as the safe default: no Impasse, no Evidence, no Concepts.
  */
 export interface DecisionService {
-  /** Is the user at an Impasse from a repeated gap? Applies the threshold and the post-decline cooldown. */
+  /** Is the user at an Impasse from a repeated gap? Applies the threshold and the cooldown after a skipped Offer. */
   detectImpasse(input: { timeline: readonly TimelineEntry[] }): Promise<ImpasseDetection | null>;
   /** Which of these new entries become Evidence. Prefers existing Concepts over new ones. */
   gateEvidence(input: EvidenceGateInput): Promise<EvidenceDecision[] | null>;
@@ -222,6 +222,8 @@ export interface Teaching {
   offer(input: { impasse: Impasse; learner: LearnerContext }): Promise<CardSpec | null>;
   startLesson(input: LessonInput): Promise<NewTimelineEntry[]>;
   answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
+  /** Answer a follow-up question asked in learning mode, inside the same Lesson (e.g. an `explain` lesson_card). */
+  followUp(input: { lessonId: string; question: string; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
   /** Back to work without Evidence. */
   abandon(lessonId: string): Promise<NewTimelineEntry[]>;
 }

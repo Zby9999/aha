@@ -34,6 +34,18 @@
 
 ## 规则
 
+- **界面统一用 shadcn/ui + Tailwind（ADR-0004）。** 颜色、圆角等只改 `packages/app/ui/globals.css` 里的变量，不写零散的颜色值。新增课程卡片：在 `packages/contracts/src/catalog.ts` 加 props，在 `packages/app/ui/cards/registry.tsx` 加渲染。缺 shadcn 组件时在 `packages/app` 下运行 `pnpm dlx shadcn@latest add <组件>`。风格是 `base-rhea`（Base UI）。agent 改界面时会自动加载 `.agents/skills/shadcn`（shadcn 官方 skill）。
+- **聊天和 agent 界面先查 AI Elements 文档，再写代码。** AI Elements 是用 shadcn 组件拼出来的写法，不是 registry 里的组件，所以 `shadcn search`、`shadcn docs` 和 `llms.txt` 都查不到。改动前先读总索引 <https://ui.shadcn.com/docs/ai-elements.md>，再读对应写法的页面 `https://ui.shadcn.com/docs/ai-elements/base/<名字>.md`，按页面写的组合方式实现，用 CLI 装它用到的基础组件。现在的对应关系：
+
+  | 界面部分 | AI Elements 写法 | 代码位置 |
+  | --- | --- | --- |
+  | 消息列表、自动滚动 | Chat | `App.tsx` 的 `MessageScroller*` |
+  | 代理回复、用户气泡 | Message | `App.tsx` 的 `Message`、`Bubble`，`components/markdown.tsx` |
+  | 工具调用 | Tool（基于 Trace） | `App.tsx` 的 `ToolLine` |
+  | 底部输入框 | Prompt Input（基于 Input Group） | `App.tsx` 的 `<form>` |
+
+  新增这类界面（比如工具审批用 Confirmation）时，先在索引里找有没有现成写法，并把它补进这张表。
+
 - **只改自己模块的 package。** 需要改共享契约（`contracts`）时单独开一个 PR，并 @ 所有受影响模块的负责人。
 - **测试只测接口行为，用共享的 fixture 数据**，不依赖别人模块的真实实现。
 - **公开仓库：** 不提交任何 API key、学号、邮箱或试用参与者的数据。

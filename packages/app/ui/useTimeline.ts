@@ -8,16 +8,31 @@ export function useTimeline() {
   const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
-    socket.current = ws;
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data) as ServerMessage;
-      if (message.type === "snapshot") setEntries(message.entries);
-      else if (message.type === "entry") setEntries((prev) => [...prev, message.entry]);
-      else setError(message.message);
+    let closed = false;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const connect = () => {
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
+      socket.current = ws;
+      ws.onopen = () => setError(null);
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data) as ServerMessage;
+        if (message.type === "snapshot") setEntries(message.entries);
+        else if (message.type === "entry") setEntries((prev) => [...prev, message.entry]);
+        else setError(message.message);
+      };
+      // The backend restarts during development: say so and reconnect; the snapshot restores the Timeline.
+      ws.onclose = () => {
+        if (closed) return;
+        setError("Disconnected from the Aha backend. Reconnecting…");
+        retry = setTimeout(connect, 1000);
+      };
     };
-    ws.onclose = () => setError("Disconnected from the Aha backend.");
-    return () => ws.close();
+    connect();
+    return () => {
+      closed = true;
+      clearTimeout(retry);
+      socket.current?.close();
+    };
   }, []);
 
   const dispatch = useCallback((action: UserAction) => {

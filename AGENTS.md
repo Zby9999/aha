@@ -21,3 +21,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ## Team workflow
 
 Each teammate owns one module; pick an unblocked sub-ticket labelled with your `owner:` label, branch from `main`, run `/implement #<issue>`, and open a PR that closes the issue. See `docs/workflow.md`. The `implement`, `tdd`, `code-review`, `codebase-design` and `diagnosing-bugs` skills are vendored in `.agents/skills/`.
+
+## UI
+
+The app uses shadcn/ui with the `base-rhea` style; the vendored `shadcn` skill covers components and the CLI. Chat and agent UI (messages, tools, the prompt input) follows shadcn's AI Elements patterns, which are docs pages, not registry items: `shadcn search` will not find them. Read https://ui.shadcn.com/docs/ai-elements.md and the pattern's `.md` page before building one. See the UI rules in `docs/workflow.md`.

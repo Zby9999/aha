@@ -5,7 +5,7 @@ A coding agent that builds the user's project as usual and turns moments of conf
 ## Learning moments
 
 **Impasse**:
-A moment when the user needs to understand something to move on. It starts when the user asks (the Why button, or a message sent with Ask why on) or when the same gap keeps recurring.
+A moment when the user needs to understand something to move on. It starts when the user asks (the Why button on an agent change, or a question sent with Ask why) or when the same gap keeps recurring.
 _Avoid_: stuck point, error, failure
 
 **Offer**:
@@ -13,8 +13,12 @@ A light, skippable suggestion to start a lesson at an impasse the system detecte
 _Avoid_: prompt, interruption, popup
 
 **Lesson**:
-The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work.
+The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence.
 _Avoid_: tutorial, teaching session
+
+**Mode**:
+What the session is doing, always exactly one at a time: **work mode**, where the agent builds, or **learning mode**, where one Lesson runs. Starting a Lesson enters learning mode; finishing it or pressing Back to work returns to work mode.
+_Avoid_: state, phase, screen
 
 **Probe**:
 The prediction or choice the user makes before an explanation, which exposes the specific gap.
