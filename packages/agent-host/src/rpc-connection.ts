@@ -76,12 +76,14 @@ function connect(child: ChildProcess): RpcConnection {
       if (line.trim()) handleLine(line);
     }
   });
+  const stderrDecoder = new StringDecoder("utf8");
   child.stderr!.on("data", (chunk: Buffer) => {
-    stderr = (stderr + chunk.toString("utf8")).slice(-STDERR_KEEP);
+    stderr = (stderr + stderrDecoder.write(chunk)).slice(-STDERR_KEEP);
   });
-  // Writing to a Pi that just died raises EPIPE here; the exit handler reports it.
+  // Writing to a Pi that just died raises EPIPE here, and a failed kill raises on the child; the exit handler reports
+  // the death itself, so these only need to not crash the app.
   child.stdin!.on("error", () => {});
-  child.on("error", () => {});
+  child.on("error", (error) => console.warn(`[agent-host] Pi process error: ${error.message}`));
   child.once("exit", (code, signal) => {
     exited = true;
     exitInfo = { code, signal, stderr: stderr.trim() };

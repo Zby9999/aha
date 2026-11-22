@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
-import { spawnRpc, type PiExit, type RpcConnection } from "./rpc-connection.ts";
+import { spawnRpc, type PiExit, type RpcConnection, type SpawnRpcOptions } from "./rpc-connection.ts";
 
 export interface PiAgentHostOptions {
   /** Program to run. Defaults to `AHA_PI_COMMAND`, else `pi` on the PATH. */
@@ -28,7 +28,8 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
 
   return {
     async startSession({ projectDir, timeline }: AgentSessionOptions): Promise<AgentSession> {
-      const pi = await startPi(command, [...(options.args ?? []), "--mode", "rpc"], resolve(projectDir), env, startTimeoutMs);
+      const args = [...(options.args ?? []), "--mode", "rpc"];
+      const pi = await startPi({ command, args, cwd: resolve(projectDir), env }, startTimeoutMs);
 
       let stopping = false;
       pi.onExit((exit) => {
@@ -39,7 +40,7 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
 
       return {
         async sendUserMessage(text) {
-          if (stopping) throw new AgentHostError("crashed", "The agent session has stopped.");
+          if (stopping) throw new Error("The agent session has stopped.");
           if (pi.exited) throw new AgentHostError("crashed", "Pi is not running any more. Start Aha again to continue.");
           timeline.append({ kind: "user_message", source: "agent-host", text });
           try {
@@ -48,9 +49,11 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
           } catch (error) {
             // A crash while sending is already on the Timeline; never throw it into the app.
             if (pi.exited) return;
-            timeline.append({ kind: "error", source: "agent-host", origin: "agent", message: `Pi did not accept the message: ${(error as Error).message}` });
+            const message = `Pi did not accept the message: ${(error as Error).message}`;
+            timeline.append({ kind: "error", source: "agent-host", origin: "agent", message });
           }
         },
+        // The bridge extension that adds learner context to Pi requests comes with #23.
         setLearnerContext() {},
         async stop() {
           stopping = true;
@@ -61,14 +64,17 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
   };
 }
 
-async function startPi(command: string, args: string[], cwd: string, env: NodeJS.ProcessEnv, timeoutMs: number): Promise<RpcConnection> {
+async function startPi(spawnOptions: SpawnRpcOptions, timeoutMs: number): Promise<RpcConnection> {
+  const { command } = spawnOptions;
   let pi: RpcConnection;
   try {
-    pi = await spawnRpc({ command, args, cwd, env });
+    pi = await spawnRpc(spawnOptions);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ENOENT") throw new AgentHostError("pi_missing", `Aha could not find Pi (\`${command}\`). ${INSTALL_HINT}`);
-    if (code === "EACCES") throw new AgentHostError("pi_missing", `Aha found \`${command}\` but could not run it. ${INSTALL_HINT}`);
+    if (code === "EACCES") {
+      throw new AgentHostError("start_failed", `Aha found \`${command}\` but is not allowed to run it. Check the file's permissions.`);
+    }
     throw new AgentHostError("start_failed", `Pi did not start: ${(error as Error).message}`);
   }
 
@@ -84,13 +90,23 @@ async function startPi(command: string, args: string[], cwd: string, env: NodeJS
       exited.then((exit) => ({ exit })),
       timeout,
     ]);
-    if (answer === "timeout") throw new AgentHostError("start_failed", `Pi did not answer within ${Math.round(timeoutMs / 1000)} s. Check that \`${command} --mode rpc\` works in a terminal.`);
+    if (answer === "timeout") {
+      const hint = `Check that \`${command} --mode rpc\` works in a terminal.`;
+      throw new AgentHostError("start_failed", `Pi did not answer within ${timeoutMs / 1000} s. ${hint}`);
+    }
     if ("exit" in answer) throw new AgentHostError("start_failed", `Pi exited while starting${exitDetail(answer.exit)}`);
     if ("error" in answer) {
       if (pi.exited) throw new AgentHostError("start_failed", `Pi exited while starting${exitDetail(await exited)}`);
       throw new AgentHostError("start_failed", `Pi did not start: ${answer.error.message}`);
     }
-    if (answer.models.length === 0) throw new AgentHostError("not_logged_in", `Pi is not logged in to any model provider. ${LOGIN_HINT}`);
+    if (answer.models.length === 0) {
+      throw new AgentHostError("not_logged_in", `Pi is not logged in to any model provider. ${LOGIN_HINT}`);
+    }
+    // With providers but no usable default, Pi reports no model or a placeholder with id "unknown".
+    const state = (await pi.request({ type: "get_state" })) as { model?: { id?: string } } | undefined;
+    if (!state?.model?.id || state.model.id === "unknown") {
+      throw new AgentHostError("not_logged_in", `Pi has no model to use. ${LOGIN_HINT}`);
+    }
     return pi;
   } catch (error) {
     await pi.close(1000);
@@ -100,12 +116,13 @@ async function startPi(command: string, args: string[], cwd: string, env: NodeJS
   }
 }
 
-function exitDetail({ code, signal, stderr }: PiExit): string {
+/** " (exit code 1).", followed by Pi's last stderr lines when it wrote any. */
+function exitDetail({ code, signal, stderr }: PiExit, hint = ""): string {
   const how = signal ? ` (signal ${signal})` : code !== null ? ` (exit code ${code})` : "";
   const lastLines = stderr.split("\n").slice(-5).join("\n").trim();
-  return `${how}.${lastLines ? `\n${lastLines}` : ""}`;
+  return `${how}.${hint ? ` ${hint}` : ""}${lastLines ? `\nPi said:\n${lastLines}` : ""}`;
 }
 
 function crashMessage(exit: PiExit): string {
-  return `Pi stopped unexpectedly${exitDetail(exit)} Start Aha again to continue.`;
+  return `Pi stopped unexpectedly${exitDetail(exit, "Start Aha again to continue.")}`;
 }

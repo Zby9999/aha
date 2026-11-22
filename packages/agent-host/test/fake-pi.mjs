@@ -3,7 +3,7 @@
 //
 // Environment:
 //   FAKE_PI_ON_START  "exit": print to stderr and exit 1 at once; "silent": never answer anything.
-//   FAKE_PI_MODELS    "none": get_available_models returns no models (not logged in).
+//   FAKE_PI_MODELS    "none": no models (not logged in); "no-default": models, but get_state has the "unknown" placeholder.
 //   FAKE_PI_LOG       File that receives each command received, one JSON per line.
 //   FAKE_PI_SCRIPT    JSON file { "<prompt text>": [records to emit after accepting that prompt] }.
 // A prompt "__crash__" makes the process exit with code 3.
@@ -29,7 +29,7 @@ function handle(command) {
     case "get_available_models":
       return respond(command, { models: env.FAKE_PI_MODELS === "none" ? [] : [MODEL] });
     case "get_state":
-      return respond(command, { model: env.FAKE_PI_MODELS === "none" ? undefined : MODEL, isStreaming: false });
+      return respond(command, { model: env.FAKE_PI_MODELS === "no-default" ? { ...MODEL, id: "unknown" } : MODEL, isStreaming: false });
     case "prompt": {
       if (command.message === "__crash__") process.exit(3);
       respond(command, { disposition: "started" });

@@ -72,6 +72,10 @@ describe("starting Pi", () => {
     await expect(run).rejects.toThrow(/pi auth login/);
   });
 
+  test("a Pi with providers but no usable model is reported as not logged in", async () => {
+    await expect(start({ FAKE_PI_MODELS: "no-default" })).rejects.toMatchObject({ code: "not_logged_in" });
+  });
+
   test("a Pi that exits while starting is reported with its error output", async () => {
     const run = start({ FAKE_PI_ON_START: "exit" });
     await expect(run).rejects.toMatchObject({ code: "start_failed" });
