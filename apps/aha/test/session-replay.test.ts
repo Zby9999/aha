@@ -38,7 +38,8 @@ describe("session replay with stub modules", () => {
     const offer = last(entries(), "offer");
     expect(offer?.card.elements[offer.card.root]?.type).toBe("OfferCard");
 
-    const errors = entries().filter((e) => e.kind === "error");
+    // The browser's repeated 401; the recorded agent turns also hold the agent's own tool errors.
+    const errors = entries().filter((e) => e.kind === "error" && e.origin === "project");
     expect(errors).toHaveLength(2);
     expect(offer!.seq).toBeGreaterThan(errors[1]!.seq);
     expect(kinds(entries()).filter((k) => k === "offer")).toHaveLength(1);
