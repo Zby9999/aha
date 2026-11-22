@@ -309,7 +309,8 @@ describe("module configuration", () => {
   });
 
   test("a real implementation that does not exist yet fails with a clear message", () => {
-    expect(() => buildModules({ ...allStubs, decisions: "real" })).toThrow(/No real implementation of decisions yet/);
+    expect(() => buildModules({ ...allStubs, learnerModel: "real" })).toThrow(/No real implementation of learnerModel yet/);
+    expect(buildModules({ ...allStubs, decisions: "real" }).decisions.detectImpasse).toBeTypeOf("function");
     expect(buildModules({ ...allStubs, background: "real" }).background).toBeDefined();
   });
 });
