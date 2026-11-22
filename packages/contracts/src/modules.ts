@@ -222,6 +222,8 @@ export interface Teaching {
   offer(input: { impasse: Impasse; learner: LearnerContext }): Promise<CardSpec | null>;
   startLesson(input: LessonInput): Promise<NewTimelineEntry[]>;
   answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
+  /** Answer a follow-up question asked in learning mode, inside the same Lesson (e.g. an `explain` lesson_card). */
+  followUp(input: { lessonId: string; question: string; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
   /** Back to work without Evidence. */
   abandon(lessonId: string): Promise<NewTimelineEntry[]>;
 }

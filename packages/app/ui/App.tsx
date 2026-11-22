@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { isKind, type CardAnswer, type TimelineEntry, type UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowUp, FilePen, FileText, HelpCircle, Lightbulb, Search, Sparkles, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, Lightbulb, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { toViewItems, type ViewItem } from "./timelineView.ts";
+import { sessionView, toViewItems, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -38,12 +38,16 @@ type Dispatch = (action: UserAction) => void;
 export function App() {
   const { entries, error, connected, dispatch } = useTimeline();
   const [text, setText] = useState("");
-  const [askWhy, setAskWhy] = useState(false);
+  const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const answered = new Set(entries.flatMap((e) => (e.kind === "card_answer" ? [e.cardEntryId] : [])));
-  const responded = new Set(entries.flatMap((e) => (e.kind === "offer_response" ? [e.impasseId] : [])));
   const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
   const items = toViewItems(entries);
+  const session = sessionView(entries);
+  const modeChange = entries.findLast((entry) => isKind(entry, "mode_change"));
+  const learning = session.mode === "learning";
+  const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
+  const asking = !learning && askWhyRevision === revision;
+  const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
   const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
   const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
   const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
@@ -52,8 +56,11 @@ export function App() {
     <Workspace
       projectName={projectName}
       connected={connected}
+      modeChange={modeChange}
       preview={<ProjectPreview lastEdit={lastEdit} />}
-      explain={(visible) => <LearningPanel cards={lessonCards} answered={answered} dispatch={dispatch} visible={visible} />}
+      explain={(visible) => (
+        <LearningPanel cards={lessonCards} isDone={(entry) => !connected || session.isDone(entry)} dispatch={dispatch} visible={visible} />
+      )}
     >
       <MessageScrollerProvider autoScroll>
         <MessageScroller aria-label="Timeline" className="flex-1">
@@ -67,7 +74,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} responded={responded} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -81,14 +88,26 @@ export function App() {
         className="workspace-composer"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!text.trim()) return;
-          // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
-          if (!dispatch(askWhy ? { type: "ask_why", text } : { type: "send_message", text })) return;
+          if (!canSend) return;
+          // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
+          if (!dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text })) return;
           setText("");
-          setAskWhy(false);
+          setAskWhyRevision(null);
         }}
       >
-        <InputGroup className={askWhy ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
+        {learning && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
+            <GraduationCap className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">
+              Learning: {session.lessonTitle ?? "starting a Lesson…"}
+            </span>
+            <Button type="button" size="sm" variant="outline" disabled={!connected} onClick={() => dispatch({ type: "back_to_work" })}>
+              <ArrowLeft />
+              Back to work
+            </Button>
+          </div>
+        )}
+        <InputGroup className={asking || learning ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
           <InputGroupTextarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -98,14 +117,15 @@ export function App() {
                 formRef.current?.requestSubmit();
               }
             }}
-            placeholder={askWhy ? "What do you want to understand?" : "Message your agent…"}
+            placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
             aria-label="Message"
             className="p-3"
           />
           <InputGroupAddon align="block-end">
             <Toggle
-              pressed={askWhy}
-              onPressedChange={setAskWhy}
+              pressed={asking}
+              disabled={!connected || !session.canStartLesson}
+              onPressedChange={(pressed) => setAskWhyRevision(pressed ? revision : null)}
               variant="outline"
               size="sm"
               aria-label="Ask why"
@@ -119,8 +139,8 @@ export function App() {
               size="icon-sm"
               variant="default"
               className="ml-auto rounded-full"
-              disabled={!connected || !text.trim()}
-              aria-label={askWhy ? "Ask" : "Send"}
+              disabled={!canSend}
+              aria-label={asking || learning ? "Ask" : "Send"}
             >
               <ArrowUp />
             </InputGroupButton>
@@ -131,7 +151,7 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, responded }: { item: ViewItem; dispatch: Dispatch; responded: Set<string> }) {
+function ViewItemView({ item, dispatch, session, connected }: { item: ViewItem; dispatch: Dispatch; session: SessionView; connected: boolean }) {
   if (item.type === "agent_message") {
     return (
       <Message className="gap-3">
@@ -147,8 +167,7 @@ function ViewItemView({ item, dispatch, responded }: { item: ViewItem; dispatch:
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
-  const done = entry.kind === "offer" && responded.has(entry.impasseId);
-  return <Entry entry={entry} dispatch={dispatch} done={done} />;
+  return <Entry entry={entry} dispatch={dispatch} done={!connected || session.isDone(entry)} canStartLesson={connected && session.canStartLesson} />;
 }
 
 function UserMessage({ children }: { children: React.ReactNode }) {
@@ -212,7 +231,7 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean }) {
+function Entry({ entry, dispatch, done, canStartLesson }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean; canStartLesson: boolean }) {
   switch (entry.kind) {
     case "user_message":
       return <UserMessage>{entry.text}</UserMessage>;
@@ -223,7 +242,7 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
             <FilePen className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
             <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>
-            <Button size="xs" variant="secondary" className="ml-auto" onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
+            <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
             <CodeBlock size="sm" className="mt-2">
@@ -259,8 +278,10 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
       return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
     case "card_answer":
       return <UserMessage>{answerText(entry.answer)}</UserMessage>;
+    case "lesson_question":
+      return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_end":
-      return <Meta>Lesson {entry.outcome}. Back to work.</Meta>;
+      return <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>;
     case "tool_call":
     case "tool_result":
     case "agent_message":
@@ -269,6 +290,7 @@ function Entry({ entry, dispatch, done }: { entry: TimelineEntry; dispatch: Disp
     case "session_end":
     case "lesson_start":
     case "lesson_card":
+    case "mode_change":
     case "answer_assessment":
     case "explanation_flagged":
     case "unknown_agent_event":

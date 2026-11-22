@@ -5,12 +5,12 @@ import { LessonCardView } from "./cards/LessonCardView.tsx";
 
 interface LearningPanelProps {
   cards: TimelineEntryOf<"lesson_card">[];
-  answered: ReadonlySet<string>;
+  isDone: (entry: TimelineEntryOf<"lesson_card">) => boolean;
   dispatch: (action: UserAction) => void;
   visible: boolean;
 }
 
-export function LearningPanel({ cards, answered, dispatch, visible }: LearningPanelProps) {
+export function LearningPanel({ cards, isDone, dispatch, visible }: LearningPanelProps) {
   const scroll = useRef<HTMLDivElement>(null);
   const latestCard = cards.at(-1);
 
@@ -30,7 +30,7 @@ export function LearningPanel({ cards, answered, dispatch, visible }: LearningPa
               key={entry.id}
               card={entry.card}
               entryId={entry.id}
-              done={answered.has(entry.id)}
+              done={isDone(entry)}
               dispatch={dispatch}
             />
           ))}

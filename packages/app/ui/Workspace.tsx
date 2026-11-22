@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import type { TimelineEntryOf } from "@aha/contracts";
 import { BookOpen, Columns2, Columns3, FolderCode, MessageSquare, Monitor, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,14 +20,19 @@ function savedLayout(): Layout {
 interface WorkspaceProps {
   projectName: string;
   connected: boolean;
+  modeChange?: TimelineEntryOf<"mode_change">;
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
 }
 
-export function Workspace({ projectName, connected, children, preview, explain }: WorkspaceProps) {
+export function Workspace({ projectName, connected, modeChange, children, preview, explain }: WorkspaceProps) {
   const [layout, setLayout] = useState(savedLayout);
-  const [tab, setTab] = useState<WorkspaceTab>("preview");
+  const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
+  const mode = modeChange?.mode ?? "work";
+  // A manual choice lasts until the next Timeline transition, including after a reconnect.
+  const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
+  const tab = manualTab?.revision === revision ? manualTab.tab : mode === "learning" ? "explain" : "preview";
   const tabbed = layout === "tabbed";
 
   function changeLayout(next: Layout) {
@@ -79,7 +85,7 @@ export function Workspace({ projectName, connected, children, preview, explain }
         </div>
       </header>
 
-      <main className="workspace-main">
+      <main className="workspace-main" data-mode={mode}>
         <section aria-labelledby="conversation-heading" className="workspace-chat">
           <header className="workspace-pane-heading">
             <MessageSquare aria-hidden="true" />
@@ -88,7 +94,7 @@ export function Workspace({ projectName, connected, children, preview, explain }
           {children}
         </section>
 
-        <Tabs value={tab} onValueChange={setTab} className="workspace-detail" data-layout={layout}>
+        <Tabs value={tab} onValueChange={(next) => setManualTab({ tab: next, revision })} className="workspace-detail" data-layout={layout}>
           <div className="workspace-tabbar" hidden={!tabbed}>
             <TabsList aria-label="Workspace views">
               <TabsTrigger value="preview"><Monitor />Preview</TabsTrigger>
