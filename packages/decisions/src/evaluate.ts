@@ -1,4 +1,4 @@
-import { DEMO_CONCEPTS, demoSession } from "@aha/contracts/fixtures";
+import { DEMO_CONCEPTS, demoEntryIds, demoSession } from "@aha/contracts/fixtures";
 import { createDecisions } from "../src/index.ts";
 
 if (!process.env.JEV_API_KEY?.trim()) {
@@ -6,9 +6,18 @@ if (!process.env.JEV_API_KEY?.trim()) {
 }
 
 const decisions = createDecisions();
-const firstError = demoSession.findIndex((entry) => entry.kind === "error");
-const secondError = demoSession.findIndex((entry, index) => index > firstError && entry.kind === "error");
-if (firstError < 0 || secondError < 0) throw new Error("Expected two errors in the demo recording.");
+function project401Index(id: string | undefined) {
+  const index = demoSession.findIndex((entry) => entry.id === id);
+  const entry = demoSession[index];
+  if (entry?.kind !== "error" || entry.origin !== "project" || entry.message !== "GET /api/me 401 (Unauthorized)") {
+    throw new Error(`Expected the labeled project 401 at demo entry ${id}.`);
+  }
+  return index;
+}
+
+const firstError = project401Index(demoEntryIds.error1);
+const secondError = project401Index(demoEntryIds.error2);
+if (secondError <= firstError) throw new Error("Expected the second project 401 after the first.");
 
 const cases = [
   { end: firstError, impasse: false, evidence: false },
