@@ -1,0 +1,23 @@
+{
+  "name": "@aha/aha",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Composition root: picks a stub or real implementation per module and starts the app.",
+  "scripts": {
+    "start": "pnpm --filter @aha/app build:ui && node src/main.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aha/agent-host": "workspace:*",
+    "@aha/app": "workspace:*",
+    "@aha/contracts": "workspace:*",
+    "@aha/decisions": "workspace:*",
+    "@aha/learner-model": "workspace:*",
+    "@aha/teaching": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "ws": "^8.23.0"
+  }
+}
