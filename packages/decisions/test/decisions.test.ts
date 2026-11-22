@@ -36,6 +36,25 @@ describe("DecisionService", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 
+  it("ignores repeated tool and agent errors during streaming and detects the repeated project 401", async () => {
+    const timeline = createTimeline({ sessionId: "error-origins" });
+    const request = vi.fn<typeof fetch>(async () => response({ recurring: noul(0.95), earlier: choice("event_0") }));
+    const service = createDecisions({ apiKey: "test", fetch: request });
+    const projectIds: string[] = [];
+    for (const origin of ["tool", "agent", "tool", "project", "agent", "project"] as const) {
+      const entry = timeline.append({ kind: "error", source: "agent-host", origin,
+        message: origin === "project" ? "GET /api/me 401 (Unauthorized)" : "The active page became unverified" });
+      if (origin === "project") projectIds.push(entry.id);
+      const detection = await service.detectImpasse({ timeline: timeline.entries() });
+      if (projectIds.length < 2) expect(detection).toBeNull();
+      else expect(detection?.impasse.sourceEntryIds).toEqual(projectIds);
+    }
+    expect(request).toHaveBeenCalledTimes(1);
+    timeline.append({ kind: "error", source: "agent-host", origin: "tool", message: "Tool disconnected" });
+    expect(await service.detectImpasse({ timeline: timeline.entries() })).toBeNull();
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it("stops waiting on timeout, including for a transport that ignores abort", async () => {
     const { timeline } = repeatedGap();
     const request = vi.fn<typeof fetch>(() => new Promise(() => {}));
