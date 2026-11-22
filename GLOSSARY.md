@@ -5,7 +5,7 @@ A coding agent that builds the user's project as usual and turns moments of conf
 ## Learning moments
 
 **Impasse**:
-A moment when the user needs to understand something to move on. It starts when the user asks (the Why button or a "teach me this" request) or when the same gap keeps recurring.
+A moment when the user needs to understand something to move on. It starts when the user asks (the Why button, or a message sent with Ask why on) or when the same gap keeps recurring.
 _Avoid_: stuck point, error, failure
 
 **Offer**:
