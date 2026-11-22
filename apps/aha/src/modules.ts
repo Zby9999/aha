@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createBackgroundAgent, createStubAgentHost, createStubBackgroundAgent } from "@aha/agent-host";
 import type { AhaModules, TimelineEntry } from "@aha/contracts";
-import { createStubDecisions } from "@aha/decisions";
+import { createDecisions, createStubDecisions } from "@aha/decisions";
 import { createStubLearnerModel } from "@aha/learner-model";
 import { createStubTeaching } from "@aha/teaching";
 
@@ -23,7 +23,7 @@ type Registry = { [K in keyof AhaModules]: Partial<Record<Implementation, (ctx: 
  */
 const REGISTRY: Registry = {
   agentHost: { stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [], streamDelayMs: ctx.streamDelayMs ?? 0 }) },
-  decisions: { stub: () => createStubDecisions() },
+  decisions: { stub: () => createStubDecisions(), real: () => createDecisions() },
   learnerModel: { stub: () => createStubLearnerModel },
   teaching: { stub: () => createStubTeaching },
   background: { stub: () => createStubBackgroundAgent(), real: () => createBackgroundAgent() },
