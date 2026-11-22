@@ -278,7 +278,7 @@
    "kind": "tool_result",
    "toolCallId": "call_jyifzdpo",
    "toolName": "agent_browser",
-   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
+   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -298,7 +298,7 @@
    "kind": "tool_result",
    "toolCallId": "call_cb1xez7w",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -319,7 +319,7 @@
    "kind": "tool_result",
    "toolCallId": "call_pzzo78kl",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, naviga\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse \n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -340,7 +340,7 @@
    "kind": "tool_result",
    "toolCallId": "call_drigeb6p",
    "toolName": "agent_browser",
-   "output": "alex\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "alex\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -362,7 +362,7 @@
    "kind": "tool_result",
    "toolCallId": "call_prg5azry",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 1/8 direct refs matched search \"Title\"; 1 surrounding snapshot line shown.\n\nRendered page text matches:\n- \"Title\" (label)\n\nOrigin: http://localhost:4173/\nRefs: 1\n\n- textbox \"Title\" [required, ref=e10]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":1,\"renderedTextMatches\":[{\"kind\":\"text\",\"offscreen\":false,\"tagName\":\"label\",\"text\":\"Title\"}],\"renderedTextTotalMatches\":1,\"renderedTextTruncated\":false,\"search\":\"Title\",\"totalLines\":8,\"totalRefs\":8,\"visibleLines\":1}}",
+   "output": "Snapshot filter: 1/8 direct refs matched search \"Title\"; 1 surrounding snapshot line shown.\n\nRendered page text matches:\n- \"Title\" (label)\n\nOrigin: http://localhost:4173/\nRefs: 1\n\n- textbox \"Title\" [required, ref=e10]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":1,\"renderedTextMatches\":[{\"kind\":\"text\",\"offscreen\":false,\"tagName\":\"label\",\"text\":\"Title\"}],\"renderedTextTotalMatches\":1,\"renderedTextTruncated\":false,\"search\":\"Title\",\"totalLines\":8,\"totalRefs\":8,\"visibleLines\":1}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -383,14 +383,14 @@
    "kind": "tool_result",
    "toolCallId": "call_jfj48xso",
    "toolName": "agent_browser",
-   "output": "Batch failed: 1/2 succeeded\nFirst failing step: 2 — find button Add project\nSee the per-step results below.\n\nMutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e10 My first project (succeeded)\nFilled: @e10\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — find button Add project (failed)\nError: Unknown subcommand: button\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"nextActionIds\":[],\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e10\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":false,\"resultCategory\":\"failure\",\"summary\":\"Error: Unknown subcommand: button\\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\",\"failureCategory\":\"upstream-error\"}]}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
+   "output": "Batch failed: 1/2 succeeded\nFirst failing step: 2 — find button Add project\nSee the per-step results below.\n\nMutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e10 My first project (succeeded)\nFilled: @e10\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — find button Add project (failed)\nError: Unknown subcommand: button\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"nextActionIds\":[],\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e10\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":false,\"resultCategory\":\"failure\",\"summary\":\"Error: Unknown subcommand: button\\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\",\"failureCategory\":\"upstream-error\"}]}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
    "isError": true,
    "source": "agent-host"
   },
   {
    "kind": "error",
    "origin": "tool",
-   "message": "Batch failed: 1/2 succeeded\nFirst failing step: 2 — find button Add project\nSee the per-step results below.\n\nMutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e10 My first project (succeeded)\nFilled: @e10\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — find button Add project (failed)\nError: Unknown subcommand: button\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"nextActionIds\":[],\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e10\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":false,\"resultCategory\":\"failure\",\"summary\":\"Error: Unknown subcommand: button\\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\",\"failureCategory\":\"upstream-error\"}]}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
+   "message": "Batch failed: 1/2 succeeded\nFirst failing step: 2 — find button Add project\nSee the per-step results below.\n\nMutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e10 My first project (succeeded)\nFilled: @e10\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — find button Add project (failed)\nError: Unknown subcommand: button\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"nextActionIds\":[],\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e10\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":false,\"resultCategory\":\"failure\",\"summary\":\"Error: Unknown subcommand: button\\nValid options: role, text, label, placeholder, alt, title, testid, first, last, nth\",\"failureCategory\":\"upstream-error\"}]}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
    "toolCallId": "call_jfj48xso",
    "source": "agent-host"
   },
@@ -413,14 +413,14 @@
    "kind": "tool_result",
    "toolCallId": "call_oz8170u5",
    "toolName": "agent_browser",
-   "output": "Unknown action '--name' for find. Valid actions: click, fill, check, hover, text.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
+   "output": "Unknown action '--name' for find. Valid actions: click, fill, check, hover, text.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
    "isError": true,
    "source": "agent-host"
   },
   {
    "kind": "error",
    "origin": "tool",
-   "message": "Unknown action '--name' for find. Valid actions: click, fill, check, hover, text.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
+   "message": "Unknown action '--name' for find. Valid actions: click, fill, check, hover, text.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"upstream-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: upstream-error; Pi tool isError: true.",
    "toolCallId": "call_oz8170u5",
    "source": "agent-host"
   },
@@ -442,7 +442,7 @@
    "kind": "tool_result",
    "toolCallId": "call_p0umscmo",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 2/8 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e6]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":8,\"totalRefs\":8,\"visibleLines\":2}}",
+   "output": "Snapshot filter: 2/8 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e6]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":8,\"totalRefs\":8,\"visibleLines\":2}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -462,7 +462,7 @@
    "kind": "tool_result",
    "toolCallId": "call_xdt5kb3y",
    "toolName": "agent_browser",
-   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
+   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -483,7 +483,7 @@
    "kind": "tool_result",
    "toolCallId": "call_x6jmmr0k",
    "toolName": "agent_browser",
-   "output": "Logged in as alex\n\nLog out\nMy projects\nMy first project\nAdd a project\nTitle\nDescription\nLink\nAdd project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Logged in as alex\n\nLog out\nMy projects\nMy first project\nAdd a project\nTitle\nDescription\nLink\nAdd project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -508,7 +508,7 @@
    "kind": "tool_result",
    "toolCallId": "call_x23spszc",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -529,14 +529,14 @@
    "kind": "tool_result",
    "toolCallId": "call_qybraocm",
    "toolName": "agent_browser",
-   "output": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
+   "output": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
    "isError": true,
    "source": "agent-host"
   },
   {
    "kind": "error",
    "origin": "tool",
-   "message": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
+   "message": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
    "toolCallId": "call_qybraocm",
    "source": "agent-host"
   },
@@ -556,7 +556,7 @@
    "kind": "tool_result",
    "toolCallId": "call_shpn36sm",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -577,7 +577,7 @@
    "kind": "tool_result",
    "toolCallId": "call_mjtw8url",
    "toolName": "agent_browser",
-   "output": "Logged in as alex\n\nLog out\nMy projects\nMy first project\nAdd a project\nTitle\nDescription\nLink\nAdd project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Logged in as alex\n\nLog out\nMy projects\nMy first project\nAdd a project\nTitle\nDescription\nLink\nAdd project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -598,7 +598,7 @@
    "kind": "tool_result",
    "toolCallId": "call_imiet94x",
    "toolName": "agent_browser",
-   "output": "{\n  \"loginHidden\": true,\n  \"portfolioHidden\": false,\n  \"token\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loginHidden\": true,\n  \"portfolioHidden\": false,\n  \"token\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -619,14 +619,14 @@
    "kind": "tool_result",
    "toolCallId": "call_fkmbuhzs",
    "toolName": "agent_browser",
-   "output": "Ref @e6 cannot be used yet. The browser target or operation outcome is unknown. Verify the current URL and take a fresh snapshot before using refs.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"stale-ref\",\"nextActions\":[{\"id\":\"refresh-interactive-refs\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Get current interactive refs before retrying the element action.\",\"safety\":\"Prefer a current @ref or a stable find locator; do not retry stale refs blindly.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: stale-ref; Pi tool isError: true.",
+   "output": "Ref @e6 cannot be used yet. The browser target or operation outcome is unknown. Verify the current URL and take a fresh snapshot before using refs.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"stale-ref\",\"nextActions\":[{\"id\":\"refresh-interactive-refs\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Get current interactive refs before retrying the element action.\",\"safety\":\"Prefer a current @ref or a stable find locator; do not retry stale refs blindly.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: stale-ref; Pi tool isError: true.",
    "isError": true,
    "source": "agent-host"
   },
   {
    "kind": "error",
    "origin": "tool",
-   "message": "Ref @e6 cannot be used yet. The browser target or operation outcome is unknown. Verify the current URL and take a fresh snapshot before using refs.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"stale-ref\",\"nextActions\":[{\"id\":\"refresh-interactive-refs\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Get current interactive refs before retrying the element action.\",\"safety\":\"Prefer a current @ref or a stable find locator; do not retry stale refs blindly.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: stale-ref; Pi tool isError: true.",
+   "message": "Ref @e6 cannot be used yet. The browser target or operation outcome is unknown. Verify the current URL and take a fresh snapshot before using refs.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"stale-ref\",\"nextActions\":[{\"id\":\"refresh-interactive-refs\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Get current interactive refs before retrying the element action.\",\"safety\":\"Prefer a current @ref or a stable find locator; do not retry stale refs blindly.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: stale-ref; Pi tool isError: true.",
    "toolCallId": "call_fkmbuhzs",
    "source": "agent-host"
   },
@@ -648,7 +648,7 @@
    "kind": "tool_result",
    "toolCallId": "call_8i3srn3d",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 2/9 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e15]\n- button \"Add project\" [ref=e18]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":9,\"totalRefs\":9,\"visibleLines\":2}}",
+   "output": "Snapshot filter: 2/9 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e15]\n- button \"Add project\" [ref=e18]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":9,\"totalRefs\":9,\"visibleLines\":2}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -668,7 +668,7 @@
    "kind": "tool_result",
    "toolCallId": "call_7el77sb5",
    "toolName": "agent_browser",
-   "output": "Clicked: @e15\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
+   "output": "Clicked: @e15\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -689,7 +689,7 @@
    "kind": "tool_result",
    "toolCallId": "call_av8dbarr",
    "toolName": "agent_browser",
-   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -738,7 +738,7 @@
    "kind": "tool_result",
    "toolCallId": "call_2sa4b4jy",
    "toolName": "agent_browser",
-   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -758,7 +758,7 @@
    "kind": "tool_result",
    "toolCallId": "call_tkh51wio",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e14]\n- heading \"Log in\" [level=2, ref=e23]\n- textbox \"Username\" [required, ref=e25]\n- textbox \"Password\" [required, ref=e26]\n- button \"Log in\" [ref=e24]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e14]\n- heading \"Log in\" [level=2, ref=e23]\n- textbox \"Username\" [required, ref=e25]\n- textbox \"Password\" [required, ref=e26]\n- button \"Log in\" [ref=e24]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -779,7 +779,7 @@
    "kind": "tool_result",
    "toolCallId": "call_m14fo989",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e25 alex (succeeded)\nFilled: @e25\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e26 portfolio123 (succeeded)\nFilled: @e26\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e24 (succeeded)\nClicked: @e24\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e25\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e26\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e25 alex (succeeded)\nFilled: @e25\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e26 portfolio123 (succeeded)\nFilled: @e26\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e24 (succeeded)\nClicked: @e24\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e25\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e26\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do no\n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -800,7 +800,7 @@
    "kind": "tool_result",
    "toolCallId": "call_56reuxtq",
    "toolName": "agent_browser",
-   "output": "alex\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "alex\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -853,7 +853,7 @@
    "kind": "tool_result",
    "toolCallId": "call_pz79g1wd",
    "toolName": "agent_browser",
-   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1005,7 +1005,7 @@
    "kind": "tool_result",
    "toolCallId": "call_74qcmx5j",
    "toolName": "agent_browser",
-   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
+   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1025,7 +1025,7 @@
    "kind": "tool_result",
    "toolCallId": "call_ou66xkv0",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1046,7 +1046,7 @@
    "kind": "tool_result",
    "toolCallId": "call_lwrigz2i",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, naviga\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse \n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -1066,7 +1066,7 @@
    "kind": "tool_result",
    "toolCallId": "call_1qb1e2xr",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 11\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- button \"Log out\" [ref=e6]\n- heading \"My projects\" [level=2, ref=e7]\n- heading \"Project A\" [level=3, ref=e10]\n- link \"See it live\" [ref=e11]\n- heading \"Project B\" [level=3, ref=e12]\n- heading \"Add a project\" [level=2, ref=e8]\n- textbox \"Title\" [required, ref=e13]\n- textbox \"Description\" [ref=e14]\n- textbox \"Link\" [ref=e15]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 11\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- button \"Log out\" [ref=e6]\n- heading \"My projects\" [level=2, ref=e7]\n- heading \"Project A\" [level=3, ref=e10]\n- link \"See it live\" [ref=e11]\n- heading \"Project B\" [level=3, ref=e12]\n- heading \"Add a project\" [level=2, ref=e8]\n- textbox \"Title\" [required, ref=e13]\n- textbox \"Description\" [ref=e14]\n- textbox \"Link\" [ref=e15]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1087,7 +1087,7 @@
    "kind": "tool_result",
    "toolCallId": "call_ppaoha5u",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 2 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e13 Added from browser (succeeded)\nFilled: @e13\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e14 survives logout (succeeded)\nFilled: @e14\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 2 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e13\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e14\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSum\n…(cut)",
+   "output": "Mutation evidence: 2 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e13 Added from browser (succeeded)\nFilled: @e13\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e14 survives logout (succeeded)\nFilled: @e14\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 2 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e13\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e14\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-a\n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -1107,7 +1107,7 @@
    "kind": "tool_result",
    "toolCallId": "call_u01vb4m2",
    "toolName": "agent_browser",
-   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
+   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1128,7 +1128,7 @@
    "kind": "tool_result",
    "toolCallId": "call_whhqjnxx",
    "toolName": "agent_browser",
-   "output": "Project A\n\nfirst\n\nSee it live\nProject B\nAdded from browser\n\nsurvives logout\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Project A\n\nfirst\n\nSee it live\nProject B\nAdded from browser\n\nsurvives logout\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1156,7 +1156,7 @@
    "kind": "tool_result",
    "toolCallId": "call_t4efcfwt",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 2/12 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e6]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":12,\"totalRefs\":12,\"visibleLines\":2}}",
+   "output": "Snapshot filter: 2/12 direct refs matched role=button; 2 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 2\n\n- button \"Log out\" [ref=e6]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":2,\"role\":\"button\",\"totalLines\":12,\"totalRefs\":12,\"visibleLines\":2}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1176,7 +1176,7 @@
    "kind": "tool_result",
    "toolCallId": "call_qhomeio5",
    "toolName": "agent_browser",
-   "output": "Clicked: @e6\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
+   "output": "Clicked: @e6\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1196,7 +1196,7 @@
    "kind": "tool_result",
    "toolCallId": "call_mrl6wyhs",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1217,7 +1217,7 @@
    "kind": "tool_result",
    "toolCallId": "call_vzpde6dd",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, naviga\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse \n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -1238,7 +1238,7 @@
    "kind": "tool_result",
    "toolCallId": "call_21ebtzp2",
    "toolName": "agent_browser",
-   "output": "Project A\n\nfirst\n\nSee it live\nProject B\nAdded from browser\n\nsurvives logout\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Project A\n\nfirst\n\nSee it live\nProject B\nAdded from browser\n\nsurvives logout\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1257,7 +1257,7 @@
    "kind": "tool_result",
    "toolCallId": "call_3p86466a",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1278,14 +1278,14 @@
    "kind": "tool_result",
    "toolCallId": "call_f30907qo",
    "toolName": "agent_browser",
-   "output": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
+   "output": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
    "isError": true,
    "source": "agent-host"
   },
   {
    "kind": "error",
    "origin": "tool",
-   "message": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
+   "message": "The active page became unverified after a tab, attachment, history, script, or state-load transition. Run get url or navigate explicitly before page-content inspection.\n\nObservation: {\"success\":false,\"resultCategory\":\"failure\",\"failureCategory\":\"validation-error\",\"sessionName\":\"pi-root-session\"}\n\nResult category: failure; failureCategory: validation-error; Pi tool isError: true.",
    "toolCallId": "call_f30907qo",
    "source": "agent-host"
   },
@@ -1305,7 +1305,7 @@
    "kind": "tool_result",
    "toolCallId": "call_o3ekl8p5",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1326,7 +1326,7 @@
    "kind": "tool_result",
    "toolCallId": "call_u7p68v9j",
    "toolName": "agent_browser",
-   "output": "{\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true,\n  \"projects\": [\n    \"Project A\",\n    \"Project B\",\n    \"Added from browser\"\n  ]\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true,\n  \"projects\": [\n    \"Project A\",\n    \"Project B\",\n    \"Added from browser\"\n  ]\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1362,7 +1362,7 @@
    "kind": "tool_result",
    "toolCallId": "call_ctnf6g8x",
    "toolName": "agent_browser",
-   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1620,7 +1620,7 @@
    "kind": "tool_result",
    "toolCallId": "call_tnuuiqhy",
    "toolName": "agent_browser",
-   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
+   "output": "My Portfolio\nhttp://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-opened-page\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Inspect the opened page before choosing interactive refs.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"open\",\"nextActionIds\":[\"inspect-opened-page\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"open → navigation → My Portfolio → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1640,7 +1640,7 @@
    "kind": "tool_result",
    "toolCallId": "call_qz1p56ho",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1661,7 +1661,7 @@
    "kind": "tool_result",
    "toolCallId": "call_8gq05a82",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, naviga\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse \n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -1682,7 +1682,7 @@
    "kind": "tool_result",
    "toolCallId": "call_s08570lq",
    "toolName": "agent_browser",
-   "output": "{\n  \"loginHidden\": true,\n  \"projects\": [\n    \"Server token project\"\n  ],\n  \"storedToken\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loginHidden\": true,\n  \"projects\": [\n    \"Server token project\"\n  ],\n  \"storedToken\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1704,7 +1704,7 @@
    "kind": "tool_result",
    "toolCallId": "call_ww3n8cma",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 3/9 direct refs matched role=textbox; 3 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 3\n\n- textbox \"Title\" [required, ref=e11]\n- textbox \"Description\" [ref=e12]\n- textbox \"Link\" [ref=e13]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":3,\"role\":\"textbox\",\"totalLines\":9,\"totalRefs\":9,\"visibleLines\":3}}",
+   "output": "Snapshot filter: 3/9 direct refs matched role=textbox; 3 surrounding snapshot lines shown.\n\nOrigin: http://localhost:4173/\nRefs: 3\n\n- textbox \"Title\" [required, ref=e11]\n- textbox \"Description\" [ref=e12]\n- textbox \"Link\" [ref=e13]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":3,\"role\":\"textbox\",\"totalLines\":9,\"totalRefs\":9,\"visibleLines\":3}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1725,7 +1725,7 @@
    "kind": "tool_result",
    "toolCallId": "call_7uq0ylsh",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e11 Browser project (succeeded)\nFilled: @e11\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e11\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}}]}",
+   "output": "Mutation evidence: 1 action result proves dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e11 Browser project (succeeded)\nFilled: @e11\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 1 action dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e11\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}}]}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1748,7 +1748,7 @@
    "kind": "tool_result",
    "toolCallId": "call_s0qgp5c1",
    "toolName": "agent_browser",
-   "output": "{\n  \"clicked\": \"@e14\"\n}\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"clicked\": \"@e14\"\n}\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1769,7 +1769,7 @@
    "kind": "tool_result",
    "toolCallId": "call_2ciau91r",
    "toolName": "agent_browser",
-   "output": "Server token project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Server token project\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1790,7 +1790,7 @@
    "kind": "tool_result",
    "toolCallId": "call_xyseoveq",
    "toolName": "agent_browser",
-   "output": "{\n  \"error\": \"\",\n  \"items\": [\n    \"Server token project\"\n  ],\n  \"titleValue\": \"Browser project\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"error\": \"\",\n  \"items\": [\n    \"Server token project\"\n  ],\n  \"titleValue\": \"Browser project\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1818,7 +1818,7 @@
    "kind": "tool_result",
    "toolCallId": "call_x6scay5b",
    "toolName": "agent_browser",
-   "output": "Snapshot filter: 1/5 direct refs matched role=button; 1 surrounding snapshot line shown.\n\nOrigin: http://localhost:4173/\nRefs: 1\n\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":1,\"role\":\"button\",\"totalLines\":5,\"totalRefs\":5,\"visibleLines\":1}}",
+   "output": "Snapshot filter: 1/5 direct refs matched role=button; 1 surrounding snapshot line shown.\n\nOrigin: http://localhost:4173/\nRefs: 1\n\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"snapshotFilter\":{\"cleanArgs\":[\"snapshot\",\"-i\"],\"matchedRefs\":1,\"role\":\"button\",\"totalLines\":5,\"totalRefs\":5,\"visibleLines\":1}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1844,7 +1844,7 @@
    "kind": "tool_result",
    "toolCallId": "call_yjtzvr4p",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 5\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- heading \"Log in\" [level=2, ref=e2]\n- textbox \"Username\" [required, ref=e4]\n- textbox \"Password\" [required, ref=e5]\n- button \"Log in\" [ref=e3]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1865,7 +1865,7 @@
    "kind": "tool_result",
    "toolCallId": "call_dfwh3vgo",
    "toolName": "agent_browser",
-   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, naviga\n…(cut)",
+   "output": "Mutation evidence: 3 action results prove dispatch only, not application state change. Use explicit later assertions or external receipts as postconditions; fixed waits are not postconditions.\n\nStep 1 — fill @e4 alex (succeeded)\nFilled: @e4\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 2 — fill @e5 portfolio123 (succeeded)\nFilled: @e5\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nStep 3 — click @e3 (succeeded)\nClicked: @e3\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\",\"imageObservations\":[],\"pageChangeSummary\":{\"changeType\":\"mutation\",\"command\":\"batch\",\"observed\":false,\"summary\":\"batch → 3 actions dispatched → application change unverified\"},\"batchSteps\":[{\"index\":0,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e4\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"pageChangeSummary\":{\"command\":\"fill\",\"nextActionIds\":[\"inspect-after-mutation\"],\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"fill → action dispatched → application change unverified\"}},{\"index\":1,\"success\":true,\"resultCategory\":\"success\",\"summary\":\"Filled: @e5\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse \n…(cut)",
    "isError": false,
    "source": "agent-host"
   },
@@ -1886,7 +1886,7 @@
    "kind": "tool_result",
    "toolCallId": "call_f6gj99t1",
    "toolName": "agent_browser",
-   "output": "{\n  \"items\": [\n    \"Server token project\"\n  ],\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"items\": [\n    \"Server token project\"\n  ],\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1912,7 +1912,7 @@
    "kind": "tool_result",
    "toolCallId": "call_l8t61d7s",
    "toolName": "agent_browser",
-   "output": "Origin: http://localhost:4173/\nRefs: 9\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- button \"Log out\" [ref=e6]\n- heading \"My projects\" [level=2, ref=e7]\n- heading \"Server token project\" [level=3, ref=e15]\n- heading \"Add a project\" [level=2, ref=e8]\n- textbox \"Title\" [required, ref=e11]: Browser project\n- textbox \"Description\" [ref=e12]\n- textbox \"Link\" [ref=e13]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Origin: http://localhost:4173/\nRefs: 9\n\n- heading \"My Portfolio\" [level=1, ref=e1]\n- button \"Log out\" [ref=e6]\n- heading \"My projects\" [level=2, ref=e7]\n- heading \"Server token project\" [level=3, ref=e15]\n- heading \"Add a project\" [level=2, ref=e8]\n- textbox \"Title\" [required, ref=e11]: Browser project\n- textbox \"Description\" [ref=e12]\n- textbox \"Link\" [ref=e13]\n- button \"Add project\" [ref=e9]\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1932,7 +1932,7 @@
    "kind": "tool_result",
    "toolCallId": "call_ist3d8x0",
    "toolName": "agent_browser",
-   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
+   "output": "Clicked: @e9\n\nCurrent page:\nMy Portfolio\nhttp://localhost:4173/\n\nAction dispatched; application change unverified. Verify the expected URL, text, state, or external receipt before relying on it.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"click\",\"nextActionIds\":[\"inspect-after-mutation\"],\"title\":\"My Portfolio\",\"url\":\"http://localhost:4173/\",\"changeType\":\"mutation\",\"observed\":false,\"summary\":\"click → action dispatched → My Portfolio → http://localhost:4173/ → application change unverified\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1953,7 +1953,7 @@
    "kind": "tool_result",
    "toolCallId": "call_9li01dup",
    "toolName": "agent_browser",
-   "output": "{\n  \"error\": \"\",\n  \"items\": [\n    \"Server token project\",\n    \"Browser project\"\n  ]\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"error\": \"\",\n  \"items\": [\n    \"Server token project\",\n    \"Browser project\"\n  ]\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1972,7 +1972,7 @@
    "kind": "tool_result",
    "toolCallId": "call_rteuw4qn",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -1992,7 +1992,7 @@
    "kind": "tool_result",
    "toolCallId": "call_61fu1btd",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2013,7 +2013,7 @@
    "kind": "tool_result",
    "toolCallId": "call_voahgsbu",
    "toolName": "agent_browser",
-   "output": "{\n  \"items\": [\n    \"Server token project\",\n    \"Browser project\"\n  ],\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"items\": [\n    \"Server token project\",\n    \"Browser project\"\n  ],\n  \"loggedInAs\": \"alex\",\n  \"loginHidden\": true\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2040,7 +2040,7 @@
    "kind": "tool_result",
    "toolCallId": "call_5zpy7pq3",
    "toolName": "agent_browser",
-   "output": "set bogus token\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "set bogus token\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2059,7 +2059,7 @@
    "kind": "tool_result",
    "toolCallId": "call_lpcbrinp",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\",\"pageChangeSummary\":{\"command\":\"reload\",\"nextActionIds\":[\"inspect-after-mutation\"],\"url\":\"http://localhost:4173/\",\"changeType\":\"navigation\",\"observed\":true,\"summary\":\"reload → navigation → http://localhost:4173/\"}}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2079,7 +2079,7 @@
    "kind": "tool_result",
    "toolCallId": "call_5faeqb09",
    "toolName": "agent_browser",
-   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2100,7 +2100,7 @@
    "kind": "tool_result",
    "toolCallId": "call_3wtotvlb",
    "toolName": "agent_browser",
-   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true,\n  \"storedToken\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"loginHidden\": false,\n  \"portfolioHidden\": true,\n  \"storedToken\": \"[REDACTED]\"\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2121,7 +2121,7 @@
    "kind": "tool_result",
    "toolCallId": "call_646zfgmh",
    "toolName": "agent_browser",
-   "output": "{\n  \"isNull\": true,\n  \"stillBogus\": false\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-91dddc7d400f10e39321c500\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "{\n  \"isNull\": true,\n  \"stillBogus\": false\n}\n\nOrigin: http://localhost:4173/\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"nextActions\":[{\"id\":\"inspect-after-mutation\",\"params\":{\"args\":[\"--session\",\"pi-root-session\",\"snapshot\",\"-i\"]},\"reason\":\"Refresh interactive refs after a browser mutation, navigation, scroll, or rerender.\",\"safety\":\"Do not reuse prior @refs until a fresh snapshot confirms they still exist.\",\"tool\":\"agent_browser\"}],\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },
@@ -2157,7 +2157,7 @@
    "kind": "tool_result",
    "toolCallId": "call_5e7ufig9",
    "toolName": "agent_browser",
-   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-91dddc7d400f10e39321c500\"}",
+   "output": "Browser session closed.\n\nObservation: {\"success\":true,\"resultCategory\":\"success\",\"successCategory\":\"completed\",\"sessionName\":\"pi-root-session\"}",
    "isError": false,
    "source": "agent-host"
   },

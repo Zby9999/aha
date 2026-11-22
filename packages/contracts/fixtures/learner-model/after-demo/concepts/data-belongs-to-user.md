@@ -11,5 +11,5 @@ user_edited: false
 
 ## Evidence
 
-- ev-6 · probe result · positive · moderate · [demo-1:246](../sessions/demo-1.md#ev-6): Predicted that the projects stay in portfolios[username] after logging out and in.
+- ev-6 · probe result · positive · moderate · [demo-1:246](../sessions/demo-1.md#ev-6): Predicted that the projects stay in projects[username] after logging out and in.
 - ev-8 · fix judgement · positive · strong · [demo-1:249](../sessions/demo-1.md#ev-8): Judged that the agent's localStorage fix hid the symptom without fixing the cause.

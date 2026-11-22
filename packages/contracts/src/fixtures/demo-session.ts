@@ -196,7 +196,7 @@ ids.probe2 = t.add({
     question: "After this change, you log out and log in again. Where are your projects?",
     options: [
       { id: "lost", label: "Gone, like before" },
-      { id: "portfolios", label: "Still in portfolios[username] on the server" },
+      { id: "portfolios", label: "Still in projects[username] on the server" },
       { id: "browser", label: "In the browser's localStorage" },
     ],
     citations: [{ path: "server.js", startLine: 34, endLine: 35 }],
@@ -219,7 +219,7 @@ ids.articulate2 = t.add({
   step: "articulate",
   card: card("ArticulationCard", {
     lessonId: "lesson-2",
-    prompt: "The agent's first fix saved your projects in localStorage. Did that fix the cause?",
+    prompt: "The agent's first fix kept the session token in localStorage. Did that fix the cause of the lost projects?",
     mode: "judge_fix",
     citations: [{ path: "public/app.js", startLine: 40, endLine: 42 }],
   }),
@@ -230,7 +230,7 @@ ids.answer4 = t.add({
   lessonId: "lesson-2",
   cardEntryId: ids.articulate2,
   step: "articulate",
-  answer: { type: "fix_judgement", addressesCause: false, reason: "It only hid the symptom; the token was still new on every refresh, so the server still forgot me." },
+  answer: { type: "fix_judgement", addressesCause: false, reason: "It only hid the symptom; the projects still belonged to the login session, so logging out threw them away." },
 });
 ids.assess4 = t.add({
   kind: "answer_assessment",
@@ -309,7 +309,7 @@ export const expectedEvidenceAfterDemo: readonly Evidence[] = [
   ev(3, C.sessionToken, "probe_result", "negative", "moderate", [ids.answer1!, ids.assess1!], "Predicted that sessionToken stays the same after a refresh."),
   ev(4, C.sessionToken, "articulation", "positive", "strong", [ids.answer2!, ids.assess2!], "Explained in their own words that a refresh makes a new token the server does not know."),
   ev(5, C.pageReload, "articulation", "positive", "strong", [ids.answer2!, ids.assess2!], "Explained in their own words that a refresh runs app.js again."),
-  ev(6, C.userData, "probe_result", "positive", "moderate", [ids.answer3!, ids.assess3!], "Predicted that the projects stay in portfolios[username] after logging out and in."),
+  ev(6, C.userData, "probe_result", "positive", "moderate", [ids.answer3!, ids.assess3!], "Predicted that the projects stay in projects[username] after logging out and in."),
   ev(7, C.sessionToken, "fix_judgement", "positive", "strong", [ids.answer4!, ids.assess4!], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
   ev(8, C.userData, "fix_judgement", "positive", "strong", [ids.answer4!, ids.assess4!], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
 ];
