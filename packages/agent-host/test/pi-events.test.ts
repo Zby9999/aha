@@ -91,8 +91,13 @@ test("each streamed reply's deltas add up to its final text", async () => {
 
 test("an extension dialog is cancelled so Pi does not wait for an answer Aha cannot give", async () => {
   await replay("fix-login.rpc.jsonl", (e) => e.some((x) => x.kind === "agent_message" && x.text.startsWith("Done.")));
-  const sent = readFileSync(log, "utf8").trim().split("\n").map((line) => JSON.parse(line));
-  expect(sent).toContainEqual({ type: "extension_ui_response", id: "ui-1", cancelled: true });
+  const cancelled = { type: "extension_ui_response", id: "ui-1", cancelled: true };
+  const sent = () => readFileSync(log, "utf8").trim().split("\n").map((line) => JSON.parse(line) as object);
+  // The reply reaches the fake Pi's log asynchronously.
+  for (const until = Date.now() + 3000; Date.now() < until && !sent().some((c) => JSON.stringify(c) === JSON.stringify(cancelled)); ) {
+    await new Promise((r) => setTimeout(r, 10));
+  }
+  expect(sent()).toContainEqual(cancelled);
 });
 
 test("model, retry and extension failures become agent errors; a failed login says how to log in again", async () => {
