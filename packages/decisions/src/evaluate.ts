@@ -1,8 +1,8 @@
 import { DEMO_CONCEPTS, demoEntryIds, demoSession } from "@aha/contracts/fixtures";
 import { createDecisions } from "../src/index.ts";
 
-if (!process.env.JEV_API_KEY?.trim()) {
-  throw new Error("Set JEV_API_KEY or pass --env-file=.env.local to Node.");
+if (!process.env.JEV_API_KEY?.trim() && !process.env.TYPESAFE_API_KEY?.trim()) {
+  throw new Error("Set TYPESAFE_API_KEY in the environment or load .env.local with Node.");
 }
 
 const decisions = createDecisions();
