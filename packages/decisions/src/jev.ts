@@ -15,9 +15,11 @@ function record(value: unknown): value is Answers {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
+
 export function createJevClient({
-  apiKey = process.env.JEV_API_KEY,
-  endpoint = process.env.JEV_ENDPOINT ?? "https://api.getjevai.com/v1/decisions",
+  endpoint = process.env.JEV_ENDPOINT ?? TYPESAFE_ENDPOINT,
+  apiKey = endpoint === TYPESAFE_ENDPOINT ? process.env.TYPESAFE_API_KEY ?? process.env.JEV_API_KEY : process.env.JEV_API_KEY,
   timeoutMs = 1500,
   fetch: request = globalThis.fetch,
 }: JevOptions = {}) {
@@ -37,7 +39,7 @@ export function createJevClient({
           method: "POST",
           redirect: "error",
           headers: { Authorization: `Bearer ${apiKey.trim()}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ state, questions }),
+          body: JSON.stringify(endpoint === TYPESAFE_ENDPOINT ? { model: "jev-latest", state, questions } : { state, questions }),
           signal: controller.signal,
         });
         if (!response.ok) return null;
