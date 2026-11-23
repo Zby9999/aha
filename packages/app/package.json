@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json && tsc -p ui/tsconfig.json",
     "build:ui": "vite build",
-    "dev:ui": "vite"
+    "dev:ui": "vite",
+    "test:e2e": "vite build && playwright test -c e2e/playwright.config.ts"
   },
   "dependencies": {
     "@aha/contracts": "workspace:*",
@@ -29,6 +30,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.58.2",
     "@tailwindcss/vite": "^4.3.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

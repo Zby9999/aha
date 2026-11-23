@@ -5,6 +5,7 @@ import type { ClientMessage, ServerMessage, TimelineEntry, UserAction } from "@a
 export function useTimeline() {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [connected, setConnected] = useState(false);
   const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -13,7 +14,10 @@ export function useTimeline() {
     const connect = () => {
       const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
       socket.current = ws;
-      ws.onopen = () => setError(null);
+      ws.onopen = () => {
+        setConnected(true);
+        setError(null);
+      };
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data) as ServerMessage;
         if (message.type === "snapshot") setEntries(message.entries);
@@ -23,6 +27,7 @@ export function useTimeline() {
       // The backend restarts during development: say so and reconnect; the snapshot restores the Timeline.
       ws.onclose = () => {
         if (closed) return;
+        setConnected(false);
         setError("Disconnected from the Aha backend. Reconnecting…");
         retry = setTimeout(connect, 1000);
       };
@@ -36,10 +41,16 @@ export function useTimeline() {
   }, []);
 
   const dispatch = useCallback((action: UserAction) => {
+    const ws = socket.current;
+    if (ws?.readyState !== WebSocket.OPEN) {
+      setError("Waiting for the Aha backend to reconnect.");
+      return false;
+    }
     setError(null);
     const message: ClientMessage = { type: "action", action };
-    socket.current?.send(JSON.stringify(message));
+    ws.send(JSON.stringify(message));
+    return true;
   }, []);
 
-  return { entries, error, dispatch };
+  return { entries, error, connected, dispatch };
 }
