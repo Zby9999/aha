@@ -1,14 +1,16 @@
 import type { Concept, Evidence } from "../learning.ts";
-import type { TimelineEntry } from "../timeline.ts";
+import type { NewTimelineEntry, TimelineEntry } from "../timeline.ts";
+import recordedTurns from "../../fixtures/recorded/demo-agent-turns.json" with { type: "json" };
 import { card, fixtureTimeline } from "./build.ts";
 
 /**
- * Hand-written synthetic Timeline of one demo session on the example project (examples/portfolio, issue #16):
- * a portfolio site that logs the user out and loses their projects on refresh after login was added.
+ * Timeline of one demo session on the example project (examples/portfolio, issue #16): a portfolio site that logs
+ * the user out and loses their projects on refresh after login was added. The agent turns are recorded from a real
+ * Pi session that followed the demo script in docs/example-project.md (#24); every other entry is hand-written.
  *
  * Story:
- * 1. The user reports the bug. The agent reads the code and makes a wrong fix (projects in localStorage), then another
- *    change to server.js; the same 401 error comes back each time and the user asks for a fix again.
+ * 1. The user reports the logout. The agent keeps the token in localStorage (the partial fix); then the user reports
+ *    lost projects and the agent stores them by username. A browser-side 401 (synthetic) follows each turn.
  * 2. Decisions detect the repeated gap: an Impasse and an Offer. The user accepts a full Lesson on session tokens:
  *    Probe (wrong prediction), Explain (data-flow diagram citing app.js and server.js), Articulate (correct restatement).
  * 3. The agent makes the real fix. The user presses Why on the server.js change: a second, related Impasse.
@@ -43,54 +45,14 @@ const ids = {} as Record<string, string>;
 
 t.add({ kind: "session_start", source: "app", projectDir: DEMO_PROJECT_DIR });
 
-// ------------------------------------------------- 1. agent edits, repeated error
-t.add({
-  kind: "user_message",
-  source: "agent-host",
-  text: "I added a login to my portfolio. Now every time I refresh the page I'm logged out and my projects are gone. Can you fix it?",
-});
-t.add({ kind: "tool_call", source: "agent-host", toolCallId: "call-1", toolName: "read", args: { path: "public/app.js" } });
-t.add({
-  kind: "tool_result",
-  source: "agent-host",
-  toolCallId: "call-1",
-  toolName: "read",
-  output: "// A random id for this visitor. The server uses it to remember who is logged in.\nconst sessionToken = Math.random().toString(36).slice(2);\n...",
-  isError: false,
-});
-t.add({ kind: "tool_call", source: "agent-host", toolCallId: "call-2", toolName: "read", args: { path: "server.js" } });
-t.add({
-  kind: "tool_result",
-  source: "agent-host",
-  toolCallId: "call-2",
-  toolName: "read",
-  output: "// Everyone who is logged in right now, looked up by their session token.\nconst sessions = {};\n...",
-  isError: false,
-});
-t.add({ kind: "agent_message_delta", source: "agent-host", messageId: "msg-1", delta: "Your projects are only kept " });
-t.add({
-  kind: "agent_message",
-  source: "agent-host",
-  messageId: "msg-1",
-  text: "Your projects are only kept in memory, so I'll also save them in the browser with localStorage and load them on startup.",
-});
-t.add({
-  kind: "tool_call",
-  source: "agent-host",
-  toolCallId: "call-3",
-  toolName: "edit",
-  args: { path: "public/app.js", oldText: "function showPortfolio(user) {", newText: "function showPortfolio(user) {\n  localStorage.setItem('projects', JSON.stringify(user.projects));" },
-});
-t.add({ kind: "tool_result", source: "agent-host", toolCallId: "call-3", toolName: "edit", output: "Edited public/app.js", isError: false });
-ids.wrongFix = t.add({
-  kind: "file_edit",
-  source: "agent-host",
-  path: "public/app.js",
-  change: "modify",
-  toolCallId: "call-3",
-  diff: "@@ -40,2 +40,3 @@\n function showPortfolio(user) {\n+  localStorage.setItem('projects', JSON.stringify(user.projects));\n   loginSection.hidden = true;",
-});
-t.add({ kind: "agent_message", source: "agent-host", messageId: "msg-2", text: "Done. Refresh the page and your projects should still be there." });
+// ------------------------------------------------- 1. agent turns (recorded), repeated error
+// Agent turns are a real recording: the demo script run through Pi 1.5.2 with ollama-cloud/deepseek-v4.1-flash
+// (packages/agent-host/scripts/record-demo.ts). Turn 1 keeps the token in localStorage (the partial fix).
+// The 401 errors are synthetic: they come from the browser, not from Pi.
+const recorded = recordedTurns as unknown as NewTimelineEntry[][];
+const addTurn = (turn: number) => recorded[turn]!.map((entry) => t.add(entry));
+const turn1 = addTurn(0);
+ids.wrongFix = turn1[recorded[0]!.findIndex((e) => e.kind === "file_edit")]!;
 ids.error1 = t.add({
   kind: "error",
   source: "agent-host",
@@ -98,24 +60,9 @@ ids.error1 = t.add({
   path: "public/app.js",
   message: "GET /api/me 401 (Unauthorized)",
 });
-ids.fixAgain1 = t.add({ kind: "user_message", source: "agent-host", text: "Still logged out after refresh and the projects are gone again. Fix it again please." });
-t.add({
-  kind: "tool_call",
-  source: "agent-host",
-  toolCallId: "call-4",
-  toolName: "edit",
-  args: { path: "server.js", oldText: "return res.status(401).json({ error: 'Not logged in' });", newText: "return res.status(401).json({ error: 'Not logged in, please log in again' });" },
-});
-t.add({ kind: "tool_result", source: "agent-host", toolCallId: "call-4", toolName: "edit", output: "Edited server.js", isError: false });
-t.add({
-  kind: "file_edit",
-  source: "agent-host",
-  path: "server.js",
-  change: "modify",
-  toolCallId: "call-4",
-  diff: "@@ -40,3 +40,3 @@\n   if (!session) {\n-    return res.status(401).json({ error: 'Not logged in' });\n+    return res.status(401).json({ error: 'Not logged in, please log in again' });",
-});
-t.add({ kind: "agent_message", source: "agent-host", messageId: "msg-3", text: "I made the server's message clearer. Try logging in and refreshing again." });
+// Turn 2: the user reports the lost projects; the agent stores projects by username in server.js.
+const turn2 = addTurn(1);
+ids.fixAgain1 = turn2[0]!;
 ids.error2 = t.add({
   kind: "error",
   source: "agent-host",
@@ -162,7 +109,7 @@ ids.probe1 = t.add({
   }),
 });
 ids.answer1 = t.add({ kind: "card_answer", source: "app", lessonId: "lesson-1", cardEntryId: ids.probe1, step: "probe", answer: { type: "choice", optionId: "same" } });
-t.add({
+ids.assess1 = t.add({
   kind: "answer_assessment",
   source: "teaching",
   lessonId: "lesson-1",
@@ -214,7 +161,7 @@ ids.answer2 = t.add({
   step: "articulate",
   answer: { type: "text", text: "Refreshing runs app.js again, so it makes a new token, and the server only knows my old token, so I look logged out." },
 });
-t.add({
+ids.assess2 = t.add({
   kind: "answer_assessment",
   source: "teaching",
   lessonId: "lesson-1",
@@ -225,38 +172,10 @@ t.add({
 });
 t.add({ kind: "lesson_end", source: "teaching", lessonId: "lesson-1", outcome: "completed" });
 
-// ------------------------------------------------------------- 3. real fix, Why, adapted Lesson
-t.add({
-  kind: "user_message",
-  source: "agent-host",
-  text: "OK, so the token has to survive the refresh. Can the server make the token at login and the page keep it?",
-});
-t.add({ kind: "tool_call", source: "agent-host", toolCallId: "call-5", toolName: "edit", args: { path: "server.js", oldText: "const token = req.get('X-Session-Token');", newText: "const token = crypto.randomUUID();" } });
-t.add({ kind: "tool_result", source: "agent-host", toolCallId: "call-5", toolName: "edit", output: "Edited server.js", isError: false });
-ids.realFix = t.add({
-  kind: "file_edit",
-  source: "agent-host",
-  path: "server.js",
-  change: "modify",
-  toolCallId: "call-5",
-  diff: "@@ -26,13 +29,10 @@\n-  const token = req.get('X-Session-Token');\n-  sessions[token] = { username, projects: [] };\n-  res.json({ username, projects: [] });\n+  const token = crypto.randomUUID();\n+  sessions[token] = username;\n+  portfolios[username] = portfolios[username] || [];\n+  res.json({ token, username, projects: portfolios[username] });",
-});
-t.add({ kind: "tool_call", source: "agent-host", toolCallId: "call-6", toolName: "edit", args: { path: "public/app.js", oldText: "const sessionToken = Math.random().toString(36).slice(2);", newText: "let sessionToken = localStorage.getItem('sessionToken');" } });
-t.add({ kind: "tool_result", source: "agent-host", toolCallId: "call-6", toolName: "edit", output: "Edited public/app.js", isError: false });
-t.add({
-  kind: "file_edit",
-  source: "agent-host",
-  path: "public/app.js",
-  change: "modify",
-  toolCallId: "call-6",
-  diff: "@@ -1,2 +1,2 @@\n-const sessionToken = Math.random().toString(36).slice(2);\n+let sessionToken = localStorage.getItem('sessionToken');",
-});
-t.add({
-  kind: "agent_message",
-  source: "agent-host",
-  messageId: "msg-4",
-  text: "The server now creates the token at login and keeps projects per user; the page saves the token in localStorage. I also removed the localStorage copy of your projects.",
-});
+// ------------------------------------------------------------- 3. real fix (recorded), Why, adapted Lesson
+// Turn 3: the server creates the token at login (server.js), and the page keeps the one it gets (public/app.js).
+const turn3 = addTurn(2);
+ids.realFix = turn3[recorded[2]!.findIndex((e) => e.kind === "file_edit")]!;
 
 const impasse2 = {
   id: "impasse-2",
@@ -277,14 +196,14 @@ ids.probe2 = t.add({
     question: "After this change, you log out and log in again. Where are your projects?",
     options: [
       { id: "lost", label: "Gone, like before" },
-      { id: "portfolios", label: "Still in portfolios[username] on the server" },
+      { id: "portfolios", label: "Still in projects[username] on the server" },
       { id: "browser", label: "In the browser's localStorage" },
     ],
     citations: [{ path: "server.js", startLine: 34, endLine: 35 }],
   }),
 });
 ids.answer3 = t.add({ kind: "card_answer", source: "app", lessonId: "lesson-2", cardEntryId: ids.probe2, step: "probe", answer: { type: "choice", optionId: "portfolios" } });
-t.add({
+ids.assess3 = t.add({
   kind: "answer_assessment",
   source: "teaching",
   lessonId: "lesson-2",
@@ -300,7 +219,7 @@ ids.articulate2 = t.add({
   step: "articulate",
   card: card("ArticulationCard", {
     lessonId: "lesson-2",
-    prompt: "The agent's first fix saved your projects in localStorage. Did that fix the cause?",
+    prompt: "The agent's first fix kept the session token in localStorage. Did that fix the cause of the lost projects?",
     mode: "judge_fix",
     citations: [{ path: "public/app.js", startLine: 40, endLine: 42 }],
   }),
@@ -311,9 +230,9 @@ ids.answer4 = t.add({
   lessonId: "lesson-2",
   cardEntryId: ids.articulate2,
   step: "articulate",
-  answer: { type: "fix_judgement", addressesCause: false, reason: "It only hid the symptom; the token was still new on every refresh, so the server still forgot me." },
+  answer: { type: "fix_judgement", addressesCause: false, reason: "It only hid the symptom; the projects still belonged to the login session, so logging out threw them away." },
 });
-t.add({
+ids.assess4 = t.add({
   kind: "answer_assessment",
   source: "teaching",
   lessonId: "lesson-2",
@@ -366,7 +285,7 @@ const ev = (
   type: Evidence["type"],
   outcome: Evidence["outcome"],
   strength: Evidence["strength"],
-  seqs: number[],
+  entryIds: string[],
   note: string,
 ): Evidence => ({
   id: `ev-${n}`,
@@ -375,8 +294,8 @@ const ev = (
   outcome,
   strength,
   sessionId: DEMO_SESSION_ID,
-  entryIds: seqs.map((seq) => `${DEMO_SESSION_ID}:${seq}`),
-  at: demoSession[seqs.at(-1)!]!.at,
+  entryIds,
+  at: demoSession.find((e) => e.id === entryIds.at(-1))!.at,
   note,
 });
 
@@ -385,12 +304,12 @@ const ev = (
  * per Concept of each answer_assessment. Mirrors `fixtures/learner-model/after-demo/sessions/demo-1.md`.
  */
 export const expectedEvidenceAfterDemo: readonly Evidence[] = [
-  ev(1, C.sessionToken, "repeated_gap", "negative", "moderate", [12, 13, 18], "The same 401 came back after two agent fixes and the user asked for a fix again."),
-  ev(2, C.pageReload, "probe_result", "negative", "moderate", [24, 25], "Predicted that sessionToken stays the same after a refresh."),
-  ev(3, C.sessionToken, "probe_result", "negative", "moderate", [24, 25], "Predicted that sessionToken stays the same after a refresh."),
-  ev(4, C.sessionToken, "articulation", "positive", "strong", [28, 29], "Explained in their own words that a refresh makes a new token the server does not know."),
-  ev(5, C.pageReload, "articulation", "positive", "strong", [28, 29], "Explained in their own words that a refresh runs app.js again."),
-  ev(6, C.userData, "probe_result", "positive", "moderate", [42, 43], "Predicted that the projects stay in portfolios[username] after logging out and in."),
-  ev(7, C.sessionToken, "fix_judgement", "positive", "strong", [45, 46], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
-  ev(8, C.userData, "fix_judgement", "positive", "strong", [45, 46], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
+  ev(1, C.sessionToken, "repeated_gap", "negative", "moderate", [ids.error1!, ids.fixAgain1!, ids.error2!], "The same 401 came back after two agent fixes and the user asked for a fix again."),
+  ev(2, C.pageReload, "probe_result", "negative", "moderate", [ids.answer1!, ids.assess1!], "Predicted that sessionToken stays the same after a refresh."),
+  ev(3, C.sessionToken, "probe_result", "negative", "moderate", [ids.answer1!, ids.assess1!], "Predicted that sessionToken stays the same after a refresh."),
+  ev(4, C.sessionToken, "articulation", "positive", "strong", [ids.answer2!, ids.assess2!], "Explained in their own words that a refresh makes a new token the server does not know."),
+  ev(5, C.pageReload, "articulation", "positive", "strong", [ids.answer2!, ids.assess2!], "Explained in their own words that a refresh runs app.js again."),
+  ev(6, C.userData, "probe_result", "positive", "moderate", [ids.answer3!, ids.assess3!], "Predicted that the projects stay in projects[username] after logging out and in."),
+  ev(7, C.sessionToken, "fix_judgement", "positive", "strong", [ids.answer4!, ids.assess4!], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
+  ev(8, C.userData, "fix_judgement", "positive", "strong", [ids.answer4!, ids.assess4!], "Judged that the agent's localStorage fix hid the symptom without fixing the cause."),
 ];

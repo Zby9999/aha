@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
-import type { CardAnswer, TimelineEntry, UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, GraduationCap, RotateCw, FilePen, FileText, HelpCircle, Lightbulb, Search, Wrench } from "lucide-react";
+import { isKind, type CardAnswer, type TimelineEntry, type UserAction } from "@aha/contracts";
+import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
-import { Preview } from "./Preview.tsx";
+import { LearningPanel } from "./LearningPanel.tsx";
+import { ProjectPreview } from "./ProjectPreview.tsx";
+import { Workspace } from "./Workspace.tsx";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
-import { Message, MessageContent } from "@/components/ui/message";
+import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
 import {
@@ -34,122 +36,130 @@ import { useTimeline } from "./useTimeline.ts";
 type Dispatch = (action: UserAction) => void;
 
 export function App() {
-  const { entries, error, dispatch } = useTimeline();
+  const { entries, error, connected, dispatch } = useTimeline();
   const [text, setText] = useState("");
-  const [askWhy, setAskWhy] = useState(false);
+  const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
   const items = toViewItems(entries);
   const session = sessionView(entries);
+  const modeChange = entries.findLast((entry) => isKind(entry, "mode_change"));
   const learning = session.mode === "learning";
-  // Ask why starts a Lesson, so it cannot be on in learning mode.
-  const asking = askWhy && !learning;
+  const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
+  const asking = !learning && askWhyRevision === revision;
+  const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
+  const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
+  const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
+  const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
 
   return (
-    // data-mode lets a layout follow the Mode (Explain in learning mode, Preview in work mode; #27).
-    // The live preview (#22, tech validation) sits beside the chat on wide screens.
-    <div className="flex h-dvh">
-      <main className="mx-auto flex h-dvh w-full max-w-3xl flex-col" data-mode={session.mode}>
-        <header className="flex items-baseline gap-3 border-b px-4 py-3">
-          <h1 className="text-xl font-semibold tracking-tight">Aha</h1>
-          <span className="text-sm text-muted-foreground">Replaying the demo session with stub modules</span>
-        </header>
-        <MessageScrollerProvider autoScroll>
-          <MessageScroller aria-label="Timeline">
-            <MessageScrollerViewport>
-              <MessageScrollerContent className="gap-3 px-3 pt-6 pb-16">
-                {items.map((item) => (
-                  <MessageScrollerItem
-                    key={item.key}
-                    messageId={item.key}
-                    scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}
-                    // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
-                    className="p-1"
-                  >
-                    <ViewItemView item={item} dispatch={dispatch} session={session} />
-                  </MessageScrollerItem>
-                ))}
-              </MessageScrollerContent>
-            </MessageScrollerViewport>
-            <MessageScrollerButton />
-          </MessageScroller>
-        </MessageScrollerProvider>
-        {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
-        <form
-          ref={formRef}
-          className="px-4 pt-2 pb-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!text.trim()) return;
-            // With Ask why on, the message starts an Impasse and a Lesson instead of going to the agent.
-            // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
-            dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text });
-            setText("");
-            setAskWhy(false);
-          }}
-        >
-          {learning && (
-            <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
-              <GraduationCap className="size-4 shrink-0" />
-              <span className="min-w-0 flex-1 truncate">
-                Learning: {session.lessonTitle ?? "starting a Lesson…"}
-              </span>
-              <Button type="button" size="sm" variant="outline" onClick={() => dispatch({ type: "back_to_work" })}>
-                <ArrowLeft />
-                Back to work
-              </Button>
-            </div>
-          )}
-          <InputGroup className={asking || learning ? "ring-1 ring-lesson-border" : undefined}>
-            <InputGroupTextarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault();
-                  formRef.current?.requestSubmit();
-                }
-              }}
-              placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
-              aria-label="Message"
-              className="p-3"
-            />
-            <InputGroupAddon align="block-end">
-              <Toggle
-                pressed={asking}
-                disabled={!session.canStartLesson}
-                onPressedChange={setAskWhy}
-                variant="outline"
-                size="sm"
-                aria-label="Ask why"
-                className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
-              >
-                <HelpCircle />
-                Ask why
-              </Toggle>
-              <InputGroupButton
-                type="submit"
-                size="icon-sm"
-                variant="default"
-                className="ml-auto rounded-full"
-                disabled={!text.trim()}
-                aria-label={asking || learning ? "Ask" : "Send"}
-              >
-                <ArrowUp />
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-        </form>
-      </main>
-      <Preview entries={entries} />
-    </div>
+    <Workspace
+      projectName={projectName}
+      connected={connected}
+      modeChange={modeChange}
+      preview={<ProjectPreview lastEdit={lastEdit} />}
+      explain={(visible) => (
+        <LearningPanel cards={lessonCards} isDone={(entry) => !connected || session.isDone(entry)} dispatch={dispatch} visible={visible} />
+      )}
+    >
+      <MessageScrollerProvider autoScroll>
+        <MessageScroller aria-label="Timeline" className="flex-1">
+          <MessageScrollerViewport>
+            <MessageScrollerContent className="workspace-chat-content gap-3">
+              {items.map((item) => (
+                <MessageScrollerItem
+                  key={item.key}
+                  messageId={item.key}
+                  scrollAnchor={item.type === "entry" && item.entry.kind === "user_message"}
+                  // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
+                  className="p-1"
+                >
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} />
+                </MessageScrollerItem>
+              ))}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
+      </MessageScrollerProvider>
+      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
+      <form
+        ref={formRef}
+        className="workspace-composer"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!canSend) return;
+          // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
+          if (!dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text })) return;
+          setText("");
+          setAskWhyRevision(null);
+        }}
+      >
+        {learning && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
+            <GraduationCap className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">
+              Learning: {session.lessonTitle ?? "starting a Lesson…"}
+            </span>
+            <Button type="button" size="sm" variant="outline" disabled={!connected} onClick={() => dispatch({ type: "back_to_work" })}>
+              <ArrowLeft />
+              Back to work
+            </Button>
+          </div>
+        )}
+        <InputGroup className={asking || learning ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
+          <InputGroupTextarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                formRef.current?.requestSubmit();
+              }
+            }}
+            placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
+            aria-label="Message"
+            className="p-3"
+          />
+          <InputGroupAddon align="block-end">
+            <Toggle
+              pressed={asking}
+              disabled={!connected || !session.canStartLesson}
+              onPressedChange={(pressed) => setAskWhyRevision(pressed ? revision : null)}
+              variant="outline"
+              size="sm"
+              aria-label="Ask why"
+              className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+            >
+              <HelpCircle />
+              Ask why
+            </Toggle>
+            <InputGroupButton
+              type="submit"
+              size="icon-sm"
+              variant="default"
+              className="ml-auto rounded-full"
+              disabled={!canSend}
+              aria-label={asking || learning ? "Ask" : "Send"}
+            >
+              <ArrowUp />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+      </form>
+    </Workspace>
   );
 }
 
-function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: Dispatch; session: SessionView }) {
+function ViewItemView({ item, dispatch, session, connected }: { item: ViewItem; dispatch: Dispatch; session: SessionView; connected: boolean }) {
   if (item.type === "agent_message") {
     return (
-      <Message>
-        <MessageContent>
+      <Message className="gap-3">
+        <MessageAvatar className="workspace-reply-mark self-start">
+          <Sparkles className="size-4" aria-hidden="true" />
+        </MessageAvatar>
+        <MessageContent className="gap-1">
+          <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
           <Markdown streaming={item.streaming}>{item.text}</Markdown>
         </MessageContent>
       </Message>
@@ -157,7 +167,15 @@ function ViewItemView({ item, dispatch, session }: { item: ViewItem; dispatch: D
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
-  return <Entry entry={entry} dispatch={dispatch} done={session.isDone(entry)} canStartLesson={session.canStartLesson} canRetry={session.canRetry(entry)} />;
+  return (
+    <Entry
+      entry={entry}
+      dispatch={dispatch}
+      done={!connected || session.isDone(entry)}
+      canStartLesson={connected && session.canStartLesson}
+      canRetry={connected && session.canRetry(entry)}
+    />
+  );
 }
 
 function UserMessage({ children }: { children: React.ReactNode }) {
@@ -227,11 +245,11 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
       return <UserMessage>{entry.text}</UserMessage>;
     case "file_edit":
       return (
-        <div className="rounded-lg border bg-card px-4 py-3 text-sm">
-          <div className="flex items-center gap-2">
-            <FilePen className="size-4 text-muted-foreground" />
+        <div className="rounded-lg border bg-card px-3 py-3 text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <FilePen className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
-            <Badge variant="outline" className="font-mono">{entry.path}</Badge>
+            <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>
             <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
@@ -266,8 +284,6 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
       return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
-    case "lesson_card":
-      return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "card_answer":
       return <UserMessage>{answerText(entry.answer)}</UserMessage>;
     case "lesson_question":
@@ -294,6 +310,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
     case "session_start":
     case "session_end":
     case "lesson_start":
+    case "lesson_card":
     case "mode_change":
     case "answer_assessment":
     case "explanation_flagged":
