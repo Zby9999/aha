@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { createBackgroundAgent, createStubAgentHost, createStubBackgroundAgent } from "@aha/agent-host";
+import { createBackgroundAgent, createPiAgentHost, createStubAgentHost, createStubBackgroundAgent } from "@aha/agent-host";
 import type { AhaModules, TimelineEntry } from "@aha/contracts";
 import { createStubDecisions } from "@aha/decisions";
 import { createStubLearnerModel } from "@aha/learner-model";
@@ -22,7 +22,11 @@ type Registry = { [K in keyof AhaModules]: Partial<Record<Implementation, (ctx: 
  * until then asking for it fails with a clear message.
  */
 const REGISTRY: Registry = {
-  agentHost: { stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [], streamDelayMs: ctx.streamDelayMs ?? 0 }) },
+  agentHost: {
+    stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [], streamDelayMs: ctx.streamDelayMs ?? 0 }),
+    // The user's own Pi in RPC mode: `pi` on the PATH, or AHA_PI_COMMAND.
+    real: () => createPiAgentHost(),
+  },
   decisions: { stub: () => createStubDecisions() },
   learnerModel: { stub: () => createStubLearnerModel },
   teaching: { stub: () => createStubTeaching },

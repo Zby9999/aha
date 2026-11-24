@@ -3,12 +3,13 @@ import type { TimelineEntryOf } from "@aha/contracts";
 import { ExternalLink, Globe2, Monitor, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-function previewUrl(): URL | null {
-  const fallback = new URL(window.location.origin);
-  fallback.port = "3000";
+/** Time for `node --watch` to restart the project after a server edit before the frame reloads. */
+const RELOAD_DELAY_MS = 1200;
+
+/** An http(s) URL on another origin, so the app/preview boundary holds with allow-same-origin. */
+function safePreviewUrl(href: string): URL | null {
   try {
-    const url = new URL(import.meta.env.VITE_AHA_PREVIEW_URL || fallback.href);
-    // The preview needs its own origin to preserve the app/preview boundary with allow-same-origin.
+    const url = new URL(href);
     return /^(http|https):$/.test(url.protocol) && url.origin !== window.location.origin &&
       !url.username && !url.password ? url : null;
   } catch {
@@ -16,12 +17,48 @@ function previewUrl(): URL | null {
   }
 }
 
+/** Without a backend-run preview: VITE_AHA_PREVIEW_URL, or port 3000 on this host (the portfolio's `npm start`). */
+function fallbackPreviewUrl(): URL | null {
+  const fallback = new URL(window.location.origin);
+  fallback.port = "3000";
+  return safePreviewUrl(import.meta.env.VITE_AHA_PREVIEW_URL || fallback.href);
+}
+
+/** The project server the backend runs (GET /api/preview, #22), else the fallback. */
+function usePreviewUrl(): { url: URL | null; managed: boolean } | undefined {
+  const [preview, setPreview] = useState<{ url: URL | null; managed: boolean }>();
+  useEffect(() => {
+    let cancelled = false;
+    type Answer = { url?: string | null };
+    fetch("/api/preview")
+      .then((res): Promise<Answer> | Answer => (res.ok ? res.json() : {}))
+      .catch((): Answer => ({}))
+      .then(({ url }) => {
+        if (cancelled) return;
+        const managed = url ? safePreviewUrl(url) : null;
+        setPreview(managed ? { url: managed, managed: true } : { url: fallbackPreviewUrl(), managed: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return preview;
+}
+
 export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_edit"> }) {
-  const [url] = useState(previewUrl);
+  const preview = usePreviewUrl();
+  const url = preview?.url ?? null;
   const [refresh, setRefresh] = useState(0);
-  const revision = `${lastEdit?.id ?? ""}:${lastEdit?.at ?? ""}:${refresh}`;
+  // Reload a moment after each edit, so a server edit has restarted the project first.
+  const editKey = `${lastEdit?.id ?? ""}:${lastEdit?.at ?? ""}`;
+  const [reloadedEdit, setReloadedEdit] = useState(editKey);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReloadedEdit(editKey), RELOAD_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [editKey]);
+  const revision = `${reloadedEdit}:${refresh}`;
   const [check, setCheck] = useState<{ revision: string; reachable: boolean } | null>(null);
-  const checking = url !== null && check?.revision !== revision;
+  const checking = preview === undefined || (url !== null && check?.revision !== revision);
   const reachable = !checking && check?.reachable;
 
   useEffect(() => {
@@ -80,7 +117,9 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
               <span className="workspace-empty-icon"><Monitor aria-hidden="true" /></span>
               <h3>{checking ? "Connecting to preview…" : "Preview unavailable"}</h3>
               {!checking && (url ? (
-                import.meta.env.VITE_AHA_PREVIEW_URL ? (
+                preview?.managed ? (
+                  <p>Aha is starting your project. Refresh the preview in a moment.</p>
+                ) : import.meta.env.VITE_AHA_PREVIEW_URL ? (
                   <p>Start the project server, then refresh the preview.</p>
                 ) : (
                   <>
