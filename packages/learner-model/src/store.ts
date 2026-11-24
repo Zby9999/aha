@@ -91,7 +91,23 @@ export const createLearnerModel: LearnerModelFactory = ({ projectDir }) => {
     async listConcepts() { return (await concepts()).map(({ id, name, mastery }) => ({ id, name, mastery })); },
     async readConcepts(ids) { await writing; return (await concepts()).filter((c) => ids.includes(c.id)); },
     readFiles: files,
-    async writeFile() { throw new Error("User edits are implemented in issue #40"); },
+    async writeFile(file) {
+      if (file.path !== "index.md" && !/^concepts\/[a-z0-9-]+\.md$/.test(file.path)) throw new Error("Only the index and Concept files can be edited");
+      await initialize();
+      const path = join(root, file.path);
+      await readFile(path, "utf8");
+      let markdown = file.markdown;
+      if (file.path.startsWith("concepts/")) {
+        const id = file.path.slice("concepts/".length, -3);
+        if (!markdown.startsWith("---\n") || !markdown.includes(`\nid: ${id}\n`) || !/^name: .+$/m.test(markdown) || !/^mastery: (not_encountered|seen_explanation|correct_with_hints|explains_independently|catches_agent_mistakes)$/m.test(markdown)) {
+          throw new Error("Concept Markdown needs a matching id, name and valid Mastery Level");
+        }
+        markdown = /^user_edited: .*$/m.test(markdown)
+          ? markdown.replace(/^user_edited: .*$/m, "user_edited: true")
+          : markdown.replace(/^---\n/, "---\nuser_edited: true\n");
+      }
+      await writeFile(path, markdown);
+    },
     async dream() { throw new Error("Dreaming is implemented in issues #41 and #42"); },
   };
 };

@@ -44,6 +44,37 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export function startServer({ backend, port, uiDir, host = "127.0.0.1", previewUrl = null }: ServerOptions): Promise<Server> {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (url.pathname === "/api/learner-model") {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      if (req.method === "GET") {
+        void backend.readLearnerModel().then((model) => res.end(JSON.stringify(model)), (error) => {
+          res.writeHead(500).end(JSON.stringify({ error: (error as Error).message }));
+        });
+        return;
+      }
+      if (req.method === "PUT") {
+        if (!isLocalOrigin(req.headers.origin, (server.address() as AddressInfo).port)) {
+          res.writeHead(403).end(JSON.stringify({ error: "Invalid origin" }));
+          return;
+        }
+        let body = "";
+        req.on("data", (chunk: Buffer) => {
+          body += chunk.toString();
+          if (body.length > 1_000_000) req.destroy();
+        });
+        req.on("end", () => {
+          void (async () => {
+            const file = JSON.parse(body) as { path?: unknown; markdown?: unknown };
+            if (typeof file.path !== "string" || typeof file.markdown !== "string") throw new Error("Invalid learner model file");
+            await backend.writeLearnerModelFile({ path: file.path, markdown: file.markdown });
+            res.end(JSON.stringify({ saved: true }));
+          })().catch((error) => res.writeHead(400).end(JSON.stringify({ error: (error as Error).message })));
+        });
+        return;
+      }
+      res.writeHead(405).end(JSON.stringify({ error: "Method not allowed" }));
+      return;
+    }
     if (url.pathname === "/api/preview") {
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ url: previewUrl }));
       return;

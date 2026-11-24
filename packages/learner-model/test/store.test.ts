@@ -79,3 +79,29 @@ it("rejects a session id that could escape the model folder", async () => {
   await expect(model.appendEvidence({ ...expectedEvidenceAfterDemo[0]!, sessionId: "../outside" }))
     .rejects.toThrow("Invalid Evidence or session id");
 });
+
+it("saves a Concept edit and marks it as user edited", async () => {
+  const projectDir = await project();
+  const model = createLearnerModel({ projectDir, background });
+  const path = "concepts/session-tokens.md";
+  const original = (await model.readFiles()).find((file) => file.path === path)!.markdown;
+
+  await model.writeFile({ path, markdown: original.replace("No evidence yet.", "My own note.") });
+
+  const saved = (await model.readFiles()).find((file) => file.path === path)!.markdown;
+  expect(saved).toContain("My own note.");
+  expect(saved).toContain("user_edited: true");
+  expect((await model.readConcepts(["session-tokens"]))[0]?.userEdited).toBe(true);
+});
+
+it("rejects an invalid Concept edit without changing its file", async () => {
+  const projectDir = await project();
+  const model = createLearnerModel({ projectDir, background });
+  const path = "concepts/session-tokens.md";
+  const original = (await model.readFiles()).find((file) => file.path === path)!.markdown;
+
+  await expect(model.writeFile({ path, markdown: original.replace("id: session-tokens", "id: another-concept") }))
+    .rejects.toThrow("matching id");
+  expect((await model.readFiles()).find((file) => file.path === path)?.markdown).toBe(original);
+  await expect(model.writeFile({ path: "../outside.md", markdown: original })).rejects.toThrow("Only the index");
+});

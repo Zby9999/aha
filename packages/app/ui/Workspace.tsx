@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
 import { BookOpen, Columns2, Columns3, FolderCode, MessageSquare, Monitor, Sparkles } from "lucide-react";
+import { MemoryPanel } from "./MemoryPanel.tsx";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -125,12 +126,7 @@ export function Workspace({ projectName, connected, modeChange, children, previe
             {explain(!tabbed || tab === "explain")}
           </TabsContent>
           <TabsContent value="memory" className="workspace-learn" hidden={!tabbed || tab !== "memory"}>
-            <header className="workspace-pane-heading"><BookOpen aria-hidden="true" /><h2>Memory</h2></header>
-            <div className="workspace-empty">
-              <span className="workspace-empty-icon"><BookOpen aria-hidden="true" /></span>
-              <h3>Learner model unavailable</h3>
-              <p>The Memory view will show your project’s learner model when it is connected.</p>
-            </div>
+            <MemoryPanel visible={tabbed && tab === "memory"} />
           </TabsContent>
         </Tabs>
       </main>

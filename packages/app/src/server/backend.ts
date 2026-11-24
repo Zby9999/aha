@@ -9,10 +9,12 @@ import {
   startsLesson,
   type AgentSession,
   type AhaModules,
+  type Concept,
   type AppBackend,
   type Evidence,
   type Impasse,
   type LearnerContext,
+  type LearnerModelFile,
   type NewTimelineEntry,
   type ProjectSnapshot,
   type TimelineEntry,
@@ -30,6 +32,8 @@ export interface BackendOptions {
 }
 
 export interface Backend extends AppBackend {
+  readLearnerModel(): Promise<{ concepts: Concept[]; files: LearnerModelFile[] }>;
+  writeLearnerModelFile(file: LearnerModelFile): Promise<void>;
   /** Resolves once every reaction to the entries so far (decisions, teaching, evidence) has finished. */
   settled(): Promise<void>;
   stop(): Promise<void>;
@@ -254,6 +258,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   return {
     timeline,
     dispatch,
+    readLearnerModel: async () => ({ concepts: await learner.readConcepts((await learner.listConcepts()).map((concept) => concept.id)), files: await learner.readFiles() }),
+    writeLearnerModelFile: (file) => learner.writeFile(file),
     settled: async () => {
       // Reactions can enqueue more reactions; wait until the queue stops growing.
       for (let seen: Promise<void> | undefined; seen !== queue; ) {

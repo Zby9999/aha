@@ -1,7 +1,7 @@
 {
   "agentHost": "stub",
   "decisions": "stub",
-  "learnerModel": "stub",
+  "learnerModel": "real",
   "teaching": "stub",
   "background": "stub"
 }

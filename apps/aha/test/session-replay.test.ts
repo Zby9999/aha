@@ -321,7 +321,7 @@ describe("Lesson failures and retries", () => {
 describe("module configuration", () => {
   test("each module can be set to stub or real in the config file or the environment", () => {
     const file = join(import.meta.dirname, "../aha.config.json");
-    expect(readConfig(file, {})).toEqual(allStubs);
+    expect(readConfig(file, {})).toEqual({ ...allStubs, learnerModel: "real" });
     expect(readConfig(file, { AHA_BACKGROUND: "real" }).background).toBe("real");
     expect(() => readConfig(file, { AHA_DECISIONS: "jev" })).toThrow(/stub" or "real/);
   });
