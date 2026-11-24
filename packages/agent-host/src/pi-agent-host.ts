@@ -1,5 +1,9 @@
-import { resolve } from "node:path";
+import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
+import { LEARNER_CONTEXT_FILE_ENV } from "./bridge-extension.ts";
+import { renderLearnerContext } from "./learner-context.ts";
 import { createPiEventMapper, LOGIN_HINT } from "./pi-events.ts";
 import { spawnRpc, type PiExit, type RpcConnection, type SpawnRpcOptions } from "./rpc-connection.ts";
 
@@ -14,6 +18,8 @@ export interface PiAgentHostOptions {
   startTimeoutMs?: number;
 }
 
+/** Aha's bridge extension, loaded into Pi next to the user's own extensions. */
+const BRIDGE_EXTENSION = join(import.meta.dirname, "bridge-extension.ts");
 const INSTALL_HINT = "Install it with `npm install -g @earendil-works/pi-coding-agent`, then start Aha again.";
 /** Extension UI methods that block Pi until the client answers. Aha has no dialog UI for them yet, so it cancels them. */
 const DIALOGS = new Set(["select", "confirm", "input", "editor"]);
@@ -22,6 +28,8 @@ const DIALOGS = new Set(["select", "confirm", "input", "editor"]);
  * The real agent host: runs the Pi the user installed, in RPC mode (`pi --mode rpc`), in the project folder.
  * Starting fails with an AgentHostError a novice can act on when Pi is missing, not logged in or does not start.
  * Once running, a Pi crash never throws: it is reported on the Timeline as an `error` and a `session_end`.
+ * Pi also loads Aha's bridge extension (`-e`), which adds the current learner context to each request; the user's
+ * own settings and extensions load as usual.
  */
 export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
   const env = options.env ?? process.env;
@@ -30,8 +38,17 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
 
   return {
     async startSession({ projectDir, timeline }: AgentSessionOptions): Promise<AgentSession> {
-      const args = [...(options.args ?? []), "--mode", "rpc"];
-      const pi = await startPi({ command, args, cwd: resolve(projectDir), env }, startTimeoutMs);
+      // The bridge reads the learner context from this file before each run; no file means no context.
+      const contextDir = mkdtempSync(join(tmpdir(), "aha-learner-context-"));
+      const contextFile = join(contextDir, "learner-context.md");
+      const args = [...(options.args ?? []), "-e", BRIDGE_EXTENSION, "--mode", "rpc"];
+      let pi: RpcConnection;
+      try {
+        pi = await startPi({ command, args, cwd: resolve(projectDir), env: { ...env, [LEARNER_CONTEXT_FILE_ENV]: contextFile } }, startTimeoutMs);
+      } catch (error) {
+        rmSync(contextDir, { recursive: true, force: true });
+        throw error;
+      }
 
       const map = createPiEventMapper({ projectDir, timeline });
       pi.onRecord((record) => {
@@ -42,8 +59,10 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
       });
 
       let stopping = false;
+      const removeContext = () => rmSync(contextDir, { recursive: true, force: true });
       pi.onExit((exit) => {
         if (stopping) return;
+        removeContext();
         timeline.append({ kind: "error", source: "agent-host", origin: "agent", message: crashMessage(exit) });
         timeline.append({ kind: "session_end", source: "agent-host", reason: "agent_exit" });
       });
@@ -63,11 +82,18 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
             timeline.append({ kind: "error", source: "agent-host", origin: "agent", message });
           }
         },
-        // The bridge extension that adds learner context to Pi requests comes with #23.
-        setLearnerContext() {},
+        setLearnerContext(context) {
+          if (stopping || pi.exited) return;
+          const text = renderLearnerContext(context);
+          if (!text) return rmSync(contextFile, { force: true });
+          // Write then rename, so the bridge never reads a half-written file.
+          writeFileSync(`${contextFile}.tmp`, `${text}\n`);
+          renameSync(`${contextFile}.tmp`, contextFile);
+        },
         async stop() {
           stopping = true;
           await pi.close();
+          removeContext();
         },
       };
     },
