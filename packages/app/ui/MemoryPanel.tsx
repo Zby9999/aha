@@ -20,7 +20,7 @@ export function MemoryPanel({ visible }: { visible: boolean }) {
     }).then((next) => {
       if (cancelled) return;
       setModel(next);
-      setSelected((current) => current ?? next.files[0]?.path);
+      setSelected((current) => current ?? next.files.find((file) => file.path === "index.md")?.path);
     }).catch((error) => { if (!cancelled) setMessage((error as Error).message); });
     return () => { cancelled = true; };
   }, [visible]);

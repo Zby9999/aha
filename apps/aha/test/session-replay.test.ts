@@ -29,6 +29,32 @@ async function replayDemo() {
 }
 
 const kinds = (entries: readonly TimelineEntry[]) => entries.map((e) => e.kind);
+
+test("an idle session triggers Dreaming without an explicit end", async () => {
+  const previous = process.env.AHA_DREAM_IDLE_MS;
+  process.env.AHA_DREAM_IDLE_MS = "20";
+  const modules = buildModules(allStubs, { script: [] });
+  const triggers: string[] = [];
+  const wrapped: AhaModules = {
+    ...modules,
+    learnerModel: (options) => {
+      const store = modules.learnerModel(options);
+      return { ...store, dream: async (trigger) => { triggers.push(trigger); return store.dream(trigger); } };
+    },
+  };
+  let backend: Awaited<ReturnType<typeof createBackend>> | undefined;
+  try {
+    backend = await createBackend({ modules: wrapped, projectDir, sessionId: "idle-test" });
+    await backend.dispatch({ type: "send_message", text: "hello" });
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await backend.settled();
+    expect(triggers).toContain("idle");
+  } finally {
+    await backend?.stop();
+    if (previous === undefined) delete process.env.AHA_DREAM_IDLE_MS;
+    else process.env.AHA_DREAM_IDLE_MS = previous;
+  }
+});
 const last = <K extends TimelineEntry["kind"]>(entries: readonly TimelineEntry[], kind: K) =>
   entries.findLast((e) => e.kind === kind) as Extract<TimelineEntry, { kind: K }> | undefined;
 
@@ -321,7 +347,7 @@ describe("Lesson failures and retries", () => {
 describe("module configuration", () => {
   test("each module can be set to stub or real in the config file or the environment", () => {
     const file = join(import.meta.dirname, "../aha.config.json");
-    expect(readConfig(file, {})).toEqual({ ...allStubs, learnerModel: "real" });
+    expect(readConfig(file, {})).toEqual({ ...allStubs, learnerModel: "real", background: "real" });
     expect(readConfig(file, { AHA_BACKGROUND: "real" }).background).toBe("real");
     expect(() => readConfig(file, { AHA_DECISIONS: "jev" })).toThrow(/stub" or "real/);
   });

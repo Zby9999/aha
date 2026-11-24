@@ -105,3 +105,56 @@ it("rejects an invalid Concept edit without changing its file", async () => {
   expect((await model.readFiles()).find((file) => file.path === path)?.markdown).toBe(original);
   await expect(model.writeFile({ path: "../outside.md", markdown: original })).rejects.toThrow("Only the index");
 });
+
+it("Dreaming merges duplicate Concepts, keeps their Evidence, and uses restricted Pi tools", async () => {
+  const projectDir = await project();
+  const calls: unknown[] = [];
+  const agent = { run: async (request: unknown) => {
+    calls.push(request);
+    return { text: JSON.stringify({ merges: [{ from: ["token-alias"], into: "session-tokens" }] }), filesWritten: [] };
+  } };
+  const model = createLearnerModel({ projectDir, background: agent });
+  await model.listConcepts();
+  const duplicate = "---\nid: token-alias\nname: Session tokens identify a visitor across requests\nmastery: not_encountered\nrelated_files: []\nuser_edited: false\n---\n\n# Token alias\n";
+  await writeFile(join(projectDir, ".aha", "learner-model", "concepts", "token-alias.md"), duplicate);
+  await model.appendEvidence({ ...expectedEvidenceAfterDemo[2]!, id: "ev-alias", conceptId: "token-alias" });
+
+  const report = await model.dream("session_end");
+
+  expect(report.merged).toEqual([{ from: ["token-alias"], into: "session-tokens" }]);
+  expect((await model.readConcepts(["session-tokens"]))[0]?.evidence.map((item) => item.id)).toContain("ev-alias");
+  await model.dream("idle");
+  expect((await model.readConcepts(["session-tokens"]))[0]?.evidence.map((item) => item.id)).toContain("ev-alias");
+  expect((await model.listConcepts()).some((item) => item.id === "token-alias")).toBe(false);
+  expect(calls).toHaveLength(2);
+  expect(calls[0]).toMatchObject({ tools: ["read", "grep", "find", "ls"], writableDirs: [] });
+});
+
+it("Dreaming changes Mastery only from behavioral Evidence and logs every run", async () => {
+  const projectDir = await project();
+  const model = createLearnerModel({ projectDir, background });
+  await model.listConcepts();
+  const first = await model.dream("idle");
+  expect(first.masteryChanges).toEqual([]);
+  await model.appendEvidence({ ...expectedEvidenceAfterDemo[5]!, id: "ev-new" });
+  const second = await model.dream("session_end");
+  expect(second.masteryChanges).toContainEqual({ conceptId: "data-belongs-to-user", from: "not_encountered", to: "correct_with_hints" });
+  const log = await readFile(join(projectDir, ".aha", "learner-model", "changelog.md"), "utf8");
+  expect(log.match(/## Dreaming/g)).toHaveLength(2);
+});
+
+it("Dreaming preserves a user-edited Concept unchanged", async () => {
+  const projectDir = await project();
+  const model = createLearnerModel({ projectDir, background });
+  const path = "concepts/session-tokens.md";
+  const original = (await model.readFiles()).find((file) => file.path === path)!.markdown;
+  await model.writeFile({ path, markdown: original.replace("No evidence yet.", "My correction.") });
+  const before = (await model.readFiles()).find((file) => file.path === path)!.markdown;
+  await model.appendEvidence({ ...expectedEvidenceAfterDemo[3]!, id: "ev-protected" });
+
+  const report = await model.dream("session_end");
+
+  expect(report.skippedUserEdits).toContain("session-tokens");
+  expect((await model.readFiles()).find((file) => file.path === path)?.markdown).toBe(before);
+  expect((await model.readConcepts(["session-tokens"]))[0]?.evidence.map((item) => item.id)).toContain("ev-protected");
+});
