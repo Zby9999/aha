@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
+import { createPiEventMapper, LOGIN_HINT } from "./pi-events.ts";
 import { spawnRpc, type PiExit, type RpcConnection, type SpawnRpcOptions } from "./rpc-connection.ts";
 
 export interface PiAgentHostOptions {
@@ -14,7 +15,8 @@ export interface PiAgentHostOptions {
 }
 
 const INSTALL_HINT = "Install it with `npm install -g @earendil-works/pi-coding-agent`, then start Aha again.";
-const LOGIN_HINT = "Run `pi auth login <provider>` in a terminal (or `/login` inside pi), then start Aha again.";
+/** Extension UI methods that block Pi until the client answers. Aha has no dialog UI for them yet, so it cancels them. */
+const DIALOGS = new Set(["select", "confirm", "input", "editor"]);
 
 /**
  * The real agent host: runs the Pi the user installed, in RPC mode (`pi --mode rpc`), in the project folder.
@@ -30,6 +32,14 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
     async startSession({ projectDir, timeline }: AgentSessionOptions): Promise<AgentSession> {
       const args = [...(options.args ?? []), "--mode", "rpc"];
       const pi = await startPi({ command, args, cwd: resolve(projectDir), env }, startTimeoutMs);
+
+      const map = createPiEventMapper({ projectDir, timeline });
+      pi.onRecord((record) => {
+        map(record);
+        if (record.type === "extension_ui_request" && DIALOGS.has(String(record.method))) {
+          pi.send({ type: "extension_ui_response", id: record.id, cancelled: true });
+        }
+      });
 
       let stopping = false;
       pi.onExit((exit) => {

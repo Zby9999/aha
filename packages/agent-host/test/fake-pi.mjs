@@ -5,7 +5,7 @@
 //   FAKE_PI_ON_START  "exit": print to stderr and exit 1 at once; "silent": never answer anything.
 //   FAKE_PI_MODELS    "none": no models (not logged in); "no-default": models, but get_state has the "unknown" placeholder.
 //   FAKE_PI_LOG       File that receives each command received, one JSON per line.
-//   FAKE_PI_SCRIPT    JSON file { "<prompt text>": [records to emit after accepting that prompt] }.
+//   FAKE_PI_EVENTS    JSONL file of records (e.g. a recorded Pi event stream) emitted after accepting each prompt.
 // A prompt "__crash__" makes the process exit with code 3.
 import { appendFileSync, readFileSync } from "node:fs";
 
@@ -18,7 +18,7 @@ if (env.FAKE_PI_ON_START === "exit") {
 if (env.FAKE_PI_LOG) appendFileSync(env.FAKE_PI_LOG, `${JSON.stringify({ type: "__start__", argv: process.argv.slice(2), cwd: process.cwd() })}\n`);
 
 const MODEL ={ id: "fake-model", name: "Fake Model", provider: "fake", api: "fake" };
-const script = env.FAKE_PI_SCRIPT ? JSON.parse(readFileSync(env.FAKE_PI_SCRIPT, "utf8")) : {};
+const events = env.FAKE_PI_EVENTS ? readFileSync(env.FAKE_PI_EVENTS, "utf8").split("\n").filter((line) => line.trim()) : [];
 const out = (record) => process.stdout.write(`${JSON.stringify(record)}\n`);
 const respond = (command, data) => out({ id: command.id, type: "response", command: command.type, success: true, ...(data === undefined ? {} : { data }) });
 
@@ -33,7 +33,7 @@ function handle(command) {
     case "prompt": {
       if (command.message === "__crash__") process.exit(3);
       respond(command, { disposition: "started" });
-      for (const record of script[command.message] ?? []) out(record);
+      for (const line of events) process.stdout.write(`${line}\n`);
       return;
     }
     case "extension_ui_response":

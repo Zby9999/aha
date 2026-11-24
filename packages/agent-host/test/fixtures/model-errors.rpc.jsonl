@@ -1,0 +1,32 @@
+{"type":"agent_start"}
+{"type":"message_start","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"pending","timestamp":1795320000000}}
+{"type":"message_end","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"error","timestamp":1795320000000,"errorMessage":"401: {\"message\":\"Authentication Fails, Your api key is invalid\",\"type\":\"authentication_error\"}"}}
+{"type":"agent_end","messages":[],"willRetry":false}
+{"type":"agent_settled","aborted":false}
+{"type":"agent_start"}
+{"type":"message_start","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"pending","timestamp":1795320000000}}
+{"type":"message_end","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"error","timestamp":1795320000000,"errorMessage":"529 overloaded"}}
+{"type":"auto_retry_start","attempt":1,"maxAttempts":2,"delayMs":10,"errorMessage":"529 overloaded"}
+{"type":"message_start","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"pending","timestamp":1795320000000}}
+{"type":"message_end","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"error","timestamp":1795320000000,"errorMessage":"529 overloaded"}}
+{"type":"auto_retry_end","success":false,"attempt":2,"finalError":"529 overloaded"}
+{"type":"agent_settled","aborted":false}
+{"type":"agent_start"}
+{"type":"message_start","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"pending","timestamp":1795320000000}}
+{"type":"message_end","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"error","timestamp":1795320000000,"errorMessage":"529 overloaded"}}
+{"type":"auto_retry_start","attempt":1,"maxAttempts":2,"delayMs":10,"errorMessage":"529 overloaded"}
+{"type":"message_start","message":{"role":"assistant","content":[],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"pending","timestamp":1795320000000}}
+{"type":"message_update","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"assistantMessageEvent":{"type":"text_start","contentIndex":0}}
+{"type":"message_update","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Recovered."}}
+{"type":"message_update","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"assistantMessageEvent":{"type":"text_start","contentIndex":1}}
+{"type":"message_update","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"assistantMessageEvent":{"type":"text_delta","contentIndex":1,"delta":"Second block."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Recovered."},{"type":"text","text":"Second block."}],"api":"openai-completions","provider":"fake","model":"fake-model","usage":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"totalTokens":0,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"stop","timestamp":1795320000000}}
+{"type":"auto_retry_end","success":true,"attempt":2}
+{"type":"agent_settled","aborted":false}
+{"type":"extension_error","extensionPath":"ext.ts","event":"tool_call","error":"boom"}
+{"type":"compaction_end","reason":"threshold","aborted":false,"willRetry":false,"errorMessage":"summary failed"}
+{"type":"extension_ui_request","id":"ui-s","method":"setStatus","statusKey":"tps","statusText":"12 tok/s"}
+{"type":"extension_ui_request","id":"ui-w","method":"setWidget","widgetKey":"w"}
+{"type":"extension_ui_request","id":"ui-n","method":"notify","message":"MCP server failed","notifyType":"error"}
+{"type":"extension_ui_request","id":"ui-i","method":"notify","message":"MCP: 1 servers connected","notifyType":"info"}
+{"type":"agent_settled","aborted":true}
