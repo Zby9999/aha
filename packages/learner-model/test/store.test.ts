@@ -158,3 +158,21 @@ it("Dreaming preserves a user-edited Concept unchanged", async () => {
   expect((await model.readFiles()).find((file) => file.path === path)?.markdown).toBe(before);
   expect((await model.readConcepts(["session-tokens"]))[0]?.evidence.map((item) => item.id)).toContain("ev-protected");
 });
+
+it("Dreaming gives the demo Concepts the expected mastery without duplicating Evidence on a second run", async () => {
+  const projectDir = await project();
+  const model = createLearnerModel({ projectDir, background });
+  for (const evidence of expectedEvidenceAfterDemo) await model.appendEvidence(evidence);
+  await model.dream("session_end");
+  const ids = ["page-reload-resets-state", "session-tokens", "data-belongs-to-user"];
+  const first = await model.readConcepts(ids);
+  expect(first.map(({ id, mastery }) => [id, mastery])).toEqual([
+    ["data-belongs-to-user", "correct_with_hints"],
+    ["page-reload-resets-state", "correct_with_hints"],
+    ["session-tokens", "catches_agent_mistakes"],
+  ]);
+  const second = await model.dream("idle");
+  expect(second.masteryChanges).toEqual([]);
+  expect((await model.readConcepts(ids)).map((concept) => concept.evidence.map((item) => item.id)))
+    .toEqual(first.map((concept) => concept.evidence.map((item) => item.id)));
+});

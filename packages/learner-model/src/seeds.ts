@@ -2,7 +2,7 @@ import type { ConceptSummary } from "@aha/contracts";
 
 /** Starting vocabulary, not a claim that the user has learned any of it. */
 export const SEED_CONCEPTS: readonly ConceptSummary[] = [
-  ["page-reload-resets-state", "A page reload restarts JavaScript"],
+  ["page-reload-resets-state", "A page reload restarts the page's JavaScript"],
   ["browser-storage", "Browser storage persists data across reloads"],
   ["session-tokens", "Session tokens identify a visitor across requests"],
   ["cookies", "Cookies travel with matching requests"],

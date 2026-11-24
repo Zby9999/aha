@@ -3,7 +3,9 @@ import { MASTERY_LEVELS, type Concept, type Evidence, type MasteryLevel } from "
 /** Evidence-only progression. A lesson explanation alone never demonstrates understanding. */
 export function masteryFromEvidence(current: MasteryLevel, evidence: readonly Evidence[]): MasteryLevel {
   const positive = evidence.filter((item) => item.outcome === "positive");
-  const observed: MasteryLevel = positive.some((item) => item.type === "caught_agent_mistake" || item.type === "fix_judgement" && item.strength === "strong")
+  const judgedFix = positive.some((item) => item.type === "fix_judgement" && item.strength === "strong");
+  const explained = positive.some((item) => item.type === "articulation" && item.strength === "strong");
+  const observed: MasteryLevel = positive.some((item) => item.type === "caught_agent_mistake") || judgedFix && explained
     ? "catches_agent_mistakes"
     : positive.some((item) => item.type === "independent_fix")
       ? "explains_independently"
