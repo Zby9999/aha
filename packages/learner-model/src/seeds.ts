@@ -9,7 +9,7 @@ export const SEED_CONCEPTS: readonly ConceptSummary[] = [
   ["authentication", "Authentication establishes a user's identity"],
   ["authorization", "Authorization controls access to resources"],
   ["password-hashing", "Passwords should be stored as hashes"],
-  ["user-owned-data", "User data belongs to an account, not a session"],
+  ["data-belongs-to-user", "Data belongs to the user, not to one login session"],
   ["client-server", "The browser and server have separate state"],
   ["http-request-response", "HTTP exchanges requests and responses"],
   ["http-methods", "HTTP methods express the requested operation"],

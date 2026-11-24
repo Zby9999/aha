@@ -20,6 +20,6 @@ user_edited: false
 No evidence yet.
 ```
 
-`id` is stable, lowercase kebab-case. `mastery` is one of the five levels in `@aha/contracts`. `related_files` contains project-relative paths when known. Evidence entries will link to the session log under `sessions/` and record the observed behavior, outcome, strength, and source Timeline entries. The session log and Dreaming change log are added by issues #39 and #42. User edits take priority over generated updates; issue #40 adds the edit path.
+`id` is stable, lowercase kebab-case. `mastery` is one of the five levels in `@aha/contracts`. `related_files` contains project-relative paths when known. Evidence entries are appended under `sessions/<session-id>.md` and record observed behavior, outcome, strength, time, and source Timeline entries. Appending Evidence leaves Concept files unchanged; `readConcepts` joins session Evidence by Concept id. The Dreaming change log is added by issue #42. User edits take priority over generated updates; issue #40 adds the edit path.
 
 The seed list is in `src/seeds.ts`. The store creates the initial files on first read and leaves any existing model untouched.
