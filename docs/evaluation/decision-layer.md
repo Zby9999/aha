@@ -8,7 +8,7 @@ Reproduce with a Jev key in `.env.local`:
 pnpm --filter @aha/decisions evaluate:full
 ```
 
-`EVAL_REPEATS` (default 3) and `EVAL_OUT` (a JSON file for every run and the summary) adjust the run. The labeled cases are in `packages/decisions/scripts/eval-cases.ts`; the raw results of the run reported here are in [`decision-layer-results.json`](decision-layer-results.json).
+`EVAL_REPEATS` (default 3) and `EVAL_OUT` (a JSON file for every run and the summary) adjust the run. The labeled cases are in `packages/decisions/scripts/eval-cases.ts`; the raw results of the latest run (after the fix below) are in [`decision-layer-results.json`](decision-layer-results.json).
 
 ## Method
 
@@ -57,6 +57,27 @@ A single Jev call took 200 ms at the median and 615 ms at worst. No call came ne
 6. **Findings 4 and 5 compound into wrong adaptation.** `lessonFormat` adapts to the selected Concepts the learner has already met. If Evidence lands on `debugging` (finding 4) and the read gate then adds `debugging` to an unrelated Impasse (finding 5), the learner gets the short hint format for a topic they have never seen. Example: after the hash-comparison Evidence, *"Why does clicking Add reload the whole page?"* selects `debugging`, `dom-events` and `form-submission`; only `debugging` is met, so the Lesson would be a single hint card. Suggested fix: keep cross-cutting Concepts such as `debugging` out of Evidence and selection, or ask Jev for the most specific Concept.
 7. **Evidence type is mostly right; one case is ambiguous.** "Hard-coding the key makes it work, but it would end up on GitHub" was labeled `fix_judgement` and classified `caught_agent_mistake` in every run. Both readings are defensible, so this is a labeling ambiguity rather than an error.
 8. **The original 9-case evaluation overstated detection.** In `pnpm --filter @aha/decisions evaluate`, 6 of the 9 `detectImpasse` cases contain a single gap event and return before Jev is asked (0 ms), so its 9/9 says little about Jev. The extended set asks Jev in every case.
+
+## Fix and re-run
+
+Findings 4–6 were fixed in the Decision Layer, then the same 51 cases were run again (3 repeats):
+
+- The concept questions of the write gate and the read gate now ask for the Concept whose subject matter the behaviour or question is about; a general practice such as debugging, testing or version control fits only when it is itself the topic.
+- `caught_agent_mistake` and `independent_fix` Evidence is always positive, as `repeated_gap` was already always negative. Jev had read "the agent's code has a mistake" as a gap and marked two caught mistakes negative, which would have lowered the learner's mastery for spotting the bug.
+
+| Measure | Before | After |
+|---|---|---|
+| `gateEvidence` Concept correct, when written | 77.8% | **100%** |
+| `gateEvidence` outcome correct, when written | 88.9% | **100%** |
+| `gateEvidence` consistency | 100% | 100% |
+| `selectConcepts` hit rate | 91.7% | 94.4% |
+| `selectConcepts` precision | 68.7% | 73.0% |
+| `selectConcepts` Concepts selected on average | 3.2 | 2.5 |
+| `selectConcepts` consistency | 50% | 75% |
+| `debugging` selected outside the relevant set | 12 times | **0** |
+| `detectImpasse` accuracy | 95.8% | 95.8% (unchanged) |
+
+The compounding case in finding 6 no longer happens: *"Why does clicking Add reload the whole page?"* now selects `dom-events` and `form-submission` (once also `page-reload-resets-state`), not `debugging`. Latency is unchanged (call p50 190 ms, max 520 ms, none over 1.5 s). Still open: the environment-failure Offer (finding 2), one remaining miss on the HTML-escaping question (2 of 3 runs empty), and the read gate still adds `client-server` or `rendering-state` to some Impasses.
 
 ## Limitations
 

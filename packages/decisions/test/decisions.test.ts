@@ -74,11 +74,12 @@ describe("DecisionService", () => {
       return response(state.event.startsWith("I am")
         ? { kind: choice("none"), strength: choice("weak"), outcome: choice("positive"), concept: choice("new") }
         : { kind: choice("caught_agent_mistake"), strength: choice("strong"),
-          outcome: choice("positive"), concept: choice("concept_0") });
+          outcome: choice("negative"), concept: choice("concept_0") });
     });
     const service = createDecisions({ apiKey: "test", fetch: request });
     const evidence = await service.gateEvidence({ timeline: entries, newEntries: entries, concepts: [concept] });
-    expect(evidence).toMatchObject([{ conceptId: concept.id, type: "caught_agent_mistake", entryIds: [entries[2]!.id] }]);
+    // Catching the agent's mistake shows understanding, even when Jev reads the mistake as a gap.
+    expect(evidence).toMatchObject([{ conceptId: concept.id, type: "caught_agent_mistake", outcome: "positive", entryIds: [entries[2]!.id] }]);
     expect(request).toHaveBeenCalledTimes(2);
   });
 
