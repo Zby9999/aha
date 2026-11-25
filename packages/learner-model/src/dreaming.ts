@@ -3,8 +3,8 @@ import { MASTERY_LEVELS, type Concept, type Evidence, type MasteryLevel } from "
 const atLeast = (level: MasteryLevel, floor: MasteryLevel) => MASTERY_LEVELS.indexOf(level) >= MASTERY_LEVELS.indexOf(floor) ? level : floor;
 
 /**
- * Evidence-only progression; a level never goes down. A lesson explanation alone never demonstrates understanding.
- * One observation reaches at most
+ * Evidence-only progression; a level never goes down. A lesson explanation alone never demonstrates understanding, but
+ * a gap shown inside a Lesson (a wrong Probe or Articulation) means the learner has seen one. One observation reaches at most
  * `correct_with_hints`; the top two levels need two positive observations, one of them of the matching kind.
  */
 export function masteryFromEvidence(current: MasteryLevel, evidence: readonly Evidence[]): MasteryLevel {
@@ -12,7 +12,9 @@ export function masteryFromEvidence(current: MasteryLevel, evidence: readonly Ev
   const observations = [...new Map(evidence.map((item) => [`${item.outcome}:${item.type}:${item.entryIds.join(",")}`, item])).values()];
   const positive = observations.filter((item) => item.outcome === "positive" && item.type !== "repeated_gap");
   const strong = (type: Evidence["type"]) => positive.some((item) => item.type === type && item.strength === "strong");
-  let observed: MasteryLevel = "not_encountered";
+  // A gap shown inside a Lesson means the learner has now seen an explanation, so the next Lesson can start probe_first.
+  const shownInLesson = observations.some((item) => item.outcome === "negative" && (item.type === "probe_result" || item.type === "articulation"));
+  let observed: MasteryLevel = shownInLesson ? "seen_explanation" : "not_encountered";
   if (positive.length >= 1) observed = "correct_with_hints";
   if (positive.length >= 2 && (positive.some((item) => item.type === "independent_fix") || strong("articulation"))) observed = "explains_independently";
   if (positive.length >= 2 && (positive.some((item) => item.type === "caught_agent_mistake") || strong("fix_judgement") && strong("articulation"))) {

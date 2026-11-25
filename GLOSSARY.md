@@ -43,7 +43,7 @@ An observed behavior that says something about the user's understanding of a con
 _Avoid_: signal, score
 
 **Mastery Level**:
-One of five ordered states of a concept: not encountered, seen an explanation, correct with hints, explains independently, catches the agent's mistakes. Dreaming sets it from evidence alone and never lowers it. One piece of evidence reaches at most correct with hints; each of the top two levels needs two positive pieces, one of the matching kind.
+One of five ordered states of a concept: not encountered, seen an explanation, correct with hints, explains independently, catches the agent's mistakes. Dreaming sets it from evidence alone and never lowers it. A wrong Probe or Articulation answer in a Lesson reaches seen an explanation. One piece of evidence reaches at most correct with hints; each of the top two levels needs two positive pieces, one of the matching kind.
 _Avoid_: score, proficiency
 
 **Learner Context**:

@@ -215,3 +215,17 @@ it("the same observation recorded twice counts once", async () => {
   await model.dream("idle");
   expect((await model.readConcepts(["debugging"]))[0]?.mastery).toBe("correct_with_hints");
 });
+
+it("a wrong answer in a Lesson means the explanation was seen, and never lowers a level", async () => {
+  // Live, a full Lesson with a wrong Articulation left environment-variables at not_encountered, so probe_first never ran.
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const wrong = (conceptId: string, type: Evidence["type"]): Observation => ({ conceptId, type, outcome: "negative", strength: "moderate" });
+  expect(await masteryAfter(model, [
+    { conceptId: "cookies", type: "probe_result", outcome: "positive", strength: "moderate" },
+  ])).toMatchObject({ cookies: "correct_with_hints" });
+  expect(await masteryAfter(model, [
+    wrong("environment-variables", "articulation"), wrong("authorization", "probe_result"), wrong("debugging", "repeated_gap"), wrong("cookies", "articulation"),
+  ])).toMatchObject({
+    "environment-variables": "seen_explanation", authorization: "seen_explanation", debugging: "not_encountered", cookies: "correct_with_hints",
+  });
+});
