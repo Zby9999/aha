@@ -26,8 +26,10 @@ export const cardDecisions: Pick<DecisionService, "chooseComponent" | "checkGrou
     });
     const declared = citations.map(({ path }) => normalize(path));
     const missingFiles = [...new Set([...paths, ...declared].filter((path) => !known.has(path)))];
-    const grounded = valid && missingFiles.length === 0 && paths.every((p) => declared.includes(p))
-      && declared.every((p) => paths.includes(p));
+    // Older cards pass citations alongside the card. When the card embeds them, both lists must agree.
+    const consistent = rendered === undefined || (valid && paths.every((path) => declared.includes(path))
+      && declared.every((path) => paths.includes(path)));
+    const grounded = declared.length > 0 && consistent && missingFiles.length === 0;
     return { grounded, missingFiles, reason: grounded ? "Card cites project files" : "Missing or inconsistent project citations" };
   },
 };

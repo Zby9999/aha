@@ -108,6 +108,17 @@ describe("DecisionService", () => {
       .toMatchObject([{ conceptId: "24", entryIds: [entry.id] }]);
   });
 
+  it("defers out-of-vocabulary evidence with both an empty and a nonmatching catalog", async () => {
+    const { timeline, second } = repeatedGap();
+    const request = vi.fn<typeof fetch>(async () => response({ concept: choice("new"),
+      kind: choice("repeated_gap"), strength: choice("strong"), outcome: choice("negative") }));
+    const service = createDecisions({ apiKey: "test", fetch: request });
+    const input = { timeline: timeline.entries(), newEntries: [second] };
+    expect(await service.gateEvidence({ ...input, concepts: [] })).toEqual([]);
+    expect(await service.gateEvidence({ ...input, concepts: [concept] })).toEqual([]);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it("returns null and warns once for repeated unavailable reads", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {

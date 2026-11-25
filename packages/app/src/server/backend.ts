@@ -108,7 +108,10 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     const history = timeline.entries().filter((item) => item.seq <= entry.seq);
     const evidence = gateEvidence(entry, history).catch(onLearningError);
     if (entry.source === "agent-host" && (entry.kind === "user_message" || entry.kind === "error" || entry.kind === "agent_message")) {
-      const [, detection] = await Promise.all([evidence, decisions.detectImpasse({ timeline: history })]);
+      const [write, read] = await Promise.allSettled([evidence, decisions.detectImpasse({ timeline: history })]);
+      if (write.status === "rejected") throw write.reason;
+      if (read.status === "rejected") throw read.reason;
+      const detection = read.value;
       if (detection && !timeline.entries().some((item) => item.kind === "impasse" && item.impasse.id === detection.impasse.id)) {
         timeline.append({ kind: "impasse", source: "decisions", impasse: detection.impasse });
       }
@@ -139,7 +142,6 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   }
 
   async function reactLearning(entry: TimelineEntry) {
-
     if (entry.kind === "impasse") {
       if (entry.impasse.trigger === "detected") {
         const learnerContext = await learnerContextFor(entry.impasse);
