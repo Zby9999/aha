@@ -57,7 +57,7 @@ _Avoid_: memory sync, summarization
 ## Work
 
 **Grounding**:
-An explanation is grounded when it cites real files in the user's project or the agent's latest change. Every explanation must pass the grounding check.
+An explanation is grounded when it cites real files in the user's project or the agent's latest change. Every explanation must pass the grounding check. The one exception is an answer to the learner's own question (Ask why or a follow-up), which may add up to two sentences of general background, labelled as not from the project; the rest of the card still cites the code.
 _Avoid_: relevance, accuracy
 
 **Timeline**:

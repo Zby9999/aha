@@ -91,10 +91,21 @@ export const dataFlowDiagramSchema = z.object({
   return ids.size === nodes.length && endpoints.size === ids.size && [...endpoints].every((id) => ids.has(id));
 }, { path: ["edges"], message: "Connections must reference every node by a unique node ID." });
 
+/** Counts sentences in English and in CJK text, for limits such as `background`'s two sentences. */
+export function sentenceCount(text: string): number {
+  return text.split(/(?<=[.!?。！？])\s*/).filter((part) => part.trim()).length;
+}
+
 export const textExplanationSchema = z.object({
   title: z.string(),
   text: z.string(),
   citations: z.array(citationSchema),
+  /**
+   * At most two sentences of general knowledge the project code cannot show, labelled "General background, not from
+   * your project". Only for answers to the learner's own questions (Ask why, follow-ups); the grounding check skips it,
+   * and `text` must still tie it to the cited lines.
+   */
+  background: z.string().trim().min(1).max(400).refine((text) => sentenceCount(text) <= 2, "Keep the background to two sentences.").optional(),
 });
 
 /** The original card catalog used by App builds before they adopt the diagram renderers. */

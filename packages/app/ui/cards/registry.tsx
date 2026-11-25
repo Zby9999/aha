@@ -351,6 +351,12 @@ export const { registry } = defineRegistry(cardCatalog, {
         </CardHeader>
         <CardContent className="grid gap-3">
           <p className="text-sm leading-relaxed"><InlineCode text={props.text} /></p>
+          {props.background && (
+            <aside aria-label="General background" className="grid gap-1 border-l-2 pl-3 text-sm text-muted-foreground" data-background>
+              <span className="text-xs font-medium">General background, not from your project</span>
+              <p className="leading-relaxed"><InlineCode text={props.background} /></p>
+            </aside>
+          )}
           <Citations citations={props.citations} />
         </CardContent>
         <FlagExplanation />

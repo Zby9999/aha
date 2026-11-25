@@ -103,7 +103,7 @@ test("an Ask why on a mastered Concept is answered, and only a Why? on a change 
 
   const timeline = createTimeline({ sessionId: "why-hint" });
   const edit = timeline.append({ kind: "file_edit", source: "agent-host", path: "server.js", change: "modify", diff: "@@ -1,2 +1,2 @@\n+const PORT = process.env.PORT || 3000;" });
-  const run = vi.fn(async () => ({ text: JSON.stringify(text), filesWritten: [] }));
+  const run = vi.fn(async (_request: BackgroundRunRequest) => ({ text: JSON.stringify(text), filesWritten: [] }));
   const teaching = createTeaching({
     background: { run },
     decisions: { async checkGrounding() { return { grounded: true, missingFiles: [], reason: "ok" }; }, async chooseComponent() { return "TextExplanation"; } },
@@ -121,4 +121,60 @@ test("a follow-up is answered even when the code cannot show the answer", async 
   await answer("It uses PORT when it is set.");
   await teaching.followUp({ lessonId: card.lessonId, question: "Is it safe to put secrets in environment variables?", timeline: timeline.entries() });
   expect(lastPrompt()).toContain("even when it goes beyond what the code shows");
+});
+
+function backgroundTeaching(drafts: object[]) {
+  const grounding: unknown[] = [];
+  const run = vi.fn(async (_request: BackgroundRunRequest) => ({ text: JSON.stringify(drafts.length > 1 ? drafts.shift() : drafts[0]), filesWritten: [] }));
+  const teaching = createTeaching({
+    background: { run },
+    decisions: {
+      async checkGrounding(input) { grounding.push(input.explanation); return { grounded: true, missingFiles: [], reason: "ok" }; },
+      async chooseComponent() { return "TextExplanation"; },
+    },
+  });
+  return { teaching, run, grounding };
+}
+const independent: Concept = { id: "env", name: "Environment variables", mastery: "explains_independently", evidence: [], relatedFiles: ["server.js"], userEdited: false };
+const withBackground = (background: string) => ({ component: "TextExplanation", props: { ...text.props, background } });
+
+test("an answer to Ask why may add labelled general background that the grounding check skips", async () => {
+  const { teaching, run, grounding } = backgroundTeaching([withBackground("Hosting platforms set PORT for each app. That is why code reads it first.")]);
+  const timeline = createTimeline({ sessionId: "background" });
+  const entries = await teaching.startLesson({
+    impasse: { id: "q", trigger: "ask_why", title: "Why read PORT?", text: "Why read PORT?", sourceEntryIds: [], conceptIds: [] },
+    learner: { concepts: [independent] }, project: { projectDir, files: ["server.js"] }, timeline: timeline.entries(),
+  });
+  expect(run.mock.lastCall![0].prompt).toContain("at most two sentences of it in background");
+  const explain = entries.find((entry) => entry.kind === "lesson_card")!;
+  expect(explain.kind === "lesson_card" && explain.card.elements.card?.props).toMatchObject({
+    text: "The environment value wins.", background: "Hosting platforms set PORT for each app. That is why code reads it first.", citations,
+  });
+  expect(grounding).toHaveLength(1);
+  expect(JSON.stringify(grounding[0])).not.toContain("Hosting platforms");
+  expect(JSON.stringify(grounding[0])).toContain("The environment value wins.");
+});
+
+test("background longer than two sentences is redrafted", async () => {
+  const { teaching, run } = backgroundTeaching([withBackground("One. Two. Three."), withBackground("One. Two.")]);
+  const entries = await teaching.startLesson({
+    impasse: { id: "q", trigger: "ask_why", title: "Why read PORT?", text: "Why read PORT?", sourceEntryIds: [], conceptIds: [] },
+    learner: { concepts: [independent] }, project: { projectDir, files: ["server.js"] }, timeline: [],
+  });
+  expect(run.mock.calls[1]![0].prompt).toContain("Keep background to at most two sentences.");
+  const explain = entries.find((entry) => entry.kind === "lesson_card")!;
+  expect(explain.kind === "lesson_card" && explain.card.elements.card?.props).toMatchObject({ background: "One. Two." });
+});
+
+test("an explanation of a prediction or a Why? on a change cannot carry general background", async () => {
+  const { teaching, run } = backgroundTeaching([withBackground("Hosting platforms set PORT.")]);
+  const timeline = createTimeline({ sessionId: "no-background" });
+  const edit = timeline.append({ kind: "file_edit", source: "agent-host", path: "server.js", change: "modify", diff: "@@ -1,2 +1,2 @@\n+const PORT = process.env.PORT || 3000;" });
+  const entries = await teaching.startLesson({
+    impasse: { id: "w", trigger: "why", title: "Why: Edited server.js", sourceEntryIds: [edit.id], conceptIds: [] },
+    learner: { concepts: [independent] }, project: { projectDir, files: ["server.js"] }, timeline: timeline.entries(),
+  });
+  expect(run.mock.lastCall![0].prompt).not.toContain("background");
+  const explain = entries.find((entry) => entry.kind === "lesson_card")!;
+  expect(explain.kind === "lesson_card" && explain.card.elements.card?.props).not.toHaveProperty("background");
 });
