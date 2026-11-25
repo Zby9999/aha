@@ -34,18 +34,19 @@ async function startLesson(question = "Why does server.js read process.env.PORT?
     timeline: timeline.entries(),
   };
   const append = (entries: NewTimelineEntry[]) => entries.map((entry) => timeline.append(entry));
-  const [, card] = append(await teaching.startLesson(input));
+  const card = append(await teaching.startLesson(input)).find((entry) => entry.kind === "lesson_card")!;
+  if (card.kind !== "lesson_card") throw new Error("expected a Probe card");
   const answer = async (answerText: string) => {
     const submitted = { type: "text", text: answerText } as const;
-    timeline.append({ kind: "card_answer", source: "app", lessonId: card!.lessonId!, cardEntryId: card!.id, step: "probe", answer: submitted });
-    return append(await teaching.answer({ lessonId: card!.lessonId!, cardEntryId: card!.id, answer: submitted, timeline: timeline.entries() }));
+    timeline.append({ kind: "card_answer", source: "app", lessonId: card.lessonId, cardEntryId: card.id, step: "probe", answer: submitted });
+    return append(await teaching.answer({ lessonId: card.lessonId, cardEntryId: card.id, answer: submitted, timeline: timeline.entries() }));
   };
-  return { teaching, timeline, run, card: card!, answer, lastPrompt: () => run.mock.lastCall![0].prompt };
+  return { teaching, timeline, run, card, answer, lastPrompt: () => run.mock.lastCall![0].prompt };
 }
 
 test("a question asked before the Probe is answered must not give the Probe's answer away", async () => {
   const { teaching, timeline, card, lastPrompt } = await startLesson();
-  await teaching.followUp({ lessonId: card.lessonId!, question: "Also limit the title to 80 characters.", timeline: timeline.entries() });
+  await teaching.followUp({ lessonId: card.lessonId, question: "Also limit the title to 80 characters.", timeline: timeline.entries() });
   expect(lastPrompt()).toContain("has not answered the prediction question yet");
 });
 
