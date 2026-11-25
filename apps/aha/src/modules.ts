@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
-import { createBackgroundAgent, createPiAgentHost, createStubAgentHost, createStubBackgroundAgent } from "@aha/agent-host";
+import {
+  createBackgroundAgent,
+  createPiAgentHost,
+  createStubAgentHost,
+  createStubBackgroundAgent,
+  type BackgroundAgentOptions,
+  type PiAgentHostOptions,
+} from "@aha/agent-host";
 import type { AhaModules, TimelineEntry } from "@aha/contracts";
-import { createDecisions, createStubDecisions, jevConfig } from "@aha/decisions";
+import { createDecisions, createStubDecisions, jevConfig, type DecisionOptions } from "@aha/decisions";
 import { createLearnerModel, createStubLearnerModel } from "@aha/learner-model";
 import { createFixtureTeaching, createStubTeaching, createTeaching } from "@aha/teaching";
 
@@ -13,6 +20,13 @@ export interface BuildContext {
   script?: readonly TimelineEntry[];
   /** Delay between streamed words of the stub agent; 0 sends whole messages. */
   streamDelayMs?: number;
+  // The outer boundaries of the real modules. Defaults reach the user's Pi and Jev; tests replace them with fakes.
+  /** How the real agent host starts Pi. */
+  pi?: PiAgentHostOptions;
+  /** Overrides for the real decisions' Jev client, e.g. its `fetch`. */
+  jev?: DecisionOptions;
+  /** How the real background agent reaches a model. */
+  backgroundAgent?: BackgroundAgentOptions;
 }
 
 type Registry = { [K in keyof AhaModules]: Partial<Record<Implementation, (ctx: BuildContext) => AhaModules[K]>> };
@@ -25,12 +39,12 @@ const REGISTRY: Registry = {
   agentHost: {
     stub: (ctx) => createStubAgentHost({ script: ctx.script ?? [], streamDelayMs: ctx.streamDelayMs ?? 0 }),
     // The user's own Pi in RPC mode: `pi` on the PATH, or AHA_PI_COMMAND.
-    real: () => createPiAgentHost(),
+    real: (ctx) => createPiAgentHost(ctx.pi),
   },
-  decisions: { stub: () => createStubDecisions(), real: () => createDecisions(jevConfig(process.env)) },
+  decisions: { stub: () => createStubDecisions(), real: (ctx) => createDecisions({ ...jevConfig(process.env), ...ctx.jev }) },
   learnerModel: { stub: () => createStubLearnerModel, real: () => createLearnerModel },
   teaching: { stub: () => createStubTeaching, real: () => createTeaching },
-  background: { stub: () => createStubBackgroundAgent(), real: () => createBackgroundAgent() },
+  background: { stub: () => createStubBackgroundAgent(), real: (ctx) => createBackgroundAgent(ctx.backgroundAgent) },
 };
 
 export const MODULE_KEYS = Object.keys(REGISTRY) as (keyof AhaModules)[];
