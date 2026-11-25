@@ -20,7 +20,8 @@ beforeEach(() => {
   projectDir = realpathSync(mkdtempSync(join(tmpdir(), "aha-pi-events-")));
   mkdirSync(join(projectDir, "public"));
   writeFileSync(join(projectDir, "public/app.js"), "const sessionToken = Math.random().toString(36).slice(2);\n");
-  log = join(projectDir, "..", `${projectDir.split("/").pop()}.log`);
+  // Next to the project folder, not inside it; a sibling path works with Windows separators too.
+  log = `${projectDir}.log`;
   timeline = createTimeline({ sessionId: "s" });
 });
 
