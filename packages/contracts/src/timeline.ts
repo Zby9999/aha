@@ -107,15 +107,20 @@ export function isKind<K extends TimelineKind>(entry: TimelineEntry, kind: K): e
 
 /**
  * The card whose answer teaching failed to take on and that can be retried: the latest `lesson_error` of the running
- * Lesson whose answer has not subsequently been recovered. Null when there is nothing to retry.
+ * Lesson whose answer has not subsequently been recovered. Older App builds infer recovery from Teaching
+ * events. Apps that publish `lesson_answer_recovered` use explicit recovery so a follow-up cannot clear the error.
  */
-export function pendingLessonError(entries: readonly TimelineEntry[]): TimelineEntryOf<"lesson_error"> | null {
+export function pendingLessonError(
+  entries: readonly TimelineEntry[],
+  recovery: "teaching-event" | "explicit" = "teaching-event",
+): TimelineEntryOf<"lesson_error"> | null {
   const lesson = activeLesson(entries);
   const error = entries.findLast((e): e is TimelineEntryOf<"lesson_error"> => e.kind === "lesson_error");
   if (lesson?.startSeq === undefined || !error || error.lessonId !== lesson.lessonId || error.seq < lesson.startSeq) return null;
   const resolved = entries.some((e) => e.seq > error.seq && (
     (e.kind === "lesson_answer_recovered" && e.lessonId === error.lessonId && e.cardEntryId === error.cardEntryId) ||
-    (e.kind === "lesson_end" && e.lessonId === error.lessonId)
+    (e.kind === "lesson_end" && e.lessonId === error.lessonId) ||
+    (recovery === "teaching-event" && e.source === "teaching" && "lessonId" in e && e.lessonId === error.lessonId)
   ));
   return resolved ? null : error;
 }

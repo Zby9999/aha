@@ -97,7 +97,7 @@ export const textExplanationSchema = z.object({
   citations: z.array(citationSchema),
 });
 
-/** Catalog component definitions, in the shape `defineCatalog(schema, { components })` takes. */
+/** The original card catalog used by App builds before they adopt the diagram renderers. */
 export const cardComponentDefinitions = {
   OfferCard: {
     props: offerCardSchema,
@@ -111,6 +111,15 @@ export const cardComponentDefinitions = {
     props: articulationCardSchema,
     description: "Asks the user to restate the idea in their own words, or to judge whether the agent's fix addresses the cause.",
   },
+  TextExplanation: {
+    props: textExplanationSchema,
+    description: "A short plain-text explanation citing the user's files. Also the fallback when a diagram fails the grounding check.",
+  },
+} as const;
+
+/** Complete Lesson catalog for renderers that support the diagram components. */
+export const lessonCardComponentDefinitions = {
+  ...cardComponentDefinitions,
   Flowchart: {
     props: flowchartSchema,
     description: "A process in reading order, with one decision that branches into labeled paths. Include common continuation steps if the branches merge.",
@@ -126,9 +135,5 @@ export const cardComponentDefinitions = {
   ContrastView: {
     props: contrastViewSchema,
     description: "Two approaches compared on the same criteria, with a short takeaway and source citations.",
-  },
-  TextExplanation: {
-    props: textExplanationSchema,
-    description: "A short plain-text explanation citing the user's files. Also the fallback when a diagram fails the grounding check.",
   },
 } as const;

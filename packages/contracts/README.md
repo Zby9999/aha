@@ -10,6 +10,8 @@ Shared types every module codes against (ADR-0002). Changing anything here is a 
 | `src/modules.ts` | Interfaces of the agent host, restricted Pi session (`BackgroundAgent`), decision service, learner model store, teaching, and `AhaModules` for wiring |
 | `src/protocol.ts` | `UserAction` and the WebSocket messages between the app UI and the backend |
 
+The original `cardComponentDefinitions` export remains usable by existing App renderers. Use `lessonCardComponentDefinitions` with the full diagram registry and gallery fixtures.
+
 ## Who writes which Timeline entry
 
 Every entry has a `kind`, a `version` (currently 1) and the `source` module that wrote it. Modules read only the Timeline, never Pi directly.
