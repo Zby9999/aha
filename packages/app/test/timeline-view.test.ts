@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { sessionView, toViewItems } from "../ui/timelineView.ts";
+import { conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -20,6 +20,53 @@ test("a tool call shows as running until its result arrives", () => {
   expect(toViewItems(t.entries())).toEqual([
     { type: "tool", key: "s:0", toolName: "read", args: { path: "server.js" }, state: "error", output: "const x = 1;" },
   ]);
+});
+
+test("real tool activity and the reply share the pending turn's display key", () => {
+  const timeline = createTimeline({ sessionId: "s" });
+  const request = timeline.append({ kind: "user_message", source: "agent-host", text: "Check the project." });
+  const key = `${request.id}:reply`;
+  expect(conversationItems(timeline.entries(), true)[1]).toMatchObject({ key, pending: true, parts: [] });
+
+  timeline.append({ kind: "tool_call", source: "agent-host", toolCallId: "read-1", toolName: "read", args: { path: "server.js" } });
+  expect(conversationItems(timeline.entries(), true)[1]).toMatchObject({ key, pending: true, parts: [{ state: "running" }] });
+  expect(conversationItems(timeline.entries(), false)[1]).toMatchObject({ key, pending: false, parts: [{ state: "running" }] });
+
+  timeline.append({ kind: "tool_result", source: "agent-host", toolCallId: "read-1", toolName: "read", output: "Read complete", isError: false });
+  timeline.append({ kind: "agent_message_delta", source: "agent-host", messageId: "reply", delta: "Checked" });
+  timeline.append({ kind: "agent_message", source: "agent-host", messageId: "reply", text: "Checked the project." });
+  const items = conversationItems(timeline.entries(), true);
+  expect(items).toHaveLength(2);
+  expect(items[1]).toMatchObject({ key, parts: [{ state: "completed" }, { text: "Checked the project." }] });
+});
+
+test("Pi's preamble, tool results, edit and final response stay in order in the same reply", () => {
+  const timeline = createTimeline({ sessionId: "s" });
+  const request = timeline.append({ kind: "user_message", source: "agent-host", text: "Check the project." });
+  timeline.append({ kind: "agent_message", source: "agent-host", messageId: "intro", text: "I'll check the handler." });
+  timeline.append({ kind: "tool_call", source: "agent-host", toolCallId: "edit-1", toolName: "edit", args: { path: "server.js" } });
+  timeline.append({ kind: "tool_result", source: "agent-host", toolCallId: "edit-1", toolName: "edit", output: "Done", isError: false });
+  const edit = timeline.append({ kind: "file_edit", source: "agent-host", path: "server.js", change: "modify", toolCallId: "edit-1" });
+  const parts = [{ text: "I'll check the handler." }, { state: "completed" }, { entry: edit }];
+  expect(conversationItems(timeline.entries(), true)[1]).toMatchObject({ key: request.id + ":reply", parts });
+
+  timeline.append({ kind: "agent_message", source: "agent-host", messageId: "final", text: "Fixed the handler." });
+  const next = timeline.append({ kind: "user_message", source: "agent-host", text: "And the tests?" });
+  const items = conversationItems(timeline.entries(), true);
+  expect(items).toHaveLength(4);
+  expect(items[1]).toMatchObject({ key: request.id + ":reply", pending: false, parts: [...parts, { text: "Fixed the handler." }] });
+  expect(items[3]).toMatchObject({ key: next.id + ":reply", pending: true, parts: [] });
+});
+
+test("a detected Impasse without an Offer does not interrupt the conversation", () => {
+  const t = createTimeline({ sessionId: "s" });
+  t.append({ kind: "impasse", source: "decisions", impasse: {
+    id: "detected", trigger: "detected", title: "Repeated error", conceptIds: [], sourceEntryIds: [],
+  } });
+  const question = t.append({ kind: "impasse", source: "app", impasse: {
+    id: "asked", trigger: "ask_why", title: "A direct question", conceptIds: [], sourceEntryIds: [],
+  } });
+  expect(toViewItems(t.entries())).toEqual([{ type: "entry", key: question.id, entry: question }]);
 });
 
 test("in learning mode Why, Ask why and Offers are off and only the running Lesson's cards can be used", () => {
@@ -59,6 +106,8 @@ test("a failed answer offers Retry until teaching moves the Lesson on", () => {
   t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "x" } });
   const error = t.append({ kind: "lesson_error", source: "app", lessonId: "l1", cardEntryId: probe.id, message: "Couldn't prepare the next step." });
   expect(sessionView(t.entries()).canRetry(error)).toBe(true);
-  t.append({ kind: "answer_assessment", source: "teaching", lessonId: "l1", answerEntryId: probe.id, step: "probe", conceptIds: [], result: "correct" });
+  t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "explain", card: { root: "r", elements: {} } });
+  expect(sessionView(t.entries()).canRetry(error)).toBe(true);
+  t.append({ kind: "lesson_answer_recovered", source: "app", lessonId: "l1", cardEntryId: probe.id });
   expect(sessionView(t.entries()).canRetry(error)).toBe(false);
 });

@@ -11,8 +11,8 @@ import { replayUntilOffer } from "../src/replay.ts";
 const projectDir = join(import.meta.dirname, "../../../examples/portfolio");
 const allStubs = Object.fromEntries(MODULE_KEYS.map((k) => [k, "stub"])) as ModuleConfig;
 
-async function replayDemo() {
-  const modules = buildModules(allStubs, { script: demoSession });
+async function replayDemo(teaching: ModuleConfig["teaching"] = "stub") {
+  const modules = buildModules({ ...allStubs, teaching }, { script: demoSession });
   let store: LearnerModelStore | undefined;
   const evidence: Evidence[] = [];
   const withStore: AhaModules = {
@@ -124,6 +124,44 @@ describe("session replay with stub modules", () => {
   });
 });
 
+describe("fixture Lesson state machine", () => {
+  for (const finish of ["complete", "abandon"] as const) {
+    test(`a ${finish === "complete" ? "completed" : "partially answered and abandoned"} Lesson follows its Evidence policy`, async () => {
+      const { backend, entries, evidence } = await replayDemo("real");
+      const offer = last(entries(), "offer")!;
+      await backend.dispatch({ type: "offer_response", impasseId: offer.impasseId, response: "accept" });
+      await backend.settled();
+      const probe = last(entries(), "lesson_card")!;
+      await backend.dispatch({ type: "card_answer", lessonId: probe.lessonId, cardEntryId: probe.id, answer: { type: "choice", optionId: "same" } });
+      await backend.settled();
+      const articulate = last(entries(), "lesson_card")!;
+      expect(entries().filter((e) => e.kind === "lesson_card").map((e) => e.step)).toEqual(["probe", "explain", "articulate"]);
+      expect(evidence).toEqual([]);
+
+      if (finish === "abandon") {
+        await backend.dispatch({ type: "back_to_work" });
+      } else {
+        const workMessages = entries().filter((entry) => entry.kind === "user_message").length;
+        await expect(backend.dispatch({ type: "ask_why", text: "Another Lesson?" })).rejects.toThrow(/already running/);
+        await backend.dispatch({ type: "send_message", text: "What does the session token identify?" });
+        await backend.settled();
+        expect(last(entries(), "lesson_question")).toMatchObject({ lessonId: probe.lessonId });
+        expect(last(entries(), "lesson_card")).toMatchObject({ lessonId: probe.lessonId, step: "explain" });
+        expect(entries().filter((entry) => entry.kind === "user_message")).toHaveLength(workMessages);
+        await backend.dispatch({ type: "card_answer", lessonId: articulate.lessonId, cardEntryId: articulate.id, answer: { type: "fix_judgement", addressesCause: false } });
+      }
+      await backend.settled();
+      expect(currentMode(entries())).toBe("work");
+      expect(last(entries(), "lesson_end")?.outcome).toBe(finish === "complete" ? "completed" : "abandoned");
+      expect(evidence.map(({ type, conceptId, outcome }) => ({ type, conceptId, outcome }))).toEqual(finish === "complete" ? [
+        { type: "probe_result", conceptId: "page-reload-resets-state", outcome: "negative" },
+        { type: "probe_result", conceptId: "session-tokens", outcome: "negative" },
+        { type: "fix_judgement", conceptId: "session-tokens", outcome: "positive" },
+      ] : []);
+    });
+  }
+});
+
 describe("session Mode", () => {
   const modes = (entries: readonly TimelineEntry[]) => entries.flatMap((e) => (e.kind === "mode_change" ? [e.mode] : []));
 
@@ -217,12 +255,12 @@ describe("session Mode", () => {
     expect(currentMode(backend.timeline.entries())).toBe("learning");
   });
 
-  test("Back to work right after a Lesson request abandons that Lesson once it has started", async () => {
+  test("Back to work right after a Lesson request returns to work without publishing a Lesson", async () => {
     const { backend, entries } = await replayDemo();
     await backend.dispatch({ type: "ask_why", text: "Why?" });
     await backend.dispatch({ type: "back_to_work" });
     await backend.settled();
-    expect(kinds(entries()).filter((k) => k === "lesson_start" || k === "lesson_end")).toEqual(["lesson_start", "lesson_end"]);
+    expect(kinds(entries()).filter((k) => k === "lesson_start" || k === "lesson_card" || k === "lesson_end")).toEqual([]);
     expect(modes(entries())).toEqual(["learning", "work"]);
   });
 });
@@ -280,9 +318,14 @@ describe("Lesson failures and retries", () => {
     expect(last(entries(), "lesson_error")).toMatchObject({ lessonId: probe.lessonId, cardEntryId: probe.id });
     expect(currentMode(entries())).toBe("learning");
 
+    await backend.dispatch({ type: "send_message", text: "What does the token do?" });
+    await backend.settled();
+    expect(last(entries(), "lesson_card")?.step).toBe("explain");
+
     await backend.dispatch({ type: "retry_answer", lessonId: probe.lessonId, cardEntryId: probe.id });
     await backend.settled();
     expect(last(entries(), "lesson_card")?.step).toBe("articulate");
+    expect(entries().filter((e) => e.kind === "card_answer")).toHaveLength(1);
     await expect(backend.dispatch({ type: "retry_answer", lessonId: probe.lessonId, cardEntryId: probe.id })).rejects.toThrow(/nothing to retry/i);
   });
 

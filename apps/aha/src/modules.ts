@@ -3,7 +3,7 @@ import { createBackgroundAgent, createPiAgentHost, createStubAgentHost, createSt
 import type { AhaModules, TimelineEntry } from "@aha/contracts";
 import { createStubDecisions } from "@aha/decisions";
 import { createStubLearnerModel } from "@aha/learner-model";
-import { createStubTeaching } from "@aha/teaching";
+import { createFixtureTeaching, createStubTeaching, createTeaching } from "@aha/teaching";
 
 export type Implementation = "stub" | "real";
 export type ModuleConfig = Record<keyof AhaModules, Implementation>;
@@ -29,7 +29,7 @@ const REGISTRY: Registry = {
   },
   decisions: { stub: () => createStubDecisions() },
   learnerModel: { stub: () => createStubLearnerModel },
-  teaching: { stub: () => createStubTeaching },
+  teaching: { stub: () => createStubTeaching, real: () => createTeaching },
   background: { stub: () => createStubBackgroundAgent(), real: () => createBackgroundAgent() },
 };
 
@@ -45,7 +45,8 @@ export function buildModules(config: ModuleConfig, ctx: BuildContext = {}): AhaM
     agentHost: build("agentHost"),
     decisions: build("decisions"),
     learnerModel: build("learnerModel"),
-    teaching: build("teaching"),
+    // Keep the replay deterministic with a stub background; the real background activates Pi generation.
+    teaching: config.teaching === "real" && config.background === "stub" ? createFixtureTeaching : build("teaching"),
     background: build("background"),
   };
 }

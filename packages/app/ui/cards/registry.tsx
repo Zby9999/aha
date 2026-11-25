@@ -1,27 +1,48 @@
-import { useState } from "react";
-import { cardComponentDefinitions, type Citation } from "@aha/contracts";
-import { defineCatalog } from "@json-render/core";
+import { useState, type CSSProperties, type ReactNode } from "react";
+import type { Citation } from "@aha/contracts";
 import { defineRegistry } from "@json-render/react";
-import { schema } from "@json-render/react/schema";
-import { Badge } from "../components/ui/badge.tsx";
+import { ArrowDown, ArrowRight, BookOpen, ChevronDown, ChevronLeft, ChevronRight, FileCode2, Flag, GitBranch } from "lucide-react";
 import { Button } from "../components/ui/button.tsx";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
 import { Input } from "../components/ui/input.tsx";
+import { cardCatalog } from "./catalog.ts";
 import { useCard } from "./context.ts";
 
-/** The lesson-card catalog: structure from @aha/contracts, rendering with shadcn/ui (ADR-0004). */
-export const cardCatalog = defineCatalog(schema, { components: cardComponentDefinitions, actions: {} });
-
-function Citations({ citations }: { citations: Citation[] }) {
+function Citations({ citations, expandable = false }: { citations: Citation[]; expandable?: boolean }) {
   if (citations.length === 0) return null;
+  const files = new Map<string, Set<string>>();
+  for (const { path, startLine, endLine } of citations) {
+    const lines = files.get(path) ?? new Set<string>();
+    if (startLine !== undefined) lines.add(endLine !== undefined && endLine !== startLine ? `${startLine}–${endLine}` : `${startLine}`);
+    files.set(path, lines);
+  }
+  const references = (
+      <ul aria-label="Code references" className="grid gap-1 text-xs text-muted-foreground">
+        {[...files].map(([path, lines]) => (
+          <li key={path} className="flex items-start gap-2">
+            <FileCode2 aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
+            <code className="min-w-0 wrap-anywhere">{path}{lines.size > 0 && `:${[...lines].join(", ")}`}</code>
+          </li>
+        ))}
+      </ul>
+  );
+  if (expandable) {
+    return (
+      <Collapsible className="border-t pt-1">
+        <CollapsibleTrigger render={<Button type="button" variant="ghost" size="sm" className="lesson-evidence-trigger w-full justify-start" />}>
+          <FileCode2 data-icon="inline-start" aria-hidden="true" />
+          Code references
+          <ChevronDown data-icon="inline-end" className="ms-auto" aria-hidden="true" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-2 pb-2 pt-1">{references}</CollapsibleContent>
+      </Collapsible>
+    );
+  }
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {citations.map((c) => (
-        <Badge key={`${c.path}:${c.startLine ?? ""}`} variant="outline" className="font-mono">
-          {c.path}
-          {c.startLine ? `:${c.startLine}` : ""}
-        </Badge>
-      ))}
+    <div className="grid gap-1.5 border-t pt-2.5 text-xs text-muted-foreground">
+      <p className="font-medium">Code references</p>
+      {references}
     </div>
   );
 }
@@ -30,15 +51,87 @@ function TextAnswer({ disabled, onSubmit }: { disabled: boolean; onSubmit: (text
   const [text, setText] = useState("");
   return (
     <form
-      className="flex w-full gap-2"
+      className="grid w-full gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         if (text.trim()) onSubmit(text);
       }}
     >
       <Input disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
-      <Button disabled={disabled} type="submit">Answer</Button>
+      <Button disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
     </form>
+  );
+}
+
+function StepLabel({ children }: { children: string }) {
+  return <p className="text-xs font-semibold text-muted-foreground">{children}</p>;
+}
+
+function SubmittedAnswer({ children, label = "Your answer" }: { children: string; label?: string }) {
+  return <p className="wrap-anywhere text-sm leading-relaxed text-muted-foreground">{label} · {children}</p>;
+}
+
+function ChoiceButton({ children, disabled, onClick }: { children: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <Button variant="ghost" className="w-full justify-between px-3 py-2.5 text-start font-normal" disabled={disabled} onClick={onClick}>
+      <span className="min-w-0 wrap-anywhere">{children}</span>
+      <ChevronRight data-icon="inline-end" aria-hidden="true" className="text-muted-foreground" />
+    </Button>
+  );
+}
+
+function FlowNode({ children, start, outgoing, result }: {
+  children: string | undefined; start?: boolean; outgoing: boolean; result?: boolean;
+}) {
+  return (
+    <p className="lesson-flow-node" data-start={start || undefined} data-outgoing={outgoing || undefined} data-result={result || undefined}>
+      {children}
+    </p>
+  );
+}
+
+const fixJudgementLabel = (addressesCause: boolean) => addressesCause ? "Fixes the cause" : "Only hides the symptom";
+
+function FlagExplanation() {
+  const { dispatch, entryId, flag } = useCard();
+  if (!flag || (!flag.enabled && !flag.recorded)) return null;
+  return (
+    <CardFooter>
+      {flag.recorded ? (
+        <p className="text-xs text-muted-foreground" role="status">Flagged as incorrect</p>
+      ) : (
+        <Button type="button" variant="ghost" size="xs" className="text-muted-foreground"
+          onClick={() => dispatch({ type: "flag_explanation", lessonId: flag.lessonId, cardEntryId: entryId })}>
+          <Flag data-icon="inline-start" aria-hidden="true" /> Flag as incorrect
+        </Button>
+      )}
+    </CardFooter>
+  );
+}
+
+function StructuredExplanation({ title, citations, children }: { title: string; citations: Citation[]; children: ReactNode }) {
+  return (
+    <Card aria-label="Explanation" className="lesson-reading-card min-w-0" data-diagram>
+      <CardHeader><CardTitle role="heading" aria-level={3}>{title}</CardTitle></CardHeader>
+      <CardContent className="grid min-w-0 gap-3">
+        {children}
+        <Citations citations={citations} expandable />
+      </CardContent>
+      <FlagExplanation />
+    </Card>
+  );
+}
+
+function ProcessSteps({ steps, label }: { steps: string[]; label: string }) {
+  return (
+    <ol aria-label={label} role="list" className="lesson-process-steps">
+      {steps.map((step, index) => (
+        <li key={index}>
+          {index > 0 && <ArrowDown aria-hidden="true" />}
+          <span>{step}</span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -49,77 +142,217 @@ export const { registry } = defineRegistry(cardCatalog, {
       const respond = (response: "accept" | "skip") =>
         dispatch({ type: "offer_response", impasseId: props.impasseId, response });
       return (
-        <Card aria-label="Offer" className="bg-lesson ring-lesson-border">
+        <Card aria-label="Offer" className="lesson-invitation" data-offer-state={done ? "inactive" : "available"}>
           <CardHeader>
+            <span className="lesson-offer-caption"><BookOpen aria-hidden="true" />Optional lesson</span>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.body}</CardDescription>
           </CardHeader>
           <CardFooter className="flex-wrap gap-2">
             <Button disabled={done} onClick={() => respond("accept")}>Show me why</Button>
-            <Button disabled={done} variant="ghost" onClick={() => respond("skip")}>Skip</Button>
+            <Button disabled={done} variant="ghost" onClick={() => respond("skip")}>Skip this time</Button>
           </CardFooter>
         </Card>
       );
     },
     ProbeCard: ({ props }) => {
-      const { answer, done } = useCard();
+      const { answer, done, endedEarly, submitted } = useCard();
+      const response = submitted?.type === "choice"
+        ? props.options?.find((option) => option.id === submitted.optionId)?.label
+        : submitted?.type === "text" ? submitted.text : undefined;
+      if (response !== undefined) {
+        return (
+          <div role="group" aria-label="Probe" className="px-1.5 py-1">
+            <p className="sr-only">{props.question}</p>
+            <SubmittedAnswer label="Your prediction">{response}</SubmittedAnswer>
+          </div>
+        );
+      }
       return (
-        <Card aria-label="Probe">
+        <Card aria-label="Probe" className="lesson-reading-card">
           <CardHeader>
-            <Badge variant="secondary">Predict</Badge>
-            <CardTitle>{props.question}</CardTitle>
+            <StepLabel>Predict</StepLabel>
+            <CardTitle role="heading" aria-level={3}>{props.question}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Citations citations={props.citations} />
-          </CardContent>
-          <CardFooter className="flex-wrap gap-2">
-            {props.options ? (
-              props.options.map((o) => (
-                <Button key={o.id} variant="outline" disabled={done} onClick={() => answer(props.lessonId, { type: "choice", optionId: o.id })}>
-                  {o.label}
-                </Button>
-              ))
+          <CardContent className="grid gap-2.5">
+            {endedEarly ? (
+              <p className="text-sm text-muted-foreground">No prediction submitted.</p>
+            ) : props.options ? (
+              <div className="lesson-choices" role="group" aria-label="Prediction choices">
+                {props.options.map((o) => (
+                  <ChoiceButton key={o.id} disabled={done} onClick={() => answer(props.lessonId, { type: "choice", optionId: o.id })}>
+                    {o.label}
+                  </ChoiceButton>
+                ))}
+              </div>
             ) : (
               <TextAnswer disabled={done} onSubmit={(text) => answer(props.lessonId, { type: "text", text })} />
             )}
-          </CardFooter>
+            <Citations citations={props.citations} />
+          </CardContent>
         </Card>
       );
     },
     ArticulationCard: ({ props }) => {
-      const { answer, done } = useCard();
+      const { answer, done, endedEarly, submitted } = useCard();
+      const response = submitted?.type === "fix_judgement"
+        ? fixJudgementLabel(submitted.addressesCause)
+        : submitted?.type === "text" ? submitted.text : undefined;
+      const feedback = submitted?.type === "fix_judgement" ? props.feedback : undefined;
       return (
-        <Card aria-label="Articulation">
-          <CardHeader>
-            <Badge variant="secondary">{props.mode === "judge_fix" ? "Judge the fix" : "In your own words"}</Badge>
-            <CardTitle>{props.prompt}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Citations citations={props.citations} />
-          </CardContent>
-          <CardFooter className="flex-wrap gap-2">
-            {props.mode === "judge_fix" ? (
+        <Card aria-label="Articulation" className="lesson-reading-card">
+          {!feedback && (
+            <CardHeader>
+              <StepLabel>{props.mode === "judge_fix" ? "Judge the fix" : "Put it in your own words"}</StepLabel>
+              <CardTitle role="heading" aria-level={3}>{props.prompt}</CardTitle>
+            </CardHeader>
+          )}
+          <CardContent className="grid gap-2.5">
+            {response !== undefined ? (
               <>
-                <Button variant="outline" disabled={done} onClick={() => answer(props.lessonId, { type: "fix_judgement", addressesCause: true })}>Fixes the cause</Button>
-                <Button variant="outline" disabled={done} onClick={() => answer(props.lessonId, { type: "fix_judgement", addressesCause: false })}>Only hides the symptom</Button>
+                {feedback && (
+                  <section aria-label="Fix feedback" className="lesson-fix-feedback grid gap-1 text-sm">
+                    <p className="sr-only">{props.prompt}</p>
+                    <h3 className="text-base font-semibold">{fixJudgementLabel(feedback.addressesCause)}</h3>
+                    <p className="leading-relaxed">{feedback.explanation}</p>
+                  </section>
+                )}
+                <SubmittedAnswer>{response}</SubmittedAnswer>
               </>
+            ) : endedEarly ? (
+              <p className="text-sm text-muted-foreground">Final question unanswered.</p>
+            ) : props.mode === "judge_fix" ? (
+              <div className="lesson-choices" role="group" aria-label="Fix judgement choices">
+                <ChoiceButton disabled={done} onClick={() => answer(props.lessonId, { type: "fix_judgement", addressesCause: true })}>{fixJudgementLabel(true)}</ChoiceButton>
+                <ChoiceButton disabled={done} onClick={() => answer(props.lessonId, { type: "fix_judgement", addressesCause: false })}>{fixJudgementLabel(false)}</ChoiceButton>
+              </div>
             ) : (
               <TextAnswer disabled={done} onSubmit={(text) => answer(props.lessonId, { type: "text", text })} />
             )}
-          </CardFooter>
+            <Citations citations={props.citations} />
+          </CardContent>
+        </Card>
+      );
+    },
+    Flowchart: ({ props }) => (
+      <StructuredExplanation title={props.title} citations={props.citations}>
+        <div className="lesson-process">
+          <ProcessSteps steps={props.steps} label="Process steps" />
+          {props.decision && (
+            <>
+              <ArrowDown aria-hidden="true" className="lesson-process-connector" />
+              <p className="lesson-process-question"><GitBranch aria-hidden="true" />{props.decision.question}</p>
+              <ul aria-label="Decision branches" role="list" className="lesson-process-branches">
+                {props.decision.branches.map(({ label, steps }) => (
+                  <li key={label}>
+                    <p>{label}</p>
+                    <ProcessSteps steps={steps} label={`${label} steps`} />
+                  </li>
+                ))}
+              </ul>
+              {props.decision.continuation && (
+                <>
+                  <p className="lesson-process-join"><ArrowDown aria-hidden="true" /> Paths rejoin</p>
+                  <ProcessSteps steps={props.decision.continuation} label="Shared next steps" />
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </StructuredExplanation>
+    ),
+    ContrastView: ({ props }) => (
+      <StructuredExplanation title={props.title} citations={props.citations}>
+        <p className="lesson-comparison-takeaway">{props.takeaway}</p>
+        <div className="lesson-comparison">
+          <div className="lesson-comparison-head" aria-hidden="true">
+            <p>{props.leftLabel}</p><p>{props.rightLabel}</p>
+          </div>
+          <dl>
+            {props.rows.map(({ label, left, right }, index) => (
+              <div className="lesson-comparison-row" key={index}>
+                <dt>{label}</dt>
+                <dd><span className="sr-only">{props.leftLabel}: </span>{left}</dd>
+                <dd><span className="sr-only">{props.rightLabel}: </span>{right}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </StructuredExplanation>
+    ),
+    SequenceDiagram: ({ props }) => {
+      const lanes = new Map(props.participants.map(({ id, label }, index) => [id, { position: index + 1, label }]));
+      return (
+        <StructuredExplanation title={props.title} citations={props.citations}>
+          <div className="lesson-sequence" style={{ "--sequence-lanes": lanes.size } as CSSProperties}>
+            <div className="lesson-sequence-lanes" aria-hidden="true">
+              {props.participants.map(({ id, label }) => <p key={id}>{label}</p>)}
+            </div>
+            <ol aria-label="Messages in time order" role="list" className="lesson-sequence-messages">
+              {props.messages.map(({ from, to, label }, index) => {
+                const sender = lanes.get(from)!;
+                const receiver = lanes.get(to)!;
+                const first = Math.min(sender.position, receiver.position);
+                const last = Math.max(sender.position, receiver.position);
+                const Arrow = sender.position < receiver.position ? ChevronRight : ChevronLeft;
+                return (
+                  <li key={index}>
+                    <p className="lesson-sequence-route">
+                      {sender.label} <ArrowRight aria-hidden="true" /><span className="sr-only">to </span>{receiver.label}
+                    </p>
+                    <div className="lesson-sequence-message" style={{ gridColumn: `${first} / ${last + 1}`, "--sequence-span": last - first + 1 } as CSSProperties}>
+                      <p>{label}</p>
+                      <span className="lesson-sequence-arrow" data-reverse={sender.position > receiver.position || undefined} aria-hidden="true"><Arrow /></span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </StructuredExplanation>
+      );
+    },
+    DataFlowDiagram: ({ props }) => {
+      const labels = new Map(props.nodes.map(({ id, label }) => [id, label]));
+      const sources = new Set(props.edges.map(({ from }) => from));
+      return (
+        <Card aria-label="Explanation" className="lesson-reading-card" data-explanation data-diagram>
+          <CardHeader>
+            <StepLabel>Explanation</StepLabel>
+            <CardTitle role="heading" aria-level={3}>{props.title}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {props.summary && <p className="text-sm leading-relaxed">{props.summary}</p>}
+            <ol aria-label="Data flow" className="lesson-flow" role="list">
+              {props.edges.map(({ from, to, label }, index) => {
+                const startsPath = props.edges[index - 1]?.to !== from;
+                const continuesPath = props.edges[index + 1]?.from === to;
+                return (
+                  <li key={index} data-start={startsPath || undefined}>
+                    {startsPath && <FlowNode start outgoing>{labels.get(from)}</FlowNode>}
+                    <p className="lesson-flow-edge">{label}</p>
+                    <FlowNode outgoing={continuesPath} result={!sources.has(to)}>{labels.get(to)}</FlowNode>
+                  </li>
+                );
+              })}
+            </ol>
+            <Citations citations={props.citations} />
+          </CardContent>
+          <FlagExplanation />
         </Card>
       );
     },
     TextExplanation: ({ props }) => (
-      <Card aria-label="Explanation">
+      <Card aria-label="Explanation" className="lesson-reading-card" data-explanation>
         <CardHeader>
-          <Badge variant="secondary">Explain</Badge>
+          <StepLabel>Explanation</StepLabel>
           <CardTitle>{props.title}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
           <p className="text-sm leading-relaxed">{props.text}</p>
           <Citations citations={props.citations} />
         </CardContent>
+        <FlagExplanation />
       </Card>
     ),
   },

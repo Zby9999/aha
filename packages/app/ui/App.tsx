@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { isKind, type CardAnswer, type TimelineEntry, type UserAction } from "@aha/contracts";
+import { isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
 import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { LearningPanel } from "./LearningPanel.tsx";
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { sessionView, toViewItems, type SessionView, type ViewItem } from "./timelineView.ts";
+import { conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -41,10 +41,15 @@ export function App() {
   const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
-  const items = toViewItems(entries);
+  const cardsById = new Map(lessonCards.map((entry) => [entry.id, entry]));
+  const lessonAnswers = new Map(entries.flatMap((entry) => entry.kind === "card_answer" ? [[entry.cardEntryId, entry.answer] as const] : []));
+  const flaggedExplanations = new Set(entries.flatMap((entry) => entry.kind === "explanation_flagged" ? [entry.cardEntryId] : []));
+  const lastLessonId = entries.findLast((entry) => isKind(entry, "lesson_start"))?.lessonId;
+  const lessonOutcomes = new Map(entries.flatMap((entry) => entry.kind === "lesson_end" ? [[entry.lessonId, entry.outcome] as const] : []));
   const session = sessionView(entries);
-  const modeChange = entries.findLast((entry) => isKind(entry, "mode_change"));
+  const { modeChange } = session;
   const learning = session.mode === "learning";
+  const items = conversationItems(entries, connected && !learning);
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
   const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
@@ -57,9 +62,22 @@ export function App() {
       projectName={projectName}
       connected={connected}
       modeChange={modeChange}
+      defaultTab={session.defaultTab}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
-        <LearningPanel cards={lessonCards} isDone={(entry) => !connected || session.isDone(entry)} dispatch={dispatch} visible={visible} />
+        <LearningPanel
+          entries={entries}
+          cards={lessonCards}
+          answers={lessonAnswers}
+          flaggedExplanations={flaggedExplanations}
+          outcomes={lessonOutcomes}
+          latestLessonId={lastLessonId}
+          lessonTitle={session.lessonTitle}
+          isDone={(entry) => !connected || session.isDone(entry)}
+          dispatch={dispatch}
+          connected={connected}
+          visible={visible}
+        />
       )}
     >
       <MessageScrollerProvider autoScroll>
@@ -74,7 +92,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -96,7 +114,7 @@ export function App() {
         }}
       >
         {learning && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm ring-1 ring-lesson-border" role="status">
+          <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm" role="status">
             <GraduationCap className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
               Learning: {session.lessonTitle ?? "starting a Lesson…"}
@@ -151,22 +169,41 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected }: { item: ViewItem; dispatch: Dispatch; session: SessionView; connected: boolean }) {
-  if (item.type === "agent_message") {
+function ViewItemView({ item, dispatch, session, connected, cardsById }: {
+  item: ConversationItem;
+  dispatch: Dispatch;
+  session: SessionView;
+  connected: boolean;
+  cardsById: ReadonlyMap<string, TimelineEntryOf<"lesson_card">>;
+}) {
+  if (item.type === "agent_turn" || item.type === "agent_message") {
+    const parts = item.type === "agent_turn" ? item.parts : [item];
+    const runningTool = parts.some((part) => part.type === "tool" && part.state === "running");
+    const pending = item.type === "agent_turn" && item.pending;
     return (
-      <Message className="gap-3">
+      <Message className="gap-3" data-agent-pending={pending || runningTool || undefined}>
         <MessageAvatar className="workspace-reply-mark self-start">
           <Sparkles className="size-4" aria-hidden="true" />
         </MessageAvatar>
         <MessageContent className="gap-1">
           <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
-          <Markdown streaming={item.streaming}>{item.text}</Markdown>
+          {parts.map((part) => part.type === "agent_message" ? (
+            <Markdown key={part.key} streaming={part.streaming}>{part.text}</Markdown>
+          ) : <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />)}
+          {pending && !runningTool && (
+            <p className="text-sm text-muted-foreground" role="status">
+              {parts.length ? "Waiting for the reply" : "Working on your request"}
+            </p>
+          )}
         </MessageContent>
       </Message>
     );
   }
   if (item.type === "tool") return <ToolLine item={item} />;
   const { entry } = item;
+  if (entry.kind === "card_answer") {
+    return <UserMessage>{answerText(entry.answer, cardsById.get(entry.cardEntryId))}</UserMessage>;
+  }
   return (
     <Entry
       entry={entry}
@@ -182,7 +219,7 @@ function UserMessage({ children }: { children: React.ReactNode }) {
   return (
     <Message align="end">
       <MessageContent>
-        <Bubble align="end" variant="muted">
+        <Bubble align="end" variant="muted" className="workspace-user-bubble">
           <BubbleContent className="whitespace-pre-wrap">{children}</BubbleContent>
         </Bubble>
       </MessageContent>
@@ -239,13 +276,19 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: TimelineEntry; dispatch: Dispatch; done: boolean; canStartLesson: boolean; canRetry: boolean }) {
+function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
+  entry: Exclude<TimelineEntry, TimelineEntryOf<"card_answer">>;
+  dispatch: Dispatch;
+  done: boolean;
+  canStartLesson: boolean;
+  canRetry: boolean;
+}) {
   switch (entry.kind) {
     case "user_message":
       return <UserMessage>{entry.text}</UserMessage>;
     case "file_edit":
       return (
-        <div className="rounded-lg border bg-card px-3 py-3 text-sm">
+        <div role="group" aria-label={`Edited ${entry.path}`} className="rounded-lg border bg-card px-3 py-3 text-sm">
           <div className="flex min-w-0 items-center gap-2">
             <FilePen className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
@@ -261,14 +304,14 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
       );
     case "error":
       return (
-        <p className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <p role={entry.source === "app" ? "alert" : undefined} className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           <AlertTriangle className="size-4" />
           {entry.message}
           {entry.path && <span className="font-mono text-xs opacity-80">{entry.path}</span>}
         </p>
       );
     case "impasse":
-      // The user's own Ask why question shows as their turn; Why and detected Impasses as a quiet line.
+      // The user's own Ask why question shows as their turn; an explicit Why uses a quiet line.
       if (entry.impasse.trigger === "ask_why") {
         return (
           <UserMessage>
@@ -284,8 +327,6 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
       return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
-    case "card_answer":
-      return <UserMessage>{answerText(entry.answer)}</UserMessage>;
     case "lesson_question":
       return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_error":
@@ -313,14 +354,19 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: { entry: Tim
     case "lesson_card":
     case "mode_change":
     case "answer_assessment":
+    case "lesson_answer_recovered":
     case "explanation_flagged":
     case "unknown_agent_event":
       return null;
   }
 }
 
-function answerText(answer: CardAnswer): string {
-  if (answer.type === "choice") return `Chose: ${answer.optionId}`;
+function answerText(answer: CardAnswer, card: TimelineEntryOf<"lesson_card"> | undefined): string {
+  if (answer.type === "choice") {
+    const root = card?.card.elements[card.card.root];
+    const probe = probeCardSchema.safeParse(root?.props);
+    return probe.data?.options?.find((option) => option.id === answer.optionId)?.label ?? "Prediction submitted.";
+  }
   if (answer.type === "text") return answer.text;
   return answer.addressesCause ? "The fix addresses the cause." : `The fix only hides the symptom. ${answer.reason ?? ""}`;
 }

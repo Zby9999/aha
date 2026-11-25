@@ -21,18 +21,19 @@ interface WorkspaceProps {
   projectName: string;
   connected: boolean;
   modeChange?: TimelineEntryOf<"mode_change">;
+  defaultTab: "explain" | "preview";
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
 }
 
-export function Workspace({ projectName, connected, modeChange, children, preview, explain }: WorkspaceProps) {
+export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain }: WorkspaceProps) {
   const [layout, setLayout] = useState(savedLayout);
   const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
   const mode = modeChange?.mode ?? "work";
   // A manual choice lasts until the next Timeline transition, including after a reconnect.
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
-  const tab = manualTab?.revision === revision ? manualTab.tab : mode === "learning" ? "explain" : "preview";
+  const tab = manualTab?.revision === revision ? manualTab.tab : defaultTab;
   const tabbed = layout === "tabbed";
 
   function changeLayout(next: Layout) {
@@ -120,7 +121,7 @@ export function Workspace({ projectName, connected, modeChange, children, previe
             inert={tabbed && tab !== "explain"}
             role={tabbed ? "tabpanel" : "region"}
             aria-label="Learning panel"
-            className="workspace-learn"
+            className="workspace-learn workspace-explain"
           >
             {explain(!tabbed || tab === "explain")}
           </TabsContent>
