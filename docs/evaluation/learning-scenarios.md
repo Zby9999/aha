@@ -80,6 +80,39 @@ Lifecycle checks:
 
 Most steps take under 5 s. The slow ones are the Explain steps that hit Teaching's 20 s draft deadline and then fall back to text, and the Offer path (Jev read gate plus Probe while the main Pi was still finishing its turn).
 
+## Status of each finding
+
+Findings with a clear, direct fix were fixed on this branch: one commit per fix, each with a test that fails without it, and `pnpm check` passes. The rest need a product, teaching-design or cross-module decision; they are listed under [Decisions needed](#decisions-needed). Nothing in `packages/decisions/src/service.ts` was changed, because #75–#77 are changing it.
+
+Run D (`/tmp/aha-eval-d`, after the fixes) re-checked the fixes that can be seen live: Pi's shell showed `PORT` empty, no Jev key, and only the bridge's `AHA_LEARNER_CONTEXT_FILE`; a Chinese Ask why got a Chinese Probe and Explain; "我不知道" got *你没有做预测，所以这里只解释原因* ("you made no prediction, so I'll just explain the cause") instead of a verdict; the Articulation prompt was the neutral one; the composer said *Ask about this Lesson (Back to work to message your agent)…*.
+
+| Finding | Grade | Status |
+|---|---|---|
+| P1-1 No feedback after a wrong Articulation | P1 | Decision D1 |
+| P1-2 "Still confused" ends the lesson | P1 | Decision D1 |
+| P1-3 One message moves a concept to the top level | P1 | Decision D2 (mastery rule) and D6 (concept choice in the Decision Layer) |
+| P1-4 `seen_explanation` is never set | P1 | Decision D2 |
+| P1-5 Pi inherits Aha's `PORT` | P1 | **Fixed** in 22beec4: Pi no longer gets `PORT`, `AHA_*` or `TYPESAFE_API_KEY`. Verified live |
+| P1-6 A work request during a Lesson is lost and gives the Probe away | P1 | **Partly fixed**: 11e21f3 (the composer says what happens while a Lesson starts or runs; verified live) and faafef3 (a question before the prediction must not reveal the Probe's answer). Routing work requests to the agent is Decision D5 |
+| P1-7 A hint or follow-up cannot answer a question the code can't show | P1 | Decision D3 |
+| P1-8 A 3-concept question is cut down to one case | P1 | Decision D4 |
+| P1-9 The assessor times out on a complete complex answer | P1 | **Fixed** in e5b99e7: the deadline is 30 s instead of 10 s |
+| P2-1 Language mix | P2 | **Partly fixed** in bb9453f: generated cards follow the learner's language (verified live). Fixed UI strings are Decision D7 |
+| P2-2 Wording after a wrong or missing prediction | P2 | **Fixed** in 93b1ed0. Verified live |
+| P2-3 Offer card title, body and placement | P2 | **Partly fixed** in 82502b3: the title is no longer "Understand this error". The body text comes from `detectImpasse` (D6); placement is part of D9 |
+| P2-4 Duplicate `repeated_gap` Evidence | P2 | Decision D6 (Decision Layer `gateEvidence`) |
+| P2-5 Slow steps | P2 | Not fixed: provider latency, no direct fix. P1-9's fix removes the worst loss |
+| P2-6 Mastery stalls at `correct_with_hints` | P2 | Decision D2 |
+| P2-7 Narrow lesson for one of several edits; inconsistent adaptation | P2 | Decision D6 (read gate) and D9 |
+| P2-8 Trivial Probe on a behaviour-preserving change | P2 | Decision D3 (teaching prompt design) |
+| P2-9 Processes started by Pi outlive Aha | P2 | Decision D8 |
+| P2-10 One concept credited per answer | P2 | Decision D4 |
+| P2-11 Look-alike Why? buttons | P2 | Decision D9 |
+| P3-1 Empty Dreaming sections in the change log | P3 | By design: `store.test.ts` asserts that every run is logged. Decision D10 |
+| P3-2 `related_files` stays empty | P3 | Not fixed (not trivial: Evidence carries no file list) |
+| P3-3 Markdown in plain-text fields | P3 | Not fixed |
+| P3-4 Ask why toggle resets | P3 | Not fixed: looks intended |
+
 ## Problems
 
 Grades: **P0** breaks the loop or the demo. **P1** gives a wrong learning outcome, or a feature does not work in a real case. **P2** is a quality issue. **P3** is polish. No P0 was found.
@@ -199,6 +232,71 @@ Explain text contains backticks (`` `checkPassword` ``), which the card shows li
 
 The second Chinese question in S4 went to Pi as a work message until I turned the toggle on again. This may be intended, but it is easy to miss.
 
+## Decisions needed
+
+Each item below needs a product or teaching-design choice, changes the lesson flow or a contract in `@aha/contracts`, or belongs to the Decision Layer, which #75–#77 are changing.
+
+### D1 What happens after a wrong or "still confused" Articulation (P1-1, P1-2)
+
+Today the lesson always ends after the Articulation, and the assessment result is never shown.
+
+- **A.** Show the assessment as feedback: one short card for an incorrect answer that says what the cited lines actually do, then end. The flow keeps the same steps; one extra card.
+- **B.** Re-teach once: on incorrect or unclear, give a second, different Explain and ask the Articulation again, then end, whatever the answer. Longer lessons; needs a loop limit.
+- **C.** Offer, don't force: end as today, but on incorrect or unclear show *Explain it another way* and *Back to work*.
+
+**Recommendation:** A for incorrect, C for unclear or "still confused". The learner learns that they were wrong, and the confused learner gets a choice instead of being dropped. Also decide whether "I'm still confused" should be weak negative Evidence. The glossary says self-report is not Evidence, so probably not.
+
+### D2 Mastery rules (P1-3, P1-4, P2-6)
+
+- **One-step promotion.** Today one `caught_agent_mistake` moves `not_encountered → catches_agent_mistakes`. Options: (a) at most one level per Dreaming run; (b) the top two levels need two Evidence entries from different sessions; (c) keep it as it is. **Recommendation:** (a). It is simple and stops one message from making the model claim mastery.
+- **`seen_explanation`.** No Evidence type produces it. Options: (a) a completed lesson whose Articulation was not positive sets `seen_explanation` (an explanation was seen, and the glossary defines the level that way); (b) add an Evidence type such as `explanation_seen` (a contract change); (c) drop the level and the `probe_first` format. **Recommendation:** (a). No contract change, and it makes the `probe_first` format reachable.
+- **Plateau at `correct_with_hints`.** Hint lessons record nothing, and lesson assessments are never `strong`. Options: let a correct Articulation in a `hint` or `review` lesson count as `strong`; or give hint lessons a short Articulation. **Recommendation:** add a one-line Articulation to hint lessons, so mastery can rise through lessons and not only through chat.
+
+### D3 Questions the project code cannot answer (P1-7, P2-8)
+
+"Why a salt?" and "is localStorage safe?" have answers that are not in the code, and the grounding rules turn the reply back to the code.
+
+- **A.** For `ask_why` and follow-ups, answer directly even in the `hint` format; adapt only the length.
+- **B.** Allow one sentence of general knowledge, labelled *not from your project*, next to the grounded part. The grounding check then skips that sentence.
+- **C.** Keep it as it is.
+
+**Recommendation:** A and B together. Also tell the Probe prompt to avoid questions whose answer is "it still works" when the change keeps behaviour the same (P2-8).
+
+### D4 Questions and answers that involve several concepts (P1-8, P2-10)
+
+- **Scope.** The Explain is told to stay with one action and outcome, and it sees only the current files. Options: (a) allow up to 3 causes when the Impasse names several outcomes, and add the earlier diffs from the session as "before" sources; (b) split the question into one Lesson per concept, one after another; (c) keep one concept and say which part was left out. **Recommendation:** (a), capped at 3 nodes per cause.
+- **Credit.** `assess()` credits at most one concept. Options: credit up to 2, which matches #75–#77's read gate limit of 2; or keep one. **Recommendation:** up to 2. `answer_assessment.conceptIds` is already an array, so the contract does not change.
+
+### D5 Messages typed during a Lesson (rest of P1-6)
+
+Today every message in learning mode is a Lesson question. Options: (a) keep it, now that the composer says so (fixed); (b) add a *Send to agent* action next to Ask, which queues the message for Pi after the Lesson; (c) let Jev decide whether a message is a work request and route it. **Recommendation:** (b). It is explicit and needs no classifier.
+
+### D6 Decision Layer issues, for the owners of #75–#77 (P1-3, P2-3, P2-4, P2-7)
+
+Not changed here. To re-check after those PRs merge:
+
+- **Concept choice.** The write gate put a caught mistake about file persistence on the catch-all `debugging`, not on `database-persistence` or `error-handling`.
+- **Duplicate Evidence.** A repeated gap is recorded twice: once for the user message and once for the detected Impasse.
+- **Read gate.** It apparently skipped already-mastered concepts that are clearly relevant (`database-persistence` in S6, `session-tokens` in S9 steps 6 and 9), so those lessons did not adapt. Logging the read gate's picks would make this checkable.
+- **Offer body.** The text comes from `detectImpasse` as *A similar issue has come up again: <raw message>*. A short summary of the gap would read better.
+
+### D7 Language of fixed UI strings (rest of P2-1)
+
+The Articulation prompt, the Offer titles, "Lesson complete. Back to work." and the hint titles are fixed English strings. Options: (a) generate the Articulation prompt with the Explain, in the learner's language; (b) add an interface language setting; (c) keep English. **Recommendation:** (a) for the lesson cards only.
+
+### D8 Processes started by Pi (P2-9)
+
+An `agent-browser` daemon and, before the P1-5 fix, a portfolio server kept running after Aha exited. Options: (a) start Pi in its own process group and kill the group on exit; (b) ask Pi, through the bridge extension, to clean up its background tasks at session end; (c) leave it to the user. **Recommendation:** (a). Note that this also kills a dev server the user may want to keep.
+
+### D9 Choosing the change to ask about (P2-3 placement, P2-7, P2-11)
+
+A long session shows 15 Why? buttons, several on identical `Edited server.js` cards, and the Offer appears in the middle of the agent's turn. Options: (a) one Why? per agent turn and file, covering all of that turn's edits; (b) label each card with a summary of the diff or its line range; (c) show Offers after the turn ends. **Recommendation:** (a) and (c).
+
+### D10 Empty Dreaming entries in the change log (P3-1)
+
+Each quiet period appends a section even when nothing changed (11 sections, 3 with content, in run A). This is by design per `store.test.ts`. Options: skip empty runs, or keep them as an audit trail. **Recommendation:** skip them, or write them as one line.
+
+
 ## Environment note
 
 The user's own Pi answered English messages in Chinese and runs extra extensions (auto-mode, a visual `look` loop, `agent-browser`). That comes from the local Pi configuration, not from Aha, but it is what a real user's Pi will look like: Aha has to cope with long turns full of extra tool calls (S5 and S8 had 150+ Timeline entries per turn).
@@ -210,3 +308,5 @@ The user's own Pi answered English messages in Chinese and runs extra extensions
 **What is not yet trustworthy is the pedagogy at the edges and the Learner Model's accuracy, and both get worse with complexity.** The loop serves the learner who gives a short, right answer to a one-concept question well. It goes quiet for the learner who is wrong or confused (P1-1, P1-2). It can withhold an answer the learner asked for (P1-7). It cuts a multi-concept question down to one case (P1-8). It throws away the best answer to a complex question when the assessor times out (P1-9). It credits one concept per answer (P2-10). The model is therefore inaccurate in both directions: one message can push a generic concept to the top level (P1-3), while correctly explained concepts stay "not encountered", and one level is never reached at all (P1-4). The work/learning boundary also has two real-use hazards (P1-5, P1-6).
 
 For the report: the architecture and the live loop are feasible, short sessions work end to end, and a long session stays stable. Feedback after the Articulation, multi-concept questions and assessments, and the mastery rules need the listed fixes before the model's mastery levels can be trusted with real novices. Concept selection should be measured again after #75–#77 merge.
+
+**After the fixes on this branch**, Pi no longer inherits Aha's port or keys, a complete answer to a complex question can be assessed, the cards follow the learner's language, an "I don't know" is no longer judged, and the composer says what a message does during a Lesson. The P1s that remain (D1–D4) are teaching-design choices, not defects with a single right fix. They are the work that decides whether the Learner Model can be trusted.
