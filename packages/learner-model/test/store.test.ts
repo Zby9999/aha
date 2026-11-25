@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
+import type { Evidence } from "@aha/contracts";
 import { expectedEvidenceAfterDemo } from "@aha/contracts/fixtures";
 import { createLearnerModel, SEED_CONCEPTS } from "../src/index.ts";
 
@@ -175,4 +176,42 @@ it("Dreaming gives the demo Concepts the expected mastery without duplicating Ev
   expect(second.masteryChanges).toEqual([]);
   expect((await model.readConcepts(ids)).map((concept) => concept.evidence.map((item) => item.id)))
     .toEqual(first.map((concept) => concept.evidence.map((item) => item.id)));
+});
+
+type Observation = Pick<Evidence, "conceptId" | "type" | "outcome" | "strength">;
+let observed = 0;
+async function masteryAfter(model: ReturnType<typeof createLearnerModel>, items: Observation[]) {
+  for (const item of items) {
+    const id = `ev-mastery-${++observed}`;
+    await model.appendEvidence({ ...item, id, sessionId: "mastery", entryIds: [`answer-${id}`], at: new Date(0).toISOString(), note: "Test observation." });
+  }
+  await model.dream("idle");
+  return Object.fromEntries((await model.listConcepts()).map(({ id, mastery }) => [id, mastery]));
+}
+
+it("one piece of Evidence raises a Concept at most to correct_with_hints", async () => {
+  // Live, one work message that caught an agent bug moved `debugging` from not_encountered to the top level.
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const caught: Observation = { conceptId: "debugging", type: "caught_agent_mistake", outcome: "positive", strength: "strong" };
+  const fixed: Observation = { conceptId: "authorization", type: "independent_fix", outcome: "positive", strength: "strong" };
+  expect(await masteryAfter(model, [caught, fixed])).toMatchObject({ debugging: "correct_with_hints", authorization: "correct_with_hints" });
+});
+
+it("the top two levels need two positive pieces of Evidence, one of the matching kind", async () => {
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const probe = (conceptId: string): Observation => ({ conceptId, type: "probe_result", outcome: "positive", strength: "moderate" });
+  expect(await masteryAfter(model, [
+    probe("debugging"), { conceptId: "debugging", type: "caught_agent_mistake", outcome: "positive", strength: "strong" },
+    probe("authorization"), { conceptId: "authorization", type: "independent_fix", outcome: "positive", strength: "moderate" },
+    probe("cookies"), probe("cookies"),
+  ])).toMatchObject({ debugging: "catches_agent_mistakes", authorization: "explains_independently", cookies: "correct_with_hints" });
+});
+
+it("the same observation recorded twice counts once", async () => {
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const caught: Omit<Evidence, "id"> = { conceptId: "debugging", type: "caught_agent_mistake", outcome: "positive", strength: "strong", sessionId: "s", entryIds: ["message-1"], at: new Date(0).toISOString(), note: "Caught it." };
+  await model.appendEvidence({ ...caught, id: "ev-a" });
+  await model.appendEvidence({ ...caught, id: "ev-b" });
+  await model.dream("idle");
+  expect((await model.readConcepts(["debugging"]))[0]?.mastery).toBe("correct_with_hints");
 });

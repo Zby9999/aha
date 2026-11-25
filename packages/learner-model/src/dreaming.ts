@@ -1,17 +1,24 @@
 import { MASTERY_LEVELS, type Concept, type Evidence, type MasteryLevel } from "@aha/contracts";
 
-/** Evidence-only progression. A lesson explanation alone never demonstrates understanding. */
+const atLeast = (level: MasteryLevel, floor: MasteryLevel) => MASTERY_LEVELS.indexOf(level) >= MASTERY_LEVELS.indexOf(floor) ? level : floor;
+
+/**
+ * Evidence-only progression; a level never goes down. A lesson explanation alone never demonstrates understanding.
+ * One observation reaches at most
+ * `correct_with_hints`; the top two levels need two positive observations, one of them of the matching kind.
+ */
 export function masteryFromEvidence(current: MasteryLevel, evidence: readonly Evidence[]): MasteryLevel {
-  const positive = evidence.filter((item) => item.outcome === "positive");
-  const judgedFix = positive.some((item) => item.type === "fix_judgement" && item.strength === "strong");
-  const explained = positive.some((item) => item.type === "articulation" && item.strength === "strong");
-  const observed: MasteryLevel = positive.some((item) => item.type === "caught_agent_mistake") || judgedFix && explained
-    ? "catches_agent_mistakes"
-    : positive.some((item) => item.type === "independent_fix")
-      ? "explains_independently"
-      : positive.some((item) => item.type === "probe_result" || item.type === "articulation")
-        ? "correct_with_hints" : current;
-  return MASTERY_LEVELS.indexOf(observed) > MASTERY_LEVELS.indexOf(current) ? observed : current;
+  // Two records of the same entries (for example a duplicate write-gate decision) are one observation.
+  const observations = [...new Map(evidence.map((item) => [`${item.outcome}:${item.type}:${item.entryIds.join(",")}`, item])).values()];
+  const positive = observations.filter((item) => item.outcome === "positive" && item.type !== "repeated_gap");
+  const strong = (type: Evidence["type"]) => positive.some((item) => item.type === type && item.strength === "strong");
+  let observed: MasteryLevel = "not_encountered";
+  if (positive.length >= 1) observed = "correct_with_hints";
+  if (positive.length >= 2 && (positive.some((item) => item.type === "independent_fix") || strong("articulation"))) observed = "explains_independently";
+  if (positive.length >= 2 && (positive.some((item) => item.type === "caught_agent_mistake") || strong("fix_judgement") && strong("articulation"))) {
+    observed = "catches_agent_mistakes";
+  }
+  return atLeast(current, observed);
 }
 
 /** The model proposes ids; the store validates them and owns every write. */
