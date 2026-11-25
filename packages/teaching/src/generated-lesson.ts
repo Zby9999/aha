@@ -117,8 +117,12 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
           : discussion.brief ? "Correct or confirm the prediction in one or two sentences, explaining one immediate cause."
             : "Respond to the prediction and explain the immediate cause.";
       const textOnly = isQuestion || discussion.hint === true || discussion.brief === true;
+      // Live, a question asked before the prediction got an answer that gave the Probe away.
+      const beforePrediction = isFollowUp && discussion.answer === undefined
+        ? " The user has not answered the prediction question yet: do not reveal or hint at its answer, and if the question is about it, say it will be explained after they predict."
+        : "";
       const task = textOnly
-        ? `${goal} Use the cited code and this shape: ${TEXT_SHAPE}`
+        ? `${goal}${beforePrediction} Use the cited code and this shape: ${TEXT_SHAPE}`
         : `Correct or confirm the user's prediction, then explain the immediate cause.
 Use TextExplanation for a local assignment, return value, or other short cause within one part of the project. Use DataFlowDiagram when a value crosses distinct parts of the project shown in the excerpts, for example browser code sending a token to a server.
 Every arrow must be supported by the excerpts. Do not infer UI updates, extra actions, or cycles that the code does not show. Use one path with 2–5 nodes in causal order, ending at the observed outcome. Keep diagram feedback to one sentence that adds something the diagram doesn't show. For text, use one short paragraph.
@@ -143,7 +147,7 @@ ${DIAGRAM_SHAPE}`;
           correction = `\nThe previous draft could not be verified. ${error.message}`;
         }
       }
-      return tryDraft(`${goal} Write only one short paragraph using directly supported facts. Use this shape: ${TEXT_SHAPE}`, true, deadline(signal, 10_000));
+      return tryDraft(`${goal}${beforePrediction} Write only one short paragraph using directly supported facts. Use this shape: ${TEXT_SHAPE}`, true, deadline(signal, 10_000));
     },
 
     async assess(input: LessonInput, sources: LessonSources, assessment: {
