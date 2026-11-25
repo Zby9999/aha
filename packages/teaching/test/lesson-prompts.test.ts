@@ -56,3 +56,13 @@ test("every generated card is asked for in the learner's own language", async ()
   expect(run.mock.calls.length).toBeGreaterThan(1);
   for (const [request] of run.mock.calls) expect(request.systemPrompt).toContain("same language the user writes in");
 });
+
+test("after \"I don't know\" the lesson neither judges a prediction nor asks about one", async () => {
+  // Live: "Your prediction is not quite right" answered "I don't know", then "what caused the behavior you predicted?".
+  const { answer, lastPrompt } = await startLesson();
+  const entries = await answer("I don't know");
+  expect(lastPrompt()).toContain("If the user did not make a prediction");
+  const articulation = entries.find((entry) => entry.kind === "lesson_card" && entry.step === "articulate")!;
+  const props = articulation.kind === "lesson_card" ? articulation.card.elements[articulation.card.root]!.props : {};
+  expect(props).toMatchObject({ prompt: "In your own words, what causes this behavior?" });
+});
