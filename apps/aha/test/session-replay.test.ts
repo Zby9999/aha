@@ -374,13 +374,14 @@ describe("Lesson failures and retries", () => {
 describe("module configuration", () => {
   test("each module can be set to stub or real in the config file or the environment", () => {
     const file = join(import.meta.dirname, "../aha.config.json");
-    expect(readConfig(file, {})).toEqual({ ...allStubs, learnerModel: "real", background: "real" });
+    expect(readConfig(file, {})).toEqual(allStubs);
     expect(readConfig(file, { AHA_BACKGROUND: "real" }).background).toBe("real");
     expect(() => readConfig(file, { AHA_DECISIONS: "jev" })).toThrow(/stub" or "real/);
   });
 
   test("a real implementation that does not exist yet fails with a clear message", () => {
-    expect(() => buildModules({ ...allStubs, learnerModel: "real" })).toThrow(/No real implementation of learnerModel yet/);
+    expect(() => buildModules({ ...allStubs, teaching: "real" })).toThrow(/No real implementation of teaching yet/);
+    expect(buildModules({ ...allStubs, learnerModel: "real" }).learnerModel).toBeTypeOf("function");
     expect(buildModules({ ...allStubs, decisions: "real" }).decisions.detectImpasse).toBeTypeOf("function");
     expect(buildModules({ ...allStubs, background: "real" }).background).toBeDefined();
   });
