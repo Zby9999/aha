@@ -33,8 +33,11 @@ type ExplanationContext =
   | { directQuestion: string; hint?: never; followUp?: never; brief?: never };
 
 function deadline(signal: AbortSignal | undefined, ms: number): AbortSignal {
-  const timeout = AbortSignal.timeout(ms);
-  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+  // A plain timer rather than AbortSignal.timeout, so tests can control a step's deadline with fake timers.
+  const timeout = new AbortController();
+  const timer = setTimeout(() => timeout.abort(new DOMException("The step took too long.", "TimeoutError")), ms);
+  timer.unref?.();
+  return signal ? AbortSignal.any([signal, timeout.signal]) : timeout.signal;
 }
 
 function parseObject(text: string): Record<string, unknown> {
@@ -162,7 +165,8 @@ ${DIAGRAM_SHAPE}`;
             question, answer, concepts: concepts.map(({ id, name }) => ({ id, name })),
             ...(assessment.explanation ? { priorExplanation: JSON.stringify(assessment.explanation).slice(0, 3500) } : {}),
           },
-          signal: deadline(signal, 10_000),
+          // A complete answer to a complex question takes the model longer to assess; 10 s dropped those live.
+          signal: deadline(signal, 30_000),
         });
       } catch {
         return;
