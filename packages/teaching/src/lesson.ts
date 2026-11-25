@@ -156,7 +156,10 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
           }
           const related = anchor ?? relevantCitation(input, sources, false);
           if (!generator) return complete(lesson, [start, makeCard(id, "explain", fixtureShortcut(portfolio, format === "hint", sources, related))]);
-          const explanation = await generator.explain(input, sources, format === "hint"
+          // A question the learner asked is always answered; mastery only makes the answer shorter. The hint that leaves
+          // the conclusion to the learner is for a Why? on an agent change (live, "why a salt?" got a hint and no answer).
+          const hint = format === "hint" && input.impasse.trigger !== "ask_why";
+          const explanation = await generator.explain(input, sources, hint
             ? { hint: true }
             : { directQuestion: input.impasse.text ?? input.impasse.title }, lesson.controller.signal);
           if (format !== "hint") return complete(lesson, [start, makeCard(id, "explain", explanation.card)]);
