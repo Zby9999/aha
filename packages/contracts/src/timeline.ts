@@ -44,7 +44,7 @@ export interface TimelinePayloads {
   card_answer: { lessonId: string; cardEntryId: string; step: AnsweredStep; answer: CardAnswer };
   /**
    * Teaching's judgement of a Probe or Articulation answer. It is behavioural Evidence by construction:
-   * the backend records one Evidence per Concept for it without asking the write gate whether it is relevant.
+   * after the Lesson completes, the backend records one Evidence per Concept without consulting the write gate.
    */
   answer_assessment: {
     lessonId: string;
@@ -60,6 +60,8 @@ export interface TimelinePayloads {
    * retry (`retry_answer`) or go back to work. Written by the app.
    */
   lesson_error: { lessonId: string; cardEntryId: string; message: string };
+  /** App confirms that retrying this answer advanced the Lesson. */
+  lesson_answer_recovered: { lessonId: string; cardEntryId: string };
   explanation_flagged: { lessonId: string; cardEntryId: string; reason?: string };
   lesson_end: { lessonId: string; outcome: "completed" | "abandoned" };
 }
@@ -105,14 +107,22 @@ export function isKind<K extends TimelineKind>(entry: TimelineEntry, kind: K): e
 
 /**
  * The card whose answer teaching failed to take on and that can be retried: the latest `lesson_error` of the running
- * Lesson with nothing from teaching after it for that answer. Null when there is nothing to retry.
+ * Lesson whose answer has not subsequently been recovered. Older App builds infer recovery from Teaching
+ * events. Apps that publish `lesson_answer_recovered` use explicit recovery so a follow-up cannot clear the error.
  */
-export function pendingLessonError(entries: readonly TimelineEntry[]): TimelineEntryOf<"lesson_error"> | null {
+export function pendingLessonError(
+  entries: readonly TimelineEntry[],
+  recovery: "teaching-event" | "explicit" = "teaching-event",
+): TimelineEntryOf<"lesson_error"> | null {
   const lesson = activeLesson(entries);
   const error = entries.findLast((e): e is TimelineEntryOf<"lesson_error"> => e.kind === "lesson_error");
-  if (!lesson?.startSeq || !error || error.lessonId !== lesson.lessonId || error.seq < lesson.startSeq) return null;
-  const movedOn = entries.some((e) => e.seq > error.seq && e.source === "teaching" && "lessonId" in e && e.lessonId === error.lessonId);
-  return movedOn ? null : error;
+  if (lesson?.startSeq === undefined || !error || error.lessonId !== lesson.lessonId || error.seq < lesson.startSeq) return null;
+  const resolved = entries.some((e) => e.seq > error.seq && (
+    (e.kind === "lesson_answer_recovered" && e.lessonId === error.lessonId && e.cardEntryId === error.cardEntryId) ||
+    (e.kind === "lesson_end" && e.lessonId === error.lessonId) ||
+    (recovery === "teaching-event" && e.source === "teaching" && "lessonId" in e && e.lessonId === error.lessonId)
+  ));
+  return resolved ? null : error;
 }
 
 /** The session's current Mode: the last `mode_change`, or "work" before any. */
