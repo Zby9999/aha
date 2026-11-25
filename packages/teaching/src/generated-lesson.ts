@@ -172,8 +172,8 @@ ${DIAGRAM_SHAPE}`;
           return await tryDraft(task + correction, textOnly, draftDeadline);
         } catch (error) {
           signal?.throwIfAborted();
-          // After a rejected draft, allow the text fallback even if the repair timed out.
-          if (attempt > 0 && draftDeadline.aborted) break;
+          // A draft that ran out of time, first or repaired, still gets the shorter text fallback.
+          if (draftDeadline.aborted) break;
           if (!(error instanceof InvalidLessonDraft)) throw error;
           correction = `\nThe previous draft could not be verified. ${error.message}`;
         }
