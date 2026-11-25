@@ -66,3 +66,13 @@ test("after \"I don't know\" the lesson neither judges a prediction nor asks abo
   const props = articulation.kind === "lesson_card" ? articulation.card.elements[articulation.card.root]!.props : {};
   expect(props).toMatchObject({ prompt: "In your own words, what causes this behavior?" });
 });
+
+test("an Offer for a repeated question is not titled as an error", async () => {
+  // Live, a user's repeated "my projects are gone again??" was offered as "Understand this error".
+  const { teaching } = await startLesson();
+  const offer = await teaching.offer({
+    impasse: { id: "d", trigger: "detected", title: "A similar issue has come up again: my projects are gone again??", sourceEntryIds: ["a", "b"], conceptIds: [] },
+    learner: { concepts: [] },
+  });
+  expect(offer!.elements[offer!.root]!.props).toMatchObject({ title: "This has come up before. Look at why?" });
+});
