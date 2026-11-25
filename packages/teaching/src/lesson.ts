@@ -116,7 +116,7 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       const loginRequestFailed = impasse.title.includes("GET /api/me 401");
       return card("OfferCard", {
         impasseId: impasse.id,
-        title: loginRequestFailed ? "Why does the page lose your login?" : "Understand this error",
+        title: loginRequestFailed ? "Why does the page lose your login?" : "This has come up before. Look at why?",
         body: loginRequestFailed
           ? "This request failed more than once. See how the browser and server keep track of your session."
           : impasse.title,
