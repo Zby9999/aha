@@ -9,10 +9,12 @@ import {
   startsLesson,
   type AgentSession,
   type AhaModules,
+  type Concept,
   type AppBackend,
   type Evidence,
   type Impasse,
   type LearnerContext,
+  type LearnerModelFile,
   type NewTimelineEntry,
   type ProjectSnapshot,
   type TimelineEntry,
@@ -30,6 +32,8 @@ export interface BackendOptions {
 }
 
 export interface Backend extends AppBackend {
+  readLearnerModel(): Promise<{ concepts: Concept[]; files: LearnerModelFile[] }>;
+  writeLearnerModelFile(file: LearnerModelFile): Promise<void>;
   /** Resolves once every reaction to the entries so far (decisions, teaching, evidence) has finished. */
   settled(): Promise<void>;
   stop(): Promise<void>;
@@ -53,6 +57,9 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   const { decisions } = modules;
 
   let queue: Promise<void> = Promise.resolve();
+  let idleTimer: NodeJS.Timeout | undefined;
+  let ended = false;
+  const idleMs = Number(process.env.AHA_DREAM_IDLE_MS ?? 300_000);
   const enqueue = (work: () => Promise<void>) => {
     queue = queue.then(work).catch(onLearningError);
     return queue;
@@ -166,7 +173,15 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   let agent: AgentSession | undefined;
   let retrying = false;
   timeline.append({ kind: "session_start", source: "app", projectDir });
-  timeline.subscribe((entry) => void enqueue(() => react(entry)));
+  timeline.subscribe((entry) => {
+    if (idleTimer) clearTimeout(idleTimer);
+    if (entry.kind === "session_end") ended = true;
+    if (!ended && Number.isFinite(idleMs) && idleMs > 0) {
+      idleTimer = setTimeout(() => void enqueue(async () => { await learner.dream("idle"); }), idleMs);
+      idleTimer.unref();
+    }
+    void enqueue(() => react(entry));
+  });
   agent = await modules.agentHost.startSession({ projectDir, timeline });
   const session = agent;
 
@@ -257,6 +272,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   return {
     timeline,
     dispatch,
+    readLearnerModel: async () => ({ concepts: await learner.readConcepts((await learner.listConcepts()).map((concept) => concept.id)), files: await learner.readFiles() }),
+    writeLearnerModelFile: (file) => learner.writeFile(file),
     settled: async () => {
       // Reactions can enqueue more reactions; wait until the queue stops growing.
       for (let seen: Promise<void> | undefined; seen !== queue; ) {
@@ -264,7 +281,7 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         await seen;
       }
     },
-    stop: () => session.stop(),
+    stop: async () => { if (idleTimer) clearTimeout(idleTimer); await session.stop(); },
   };
 }
 
