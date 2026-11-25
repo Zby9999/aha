@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { createDecisions } from "@aha/decisions";
 import { createBackend } from "@aha/app";
-import { currentMode, type AhaModules, type Evidence, type LearnerModelStore, type TimelineEntry } from "@aha/contracts";
+import { currentMode, type AhaModules, type Evidence, type Impasse, type LearnerModelStore, type TimelineEntry } from "@aha/contracts";
 import { DEMO_SESSION_ID, demoSession } from "@aha/contracts/fixtures";
 import { describe, expect, test } from "vitest";
 import { buildModules, MODULE_KEYS, readConfig, type ModuleConfig } from "../src/modules.ts";
@@ -163,6 +163,21 @@ describe("session replay with stub modules", () => {
     expect(last(entries(), "impasse")?.impasse).toMatchObject({ trigger: "ask_why", text: "Why does a refresh log me out?" });
     expect(last(entries(), "lesson_card")?.step).toBe("probe");
     expect(entries().filter((e) => e.kind === "user_message")).toHaveLength(userMessagesBefore);
+  });
+
+  test("the read gate sees the change a Why is about, while the Timeline keeps the short title", async () => {
+    const modules = buildModules(allStubs, { script: demoSession });
+    const asked: Impasse[] = [];
+    const decisions = { ...modules.decisions, selectConcepts: async (input: { impasse: Impasse }) => (asked.push(input.impasse), []) };
+    const backend = await createBackend({ modules: { ...modules, decisions }, projectDir, sessionId: DEMO_SESSION_ID });
+    await replayUntilOffer(backend, demoSession);
+    const edit = last(backend.timeline.entries(), "file_edit")!;
+    await backend.dispatch({ type: "why", entryId: edit.id });
+    await backend.settled();
+    expect(last(backend.timeline.entries(), "impasse")?.impasse).not.toHaveProperty("text");
+    const firstChange = edit.diff!.split("\n").find((line) => /^[+-](?![+-]{2})/.test(line))!;
+    expect(asked.at(-1)).toMatchObject({ trigger: "why", text: expect.stringContaining(firstChange) });
+    expect(asked.at(-1)!.text).not.toMatch(/^(---|\+\+\+) /m);
   });
 
   test("Why on an agent change starts a Lesson directly, without an Offer", async () => {

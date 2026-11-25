@@ -72,7 +72,7 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   }
 
   async function learnerContextFor(impasse: Impasse): Promise<LearnerContext> {
-    const ids = (await decisions.selectConcepts({ impasse, concepts: await learner.listConcepts() })) ?? [];
+    const ids = (await decisions.selectConcepts({ impasse: forReadGate(timeline.entries(), impasse), concepts: await learner.listConcepts() })) ?? [];
     return { concepts: ids.length > 0 ? await learner.readConcepts(ids) : [] };
   }
 
@@ -402,6 +402,19 @@ function findImpasse(entries: readonly TimelineEntry[], id: string): Impasse | u
 function newImpasse(entries: readonly TimelineEntry[], trigger: Impasse["trigger"], title: string, sourceEntryIds: string[]): Impasse {
   const n = entries.filter((e) => e.kind === "impasse").length + 1;
   return { id: `impasse-${n}`, trigger, title, conceptIds: [], sourceEntryIds };
+}
+
+/**
+ * A Why on an agent change is titled only by its path, which gives the read gate nothing to judge. It sees the change
+ * itself as the question; the Timeline keeps the short title.
+ */
+function forReadGate(entries: readonly TimelineEntry[], impasse: Impasse): Impasse {
+  if (impasse.trigger !== "why" || impasse.text) return impasse;
+  const source = entries.find((entry) => entry.id === impasse.sourceEntryIds[0]);
+  if (source?.kind !== "file_edit" || !source.diff) return impasse;
+  // Only the changed lines: a diff's file headers can be long absolute paths.
+  const changed = source.diff.split("\n").filter((line) => /^[+-](?![+-]{2})/.test(line)).join("\n").slice(0, 500);
+  return { ...impasse, text: `Why did the agent make this change to ${source.path}?\n${changed}` };
 }
 
 function describe(entry: TimelineEntry): string {

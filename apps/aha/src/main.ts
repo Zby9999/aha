@@ -16,25 +16,38 @@ const previewOn = (process.env.AHA_PREVIEW ?? (realAgent ? "on" : "off")) === "o
 const preview = previewOn ? startPreview({ projectDir, port: Number(process.env.AHA_PREVIEW_PORT ?? port + 1) }) : undefined;
 
 let backend: Awaited<ReturnType<typeof createBackend>> | undefined;
+let stopping = false;
 const shutdown = async (code = 0) => {
+  // A second Ctrl-C quits at once.
+  if (stopping) process.exit(code);
+  stopping = true;
+  if (backend) {
+    // Ending the session runs Dreaming, so what was learned reaches the Concept files. It never holds the exit for long.
+    console.log("Ending the session: updating the learner model (Ctrl-C again to quit now)…");
+    const dreamed = backend.dispatch({ type: "end_session" }).then(() => backend!.settled());
+    await Promise.race([dreamed.catch(console.error), new Promise((resolve) => setTimeout(resolve, 60_000).unref())]);
+  }
   await Promise.allSettled([backend?.stop(), preview?.stop()]);
   process.exit(code);
 };
-process.once("SIGINT", () => void shutdown());
-process.once("SIGTERM", () => void shutdown());
+process.on("SIGINT", () => void shutdown());
+process.on("SIGTERM", () => void shutdown());
 
 try {
   backend = await createBackend({
     modules: buildModules(config, { script: demoSession, streamDelayMs: Number(process.env.AHA_STREAM_DELAY_MS ?? 40) }),
     projectDir,
-    sessionId: "local-1",
+    // One id per run: Evidence ids restart at ev-1 in each session, so a restart must not append to the last file.
+    sessionId: `local-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`,
   });
   await startServer({ backend, port, uiDir: join(here, "../../../packages/app/dist/ui"), previewUrl: preview?.url ?? null });
 } catch (error) {
   // Pi missing, not logged in or failing to start: the message says what to do.
   if (error instanceof AgentHostError) console.error(`\nAha could not start your agent.\n${error.message}\n`);
   else console.error(error);
-  await shutdown(1);
+  stopping = true;
+  await Promise.allSettled([backend?.stop(), preview?.stop()]);
+  process.exit(1);
 }
 console.log(`Aha is running at http://127.0.0.1:${port} (modules: ${JSON.stringify(config)})`);
 if (preview) console.log(`Live preview of ${projectDir} at ${preview.url}`);
