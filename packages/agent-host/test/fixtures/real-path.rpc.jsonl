@@ -1,0 +1,2 @@
+{"type":"tool_execution_start","toolCallId":"c1","toolName":"edit","args":{"path":"__CWD__/public/app.js","edits":[]}}
+{"type":"tool_execution_end","toolCallId":"c1","toolName":"edit","result":{"content":[{"type":"text","text":"ok"}]},"isError":false}
