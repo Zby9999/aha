@@ -24,7 +24,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
   const outcome = !lesson && latestLessonId ? outcomes.get(latestLessonId) : undefined;
   const currentCards = lesson ? cards.filter((card) => card.lessonId === lesson.lessonId && card.seq > (lesson.startSeq ?? Infinity)) : [];
   const probe = currentCards.find((card) => card.step === "probe");
-  const waiting = lesson && !pendingLessonError(entries)
+  const waiting = lesson && !pendingLessonError(entries, "explicit")
     ? currentCards.length === 0 ? "Preparing the lesson" :
       currentCards.length === 1 && probe && answers.has(probe.id) ? "Preparing the explanation" : undefined
     : undefined;

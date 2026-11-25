@@ -1,4 +1,4 @@
-import { cardComponentDefinitions } from "@aha/contracts";
+import { lessonCardComponentDefinitions } from "@aha/contracts";
 import { card, lessonGalleryFixtures, portfolioSessionFlow } from "@aha/contracts/fixtures";
 import { expect, test } from "vitest";
 import { parseLessonCard } from "../ui/cards/catalog.ts";
@@ -37,7 +37,7 @@ test("the render catalog accepts a cited decision flow and rejects an unnamed br
 });
 
 test("the gallery covers the renderable catalog with valid fixture specs", () => {
-  expect(Object.keys(lessonGalleryFixtures).sort()).toEqual(Object.keys(cardComponentDefinitions).sort());
+  expect(Object.keys(lessonGalleryFixtures).sort()).toEqual(Object.keys(lessonCardComponentDefinitions).sort());
   for (const [name, fixture] of Object.entries(lessonGalleryFixtures)) {
     expect(fixture.elements[fixture.root]?.type).toBe(name);
     expect(parseLessonCard(fixture), name).toBeDefined();

@@ -121,7 +121,7 @@ export function sessionView(entries: readonly TimelineEntry[]): SessionView {
   const impasseTitle = impasse?.kind === "impasse" ? impasse.impasse.text ?? impasse.impasse.title : undefined;
   const lessonTitle = offerProps?.success ? offerProps.data.title : impasseTitle;
   const canStartLesson = mode === "work";
-  const retryable = pendingLessonError(entries);
+  const retryable = pendingLessonError(entries, "explicit");
   return {
     mode,
     ...(modeChange && { modeChange }),

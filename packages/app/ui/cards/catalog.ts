@@ -1,8 +1,8 @@
-import { cardComponentDefinitions, type CardSpec } from "@aha/contracts";
+import { lessonCardComponentDefinitions, type CardSpec } from "@aha/contracts";
 import { defineCatalog, validateSpec } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 
-export const cardCatalog = defineCatalog(schema, { components: cardComponentDefinitions, actions: {} });
+export const cardCatalog = defineCatalog(schema, { components: lessonCardComponentDefinitions, actions: {} });
 
 export function parseLessonCard(card: CardSpec): CardSpec | undefined {
   if (!cardCatalog.validate(card).success || !validateSpec(card).valid) return undefined;
@@ -12,7 +12,7 @@ export function parseLessonCard(card: CardSpec): CardSpec | undefined {
     const { type, props, children, slots } = element;
     // Lesson components render as leaves and cannot contain other cards.
     if (children?.length || Object.values(slots ?? {}).some((slot) => slot.length)) return undefined;
-    const definition = cardComponentDefinitions[type as keyof typeof cardComponentDefinitions];
+    const definition = lessonCardComponentDefinitions[type as keyof typeof lessonCardComponentDefinitions];
     const parsed = definition.props.safeParse(props);
     if (!parsed.success) return undefined;
     // Pass schema-normalized props to the renderer, including canonical diagram IDs.

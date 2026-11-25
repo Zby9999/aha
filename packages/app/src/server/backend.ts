@@ -310,7 +310,7 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         return;
       }
       case "retry_answer": {
-        const error = pendingLessonError(timeline.entries());
+        const error = pendingLessonError(timeline.entries(), "explicit");
         if (!error || error.cardEntryId !== action.cardEntryId || error.lessonId !== action.lessonId || retrying) {
           throw new Error("There is nothing to retry for this card");
         }
@@ -319,7 +319,7 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         retrying = true;
         await enqueue(async () => {
           try {
-            const pending = pendingLessonError(timeline.entries());
+            const pending = pendingLessonError(timeline.entries(), "explicit");
             if (pending?.cardEntryId === answer.cardEntryId) await takeAnswer(answer, true);
           } finally {
             retrying = false;
