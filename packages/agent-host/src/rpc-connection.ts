@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { StringDecoder } from "node:string_decoder";
+import { resolveCommand } from "./resolve-command.ts";
 
 /** A record Pi writes on stdout that is not a command response: a session event or an extension UI request. */
 export type PiRecord = { type: string; [field: string]: unknown };
@@ -36,13 +37,21 @@ const STDERR_KEEP = 4000;
 /**
  * Spawns a process that speaks Pi's RPC protocol: strict JSONL on stdin/stdout, split only on LF
  * (not Node's readline, which also splits on U+2028/U+2029), responses correlated by `id`.
+ * The command may be a program, a JavaScript file or (on Windows) npm's `pi.cmd`; see resolveCommand.
  * Resolves once the process is running; rejects with the spawn error (e.g. ENOENT) otherwise.
  */
 export function spawnRpc({ command, args, cwd, env }: SpawnRpcOptions): Promise<RpcConnection> {
   return new Promise((resolve, reject) => {
     let child: ChildProcess;
     try {
-      child = spawn(command, args, { cwd, env, stdio: ["pipe", "pipe", "pipe"] });
+      // Windows cannot run a .js file or npm's pi.cmd directly; resolveCommand says how to start them.
+      const resolved = resolveCommand(command, args, env ? { env } : {});
+      child = spawn(resolved.command, resolved.args, {
+        cwd,
+        env,
+        stdio: ["pipe", "pipe", "pipe"],
+        windowsVerbatimArguments: resolved.windowsVerbatimArguments ?? false,
+      });
     } catch (error) {
       reject(error);
       return;
