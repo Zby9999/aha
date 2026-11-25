@@ -233,6 +233,30 @@ Concept files keep `related_files: []` although every lesson cited files. Eviden
 
 P3-4: the Ask why toggle resets after each question. This looks intended.
 
+### Decisions taken on D1–D4 (2026-11-25)
+
+D5–D10 are still open.
+
+**D1, feedback after the Articulation.** When an Articulation is assessed incorrect or unclear, the Lesson does not complete:
+- The assessment call also returns one or two sentences that correct or extend the answer, so there is no extra model call.
+- Aha shows those sentences on a feedback card. The Lesson stays open for follow-up questions (the existing Lesson questions), and the learner ends it with Back to work.
+- "Explain it another way" is done by asking a follow-up, so no new card type or button is needed.
+- Evidence rules are unchanged: incorrect is negative Evidence; "still confused" is self-report and is not Evidence.
+
+**D2, mastery rules** (`masteryFromEvidence`; no contract change):
+- *One-step jump.* A single piece of Evidence raises a Concept at most to `correct_with_hints`. `explains_independently` and `catches_agent_mistakes` each need at least two positive pieces of Evidence, at least one of the matching type: an independent fix, a caught agent mistake, or (below) a strong Articulation.
+- *`seen_explanation`.* Negative Evidence from a Lesson (Probe or Articulation) raises a Concept to at least `seen_explanation`, so the `probe_first` format can run. Negative Evidence still never lowers a level, and there is no decay for now.
+- *Plateau.* Hint Lessons get a one-sentence Articulation. A correct answer there is strong Evidence that the learner explains the Concept with little help. Two of them reach `explains_independently`.
+
+**D3, questions the project code cannot answer:**
+- **A.** Questions the learner asks (Ask why and follow-ups) are always answered. A mastered Concept makes the answer shorter but never withholds the conclusion. The hint format that leaves the conclusion to the learner applies only to Why? on an agent change.
+- **B.** `TextExplanation` gets an optional `background` field: at most two sentences of general knowledge, shown as *General background, not from your project*. It is allowed only for Ask why and follow-ups, is skipped by the grounding check, and the rest of the card must still tie it to the cited lines. This is an additive change to the card catalog in `@aha/contracts`; the App Shell renders the new field.
+
+**D4, several Concepts in one question.** The limit is 2 per Lesson, which matches the read gate's limit of 2 Concepts after #77:
+- *Scope.* A Lesson covers at most 2 causes: those most relevant to the question, root cause first. It ends by naming any other cause and suggesting an Ask why about it.
+- *Before-state.* The session's earlier diffs of the cited files are added to the Lesson sources, so the Lesson can show how the bug happened, not only the fixed code.
+- *Credit.* An Articulation can credit up to 2 Concepts, each backed by its own quote from the answer. `answer_assessment.conceptIds` is already an array.
+
 ### Note: Decision Layer issues (not covered here; #75–#77 are changing this code)
 
 Re-check these after those PRs merge:
