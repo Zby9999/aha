@@ -86,3 +86,9 @@ test("an Offer for a repeated question is not titled as an error", async () => {
   });
   expect(offer!.elements[offer!.root]!.props).toMatchObject({ title: "This has come up before. Look at why?" });
 });
+
+test("a Probe on a change that keeps the behaviour the same asks about the mechanism", async () => {
+  // Live, "store the password hashed" got "what happens when you log in?", whose answer "it works" tests nothing.
+  const { run } = await startLesson();
+  expect(run.mock.calls[0]![0].prompt).toContain("If the change keeps the visible behaviour the same");
+});

@@ -106,7 +106,8 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
 
   return {
     async probe(input: LessonInput, sources: LessonSources, lessonId: string, signal?: AbortSignal) {
-      const raw = await generate(input, sources, `Write one short open-ended prediction about the reported action and its immediate outcome. Ask about one outcome, without revealing why. Cite a focus file when supplied. Shape: {"question":"...",${REFERENCES}}.`, { signal: deadline(signal, 30_000) });
+      // Live, "store the password hashed" got "what happens when you log in?", whose answer "it works" tests nothing.
+      const raw = await generate(input, sources, `Write one short open-ended prediction about the reported action and its immediate outcome. Ask about one outcome, without revealing why. If the change keeps the visible behaviour the same (for example a refactor or storing data differently), ask about what the code now does differently, the mechanism, not about an outcome the user already knows. Cite a focus file when supplied. Shape: {"question":"...",${REFERENCES}}.`, { signal: deadline(signal, 30_000) });
       const props = probeCardSchema.parse({ lessonId, question: raw.question, citations: raw.citations });
       if (!props.question.trim() || !citesImpasseSources(props.citations, sources)) throw new Error("Pi's Probe lacks a valid question or relevant source citation.");
       return props;
