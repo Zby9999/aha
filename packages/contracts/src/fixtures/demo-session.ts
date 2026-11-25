@@ -40,6 +40,27 @@ export const DEMO_CONCEPTS = {
   userData: "data-belongs-to-user",
 } as const;
 
+export const portfolioSessionFlow = {
+  title: "Why the server loses your session",
+  nodes: [
+    { id: "refresh", label: "Page reloads" },
+    { id: "token", label: "Browser creates a new token" },
+    { id: "lookup", label: "Server finds no matching session" },
+    { id: "response", label: "401 Unauthorized" },
+  ],
+  edges: [
+    { from: "refresh", to: "token", label: "app.js reruns" },
+    { from: "token", to: "lookup", label: "GET /api/me" },
+    { from: "lookup", to: "response", label: "if (!session)" },
+  ],
+  citations: [
+    { path: "public/app.js", startLine: 2 },
+    { path: "public/app.js", startLine: 23, endLine: 26 },
+    { path: "server.js", startLine: 19, endLine: 21 },
+    { path: "server.js", startLine: 38, endLine: 42 },
+  ],
+};
+
 const t = fixtureTimeline(DEMO_SESSION_ID, "2026-11-21T10:00:00.000Z");
 const ids = {} as Record<string, string>;
 
@@ -123,23 +144,7 @@ t.add({
   source: "teaching",
   lessonId: "lesson-1",
   step: "explain",
-  card: card("DataFlowDiagram", {
-    title: "Where your login goes on refresh",
-    nodes: [
-      { id: "page", label: "public/app.js makes sessionToken" },
-      { id: "server", label: "server.js keeps sessions[token]" },
-      { id: "reload", label: "Refresh reruns app.js: new token" },
-    ],
-    edges: [
-      { from: "page", to: "server", label: "X-Session-Token header" },
-      { from: "reload", to: "server", label: "unknown token → 401" },
-    ],
-    citations: [
-      { path: "public/app.js", startLine: 2, endLine: 2 },
-      { path: "server.js", startLine: 19, endLine: 21 },
-      { path: "server.js", startLine: 34, endLine: 34 },
-    ],
-  }),
+  card: card("DataFlowDiagram", portfolioSessionFlow),
 });
 ids.articulate1 = t.add({
   kind: "lesson_card",
