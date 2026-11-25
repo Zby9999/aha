@@ -8,6 +8,9 @@ export interface CardContextValue {
   entryId: string;
   /** True once the Offer was answered or the card submitted, so it cannot be used twice. */
   done: boolean;
+  endedEarly: boolean;
+  submitted?: CardAnswer;
+  flag?: { lessonId: string; recorded: boolean; enabled: boolean };
 }
 
 export const CardContext = createContext<CardContextValue | null>(null);

@@ -7,13 +7,17 @@ A coding agent for novice vibe coders that turns moments of confusion into short
 Requires Node 24+ and pnpm 10 (`corepack enable` picks the pinned version).
 
 ```bash
-pnpm install-test   # install everything and run all tests
+corepack pnpm install --frozen-lockfile
 pnpm typecheck      # type-check every package
 pnpm check          # typecheck + tests, as CI runs them
 pnpm --filter @aha/aha start   # build the UI and open the app at http://localhost:4317
 ```
 
 `pnpm --filter @aha/aha start` replays the demo session (`@aha/contracts/fixtures`) through the stub modules and stops at the first Offer. Each module can be switched between `stub` and `real` in `apps/aha/aha.config.json` or with `AHA_<MODULE>=real` (ADR-0003). `AHA_REPLAY=off` starts with an empty Timeline; `AHA_PROJECT_DIR` points at another project.
+
+To generate Lesson questions and explanations using your configured Pi model, set both `AHA_TEACHING=real` and `AHA_BACKGROUND=real`. `AHA_TEACHING=real` with a stub background runs the deterministic Lesson used for local replay and browser tests.
+
+With Aha running, open the [lesson card gallery](http://127.0.0.1:4317/gallery.html) to try each Teaching component using the portfolio examples. Gallery actions only affect the preview.
 
 | Package | Module | Owner |
 |---|---|---|
