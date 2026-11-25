@@ -60,14 +60,6 @@ describe("starting Pi", () => {
     expect(startRecord!.argv).toEqual(expect.arrayContaining(["--mode", "rpc"]));
   });
 
-  test("Pi does not inherit Aha's own port, settings or Jev key", async () => {
-    // A project server Pi starts reads PORT; inheriting Aha's port made it take over localhost:<Aha's port>.
-    await start({ PORT: "4471", AHA_PREVIEW_PORT: "4472", AHA_DECISIONS: "real", TYPESAFE_API_KEY: "secret" });
-    const [startRecord] = received();
-    expect(startRecord!.port).toBeUndefined();
-    expect(startRecord!.inherited).toEqual(["AHA_LEARNER_CONTEXT_FILE"]);
-  });
-
   test("a missing Pi is reported with how to install it", async () => {
     const run = createPiAgentHost({ command: join(projectDir, "no-such-pi") }).startSession({ projectDir, timeline });
     await expect(run).rejects.toBeInstanceOf(AgentHostError);

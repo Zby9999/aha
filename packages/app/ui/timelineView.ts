@@ -157,16 +157,3 @@ function completedOnExplanation(entries: readonly TimelineEntry[], modeChange?: 
   );
   return cards.at(-1)?.step === "explain" && cards.every((card) => card.step !== "articulate");
 }
-
-/**
- * What a message typed now will do. In learning mode messages are questions inside the Lesson and never reach the
- * agent, and nothing can be sent until the Lesson has started; the placeholder says so instead of Enter doing nothing.
- */
-export function composerPlaceholder(session: SessionView, asking: boolean): string {
-  if (session.mode === "learning") {
-    return session.lessonReady
-      ? "Ask about this Lesson (Back to work to message your agent)…"
-      : "Preparing the Lesson… you can ask about it once it starts.";
-  }
-  return asking ? "What do you want to understand?" : "Message your agent…";
-}

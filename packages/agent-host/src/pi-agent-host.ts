@@ -46,7 +46,7 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
       const args = [...(options.args ?? []), "-e", BRIDGE_EXTENSION, "--mode", "rpc"];
       let pi: RpcConnection;
       try {
-        pi = await startPi({ command, args, cwd: resolve(projectDir), env: { ...piEnv(env), [LEARNER_CONTEXT_FILE_ENV]: contextFile } }, startTimeoutMs);
+        pi = await startPi({ command, args, cwd: resolve(projectDir), env: { ...env, [LEARNER_CONTEXT_FILE_ENV]: contextFile } }, startTimeoutMs);
       } catch (error) {
         rmSync(contextDir, { recursive: true, force: true });
         throw error;
@@ -101,14 +101,6 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
       };
     },
   };
-}
-
-/**
- * The user's environment without Aha's own settings. Pi runs the user's project, and a project server reads PORT:
- * inheriting Aha's port let a server Pi started take over localhost:<Aha's port>. Aha's Jev key is not Pi's either.
- */
-function piEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  return Object.fromEntries(Object.entries(env).filter(([key]) => key !== "PORT" && key !== "TYPESAFE_API_KEY" && !key.startsWith("AHA_")));
 }
 
 async function startPi(spawnOptions: SpawnRpcOptions, timeoutMs: number): Promise<RpcConnection> {

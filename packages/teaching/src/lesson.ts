@@ -116,7 +116,7 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       const loginRequestFailed = impasse.title.includes("GET /api/me 401");
       return card("OfferCard", {
         impasseId: impasse.id,
-        title: loginRequestFailed ? "Why does the page lose your login?" : "This has come up before. Look at why?",
+        title: loginRequestFailed ? "Why does the page lose your login?" : "Understand this error",
         body: loginRequestFailed
           ? "This request failed more than once. See how the browser and server keep track of your session."
           : impasse.title,
@@ -190,8 +190,7 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
           const explained = makeCard(lessonId, "explain", explanation.card);
           if (brief) return complete(lesson, [explained]);
           lesson.generated.answer = prediction;
-          // Neutral wording: the prediction may have been wrong or "I don't know", so there is no predicted behavior to explain.
-          const prompt = "In your own words, what causes this behavior?";
+          const prompt = "In your own words, what caused the behavior you predicted?";
           lesson.generated.articulation = { question: prompt, citations: explanation.citations, explanation: explanation.card };
           lesson.step = "articulate";
           return [
