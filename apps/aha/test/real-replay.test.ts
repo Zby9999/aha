@@ -202,17 +202,19 @@ describe.each(["session_end", "idle"] as const)("with every module real, Dreamin
       expect(sessionFile).toMatch(/concept: session-tokens\n- type: articulation · outcome: positive · strength: weak/);
       const conceptFile = join(projectDir, ".aha/learner-model/concepts/session-tokens.md");
       const mastery = () => readFileSync(conceptFile, "utf8").match(/^mastery: (.*)$/m)?.[1];
+    const changelog = () => { try { return readFileSync(join(projectDir, ".aha/learner-model/changelog.md"), "utf8"); } catch { return ""; } };
 
       // Dreaming runs on the background agent and raises the Mastery Level; until then the Concept file is unchanged.
       if (trigger === "session_end") {
         expect(mastery()).toBe("not_encountered");
         await first.act({ type: "end_session" });
       } else {
-        await waitFor(() => mastery() === "correct_with_hints", "idle Dreaming raised the Mastery Level");
+        // Dreaming writes the Concept files, then appends its changelog entry: wait for the last write.
+      await waitFor(() => /session-tokens: not_encountered → correct_with_hints/.test(changelog()), "idle Dreaming raised the Mastery Level");
       }
       expect(backgroundTasks).toContain("dreaming");
       expect(mastery()).toBe("correct_with_hints");
-      expect(readFileSync(join(projectDir, ".aha/learner-model/changelog.md"), "utf8")).toMatch(/session-tokens: not_encountered → correct_with_hints/);
+      expect(changelog()).toMatch(/session-tokens: not_encountered → correct_with_hints/);
       expect(first.errors).toEqual([]);
       await first.backend.stop();
       vi.unstubAllEnvs();
