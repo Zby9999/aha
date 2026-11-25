@@ -72,7 +72,7 @@ describe("DecisionService", () => {
     const request = vi.fn<typeof fetch>(async (_url, init) => {
       const { state } = JSON.parse(String(init?.body));
       return response(state.event.startsWith("I am")
-        ? { kind: choice("none") }
+        ? { kind: choice("none"), strength: choice("weak"), outcome: choice("positive"), concept: choice("new") }
         : { kind: choice("caught_agent_mistake"), strength: choice("strong"),
           outcome: choice("positive"), concept: choice("concept_0") });
     });
@@ -91,10 +91,43 @@ describe("DecisionService", () => {
     expect(await service.chooseComponent({ impasse, step: "explain", learner: { concepts: [] } })).toBe("TextExplanation");
   });
 
+  it("keeps untrusted text in state and considers concepts beyond the first batch", async () => {
+    const marker = "arbitrary prose from the session";
+    const { timeline } = repeatedGap();
+    const entry = timeline.append({ kind: "user_message", source: "agent-host", text: marker });
+    const catalog = Array.from({ length: 25 }, (_, i) => ({ ...concept, id: String(i), name: marker + i }));
+    const request: typeof fetch = async (_url, init) => {
+      const { state, questions } = JSON.parse(String(init?.body));
+      expect(JSON.stringify(questions)).not.toContain(marker);
+      const target = state.concepts.find((item: { name: string }) => item.name === marker + 24);
+      return response({ concept: choice(target?.label ?? "new"), kind: choice("independent_fix"),
+        strength: choice("strong"), outcome: choice("positive") });
+    };
+    const service = createDecisions({ apiKey: "test", fetch: request });
+    expect(await service.gateEvidence({ timeline: timeline.entries(), newEntries: [entry], concepts: catalog }))
+      .toMatchObject([{ conceptId: "24", entryIds: [entry.id] }]);
+  });
+
+  it("returns null and warns once for repeated unavailable reads", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const service = createDecisions({ apiKey: "test-secret", fetch: async () => new Response(null, { status: 503 }) });
+      const input = { concepts: [concept], impasse: { id: "i", title: "request text", trigger: "why" as const, conceptIds: [], sourceEntryIds: [] } };
+      expect(await service.selectConcepts(input)).toBeNull();
+      expect(await service.selectConcepts(input)).toBeNull();
+      expect(warn.mock.calls).toEqual([["[decisions] Jev unavailable: HTTP 503"]]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it("rejects uncited or missing project files", async () => {
     const service = createDecisions({ apiKey: "" });
     const project = { projectDir: "/demo", files: ["server.js"] };
-    for (const [citations, grounded] of [[[], false], [[{ path: "missing.js" }], false], [[{ path: "server.js" }], true]] as const) {
+    const mismatched = card("TextExplanation", { title: "Session", text: "Session token", citations: [{ path: "missing.js" }] });
+    expect(await service.checkGrounding({ explanation: mismatched, citations: [{ path: "server.js" }], project }))
+      .toMatchObject({ grounded: false, missingFiles: ["missing.js"] });
+    for (const [citations, grounded] of [[[], false], [[{ path: "missing.js" }], false], [[{ path: "./server.js" }], true]] as const) {
       const explanation = card("TextExplanation", { title: "Session", text: "Session token", citations });
       expect(await service.checkGrounding({ explanation, citations, project })).toMatchObject({ grounded });
     }

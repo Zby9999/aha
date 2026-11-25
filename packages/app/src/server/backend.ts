@@ -104,17 +104,23 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   }
 
   async function react(entry: TimelineEntry) {
-    // Evidence failures are reported but never block or skip the Lesson flow below.
-    try {
-      await gateEvidence(entry);
-    } catch (error) {
-      onLearningError(error);
+    // A streamed turn may already have appended later events by the time this reaction runs.
+    const history = timeline.entries().filter((item) => item.seq <= entry.seq);
+    const evidence = gateEvidence(entry, history).catch(onLearningError);
+    if (entry.source === "agent-host" && (entry.kind === "user_message" || entry.kind === "error" || entry.kind === "agent_message")) {
+      const [, detection] = await Promise.all([evidence, decisions.detectImpasse({ timeline: history })]);
+      if (detection && !timeline.entries().some((item) => item.kind === "impasse" && item.impasse.id === detection.impasse.id)) {
+        timeline.append({ kind: "impasse", source: "decisions", impasse: detection.impasse });
+      }
+      return;
     }
+    await evidence;
     await reactLearning(entry);
   }
 
-  async function gateEvidence(entry: TimelineEntry) {
-    // Write gate: every entry is a candidate; assessments are Evidence by construction.
+  async function gateEvidence(entry: TimelineEntry, history: readonly TimelineEntry[]) {
+    // Declines and abandoned Lessons are not Evidence. Assessments are Evidence by construction.
+    if (entry.kind === "offer_response" && entry.response === "skip") return;
     if (entry.kind === "answer_assessment") {
       for (const conceptId of entry.conceptIds) {
         await recordEvidence({
@@ -126,18 +132,14 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
           note: `${entry.step} answer assessed as ${entry.result}`,
         });
       }
-    } else {
-      const decided = await decisions.gateEvidence({ timeline: timeline.entries(), newEntries: [entry], concepts: await learner.listConcepts() });
+    } else if (entry.kind !== "lesson_end" || entry.outcome !== "abandoned") {
+      const decided = await decisions.gateEvidence({ timeline: history, newEntries: [entry], concepts: await learner.listConcepts() });
       for (const { newConcept: _new, ...decision } of decided ?? []) await recordEvidence(decision);
     }
   }
 
   async function reactLearning(entry: TimelineEntry) {
 
-    if (entry.source === "agent-host" && (entry.kind === "error" || entry.kind === "agent_message")) {
-      const detection = await decisions.detectImpasse({ timeline: timeline.entries() });
-      if (detection) timeline.append({ kind: "impasse", source: "decisions", impasse: detection.impasse });
-    }
     if (entry.kind === "impasse") {
       if (entry.impasse.trigger === "detected") {
         const learnerContext = await learnerContextFor(entry.impasse);
@@ -206,9 +208,16 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
       case "back_to_work":
         // Queued after any Lesson start still in flight, so it always abandons the Lesson that is actually running.
         await enqueue(async () => {
-          const lessonId = activeLesson(timeline.entries())?.lessonId;
-          if (lessonId) appendAll(await teaching.abandon(lessonId));
-          backToWork();
+          const entries = timeline.entries();
+          const lesson = activeLesson(entries);
+          const lessonId = lesson?.lessonId;
+          const alreadyEnded = entries.some((e) => e.kind === "lesson_end" &&
+            e.lessonId === lessonId && e.seq > (lesson?.startSeq ?? Infinity));
+          try {
+            if (lessonId && !alreadyEnded) appendAll(await teaching.abandon(lessonId));
+          } finally {
+            backToWork();
+          }
         });
         return;
       case "retry_answer": {
@@ -223,13 +232,14 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         return;
       }
       case "card_answer": {
-        const lesson = activeLesson(timeline.entries());
-        const answered = timeline.entries().find((e) => e.id === action.cardEntryId);
+        const entries = timeline.entries();
+        const lesson = activeLesson(entries);
+        const answered = entries.find((e) => e.id === action.cardEntryId);
         if (lesson?.lessonId !== action.lessonId || answered?.kind !== "lesson_card" || answered.lessonId !== action.lessonId || answered.seq < (lesson.startSeq ?? Infinity)) {
           throw new Error("This Lesson is no longer running");
         }
-        if (answered?.kind !== "lesson_card" || answered.step === "explain") throw new Error(`${action.cardEntryId} is not a Probe or Articulation card`);
-        if (timeline.entries().some((e) => e.kind === "card_answer" && e.cardEntryId === action.cardEntryId)) throw new Error("This card was already answered");
+        if (answered.step === "explain") throw new Error(`${action.cardEntryId} is not a Probe or Articulation card`);
+        if (entries.some((e) => e.kind === "card_answer" && e.cardEntryId === action.cardEntryId)) throw new Error("This card was already answered");
         timeline.append({ kind: "card_answer", source: "app", lessonId: action.lessonId, cardEntryId: action.cardEntryId, step: answered.step, answer: action.answer });
         return;
       }

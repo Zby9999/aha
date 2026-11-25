@@ -98,7 +98,8 @@ describe("demo session fixture", () => {
   test("covers agent edits, a repeated error, a Why request, a full Lesson and a second related Impasse", () => {
     expect(ofKind("file_edit").length).toBeGreaterThanOrEqual(2);
 
-    const errors = ofKind("error").map((e) => e.message);
+    // The repeated error is the browser's 401; the recorded agent turns also hold the agent's own tool errors.
+    const errors = ofKind("error").filter((e) => e.origin === "project").map((e) => e.message);
     expect(errors.filter((m) => m === errors[0]).length).toBeGreaterThanOrEqual(2);
 
     const [first, second] = ofKind("impasse").map((e) => e.impasse);

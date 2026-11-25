@@ -8,7 +8,7 @@ export type ViewItem =
   | { type: "tool"; key: string; toolName: string; args: Record<string, unknown>; state: ToolState; output?: string }
   | { type: "entry"; key: string; entry: TimelineEntry };
 
-const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "answer_assessment", "explanation_flagged", "mode_change"]);
+const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "lesson_card", "answer_assessment", "explanation_flagged", "mode_change"]);
 
 export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
   const items: ViewItem[] = [];
@@ -54,6 +54,7 @@ export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
 /** What the session's Mode allows on screen. The backend enforces the same rules; this keeps the buttons honest. */
 export interface SessionView {
   mode: Mode;
+  lessonReady: boolean;
   /** The running Lesson's Impasse title, in learning mode. */
   lessonTitle?: string;
   /** Why, Ask why and the Offer buttons work only in work mode, so a second Lesson can never start. */
@@ -74,6 +75,7 @@ export function sessionView(entries: readonly TimelineEntry[]): SessionView {
   const retryable = pendingLessonError(entries);
   return {
     mode,
+    lessonReady: Boolean(lesson?.lessonId),
     ...(impasse?.kind === "impasse" ? { lessonTitle: impasse.impasse.text ?? impasse.impasse.title } : {}),
     canStartLesson,
     isDone(entry) {

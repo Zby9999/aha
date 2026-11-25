@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { createDecisions } from "@aha/decisions";
 import { createBackend } from "@aha/app";
 import { currentMode, type AhaModules, type Evidence, type LearnerModelStore, type TimelineEntry } from "@aha/contracts";
 import { DEMO_SESSION_ID, demoSession } from "@aha/contracts/fixtures";
@@ -32,17 +33,61 @@ const kinds = (entries: readonly TimelineEntry[]) => entries.map((e) => e.kind);
 const last = <K extends TimelineEntry["kind"]>(entries: readonly TimelineEntry[], kind: K) =>
   entries.findLast((e) => e.kind === kind) as Extract<TimelineEntry, { kind: K }> | undefined;
 
+test("real decisions offer help once for the two recorded project 401s", async () => {
+  const modules = buildModules(allStubs, { script: demoSession });
+  const decisions = createDecisions({ apiKey: "fixture", fetch: async (_url, init) => {
+    const { state, questions } = JSON.parse(String(init?.body));
+    if (!questions.recurring) throw new Error("Unexpected Jev question in replay");
+    const match = Object.entries(state.earlierEvents).find(([, text]) =>
+      text === "GET /api/me 401 (Unauthorized)" && state.current === text);
+    return Response.json({ answers: {
+      earlier: { type: "choice", choice: match?.[0] ?? "none" },
+      recurring: { type: "noul", noul: match ? 1 : 0 },
+    } });
+  } });
+  const backend = await createBackend({ modules: { ...modules, decisions }, projectDir, sessionId: DEMO_SESSION_ID });
+  await replayUntilOffer(backend, demoSession);
+  const entries = backend.timeline.entries();
+  const errors = entries.filter((e) => e.kind === "error" && e.origin === "project" && e.message === "GET /api/me 401 (Unauthorized)");
+  expect(errors).toHaveLength(2);
+  const impasses = entries.filter((e) => e.kind === "impasse");
+  expect(impasses).toHaveLength(1);
+  expect(impasses[0]!.impasse.sourceEntryIds).toEqual(errors.map((e) => e.id));
+  const offers = entries.filter((e) => e.kind === "offer");
+  expect(offers).toHaveLength(1);
+  expect(offers[0]!.impasseId).toBe(impasses[0]!.impasse.id);
+  expect(offers[0]!.seq).toBeGreaterThan(errors[1]!.seq);
+});
+
 describe("session replay with stub modules", () => {
   test("the repeated error in the demo session puts an Offer card on the Timeline", async () => {
     const { entries } = await replayDemo();
     const offer = last(entries(), "offer");
     expect(offer?.card.elements[offer.card.root]?.type).toBe("OfferCard");
 
-    const errors = entries().filter((e) => e.kind === "error");
+    // The browser's repeated 401; the recorded agent turns also hold the agent's own tool errors.
+    const errors = entries().filter((e) => e.kind === "error" && e.origin === "project");
     expect(errors).toHaveLength(2);
     expect(offer!.seq).toBeGreaterThan(errors[1]!.seq);
     expect(kinds(entries()).filter((k) => k === "offer")).toHaveLength(1);
   });
+
+  test("streamed like the default demo run, the recorded session raises only the Offer for the repeated 401", async () => {
+    // Streaming lets the backend react between entries, so the agent's own repeated tool error is seen on its own.
+    const modules = buildModules(allStubs, { script: demoSession, streamDelayMs: 1 });
+    const backend = await createBackend({ modules, projectDir, sessionId: DEMO_SESSION_ID, onLearningError: (e) => { throw e; } });
+    await replayUntilOffer(backend, demoSession);
+    const entries = backend.timeline.entries();
+    const offers = entries.filter((e) => e.kind === "offer");
+    const impasses = entries.filter((e) => e.kind === "impasse").map((e) => (e as Extract<TimelineEntry, { kind: "impasse" }>).impasse);
+    expect(offers).toHaveLength(1);
+    expect(impasses).toHaveLength(1);
+    const sources = impasses[0]!.sourceEntryIds.map((id) => entries.find((e) => e.id === id));
+    expect(sources.every((e) => e?.kind === "error" && e.origin === "project")).toBe(true);
+    // The recording does contain a repeated agent tool error, so this test would catch the old rule.
+    const toolErrors = entries.filter((e) => e.kind === "error" && e.origin === "tool").map((e) => (e as { message: string }).message);
+    expect(toolErrors.length).toBeGreaterThan(new Set(toolErrors).size);
+  }, 30_000);
 
   test("accepting the Offer walks the Lesson through Probe, Explain and Articulate back to work", async () => {
     const { backend, entries } = await replayDemo();

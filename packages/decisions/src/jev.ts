@@ -7,6 +7,8 @@ export interface JevOptions {
   endpoint?: string;
   timeoutMs?: number;
   fetch?: typeof fetch;
+  /** Receives a sanitized reason on every failed call, including repeated failures during evaluation. */
+  onFailure?: (reason: string) => void;
 }
 
 type Answers = Record<string, unknown>;
@@ -17,20 +19,35 @@ function record(value: unknown): value is Answers {
 
 const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 
+export function jevConfig(env: Readonly<Record<string, string | undefined>>): JevOptions {
+  const endpoint = env.JEV_ENDPOINT ?? TYPESAFE_ENDPOINT;
+  return { endpoint, apiKey: endpoint === TYPESAFE_ENDPOINT ? env.TYPESAFE_API_KEY ?? env.JEV_API_KEY : env.JEV_API_KEY };
+}
+
 export function createJevClient({
-  endpoint = process.env.JEV_ENDPOINT ?? TYPESAFE_ENDPOINT,
-  apiKey = endpoint === TYPESAFE_ENDPOINT ? process.env.TYPESAFE_API_KEY ?? process.env.JEV_API_KEY : process.env.JEV_API_KEY,
+  endpoint = TYPESAFE_ENDPOINT,
+  apiKey,
+  onFailure,
   timeoutMs = 1500,
   fetch: request = globalThis.fetch,
 }: JevOptions = {}) {
+  const reported = new Set<string>();
+  function fail(reason: string) {
+    if (!reported.has(reason)) {
+      console.warn(`[decisions] Jev unavailable: ${reason}`);
+      reported.add(reason);
+    }
+    onFailure?.(reason);
+    return null;
+  }
   return async (state: object, questions: Record<string, Question>): Promise<Answers | null> => {
-    if (!apiKey?.trim()) return null;
+    if (!apiKey?.trim()) return fail("missing API key");
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const timeout = new Promise<null>((resolve) => {
         timer = setTimeout(() => {
-          resolve(null);
+          resolve(fail("request timed out"));
           controller.abort();
         }, timeoutMs);
       });
@@ -42,13 +59,20 @@ export function createJevClient({
           body: JSON.stringify(endpoint === TYPESAFE_ENDPOINT ? { model: "jev-latest", state, questions } : { state, questions }),
           signal: controller.signal,
         });
-        if (!response.ok) return null;
+        if (!response.ok) return fail(`HTTP ${response.status}`);
         const body: unknown = await response.json();
-        return record(body) && record(body.answers) ? body.answers : null;
+        if (!record(body) || !record(body.answers)) return fail("invalid response");
+        const answers = body.answers;
+        for (const [name, question] of Object.entries(questions)) {
+          if (question.type === "choice" ? choice(answers, name, question.criteria) === null : probability(answers, name) === null) {
+            return fail("invalid answer");
+          }
+        }
+        return answers;
       };
       return await Promise.race([call(), timeout]);
     } catch {
-      return null;
+      return controller.signal.aborted ? null : fail("request failed");
     } finally {
       clearTimeout(timer);
     }
