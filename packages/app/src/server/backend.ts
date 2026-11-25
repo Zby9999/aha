@@ -160,7 +160,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     let end: NewTimelineEntry | undefined;
     try {
       const entries = await teaching.abandon(lessonId);
-      end = entries.find((entry) => entry.kind === "lesson_end" && entry.lessonId === lessonId && entry.outcome === "abandoned");
+      // A Lesson waiting after feedback ends completed: Back to work is its last step.
+      end = entries.find((entry) => entry.kind === "lesson_end" && entry.lessonId === lessonId);
     } catch (error) {
       onLearningError(error);
     } finally {

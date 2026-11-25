@@ -13,7 +13,7 @@ A light, skippable suggestion to start a lesson at an impasse the system detecte
 _Avoid_: prompt, interruption, popup
 
 **Lesson**:
-The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence.
+The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence. When the Articulation is wrong or unclear, the Lesson shows a feedback card and stays open for questions; Back to work then completes it.
 _Avoid_: tutorial, teaching session
 
 **Mode**:

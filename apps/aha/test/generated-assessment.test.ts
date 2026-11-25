@@ -22,11 +22,13 @@ const citations = [
 const knownAnswer = "Refresh creates a new token and the server has no session for it.";
 const wrongAnswer = "Refresh keeps the same token so the user stays logged in.";
 const result = (value: string, answerQuote: string) => ({ result: value, conceptId: token.id, answerQuote, citations });
+const feedback = "Refresh runs app.js again, so it makes a new token that the server has never seen.";
 const scenarios = [
   { label: "correct", answer: knownAnswer, draft: result("correct", "the server has no session for it"), outcome: "positive", strength: "moderate" },
   { label: "partial", answer: "Refresh creates a new token.", draft: result("partial", "Refresh creates a new token"), outcome: "positive", strength: "weak" },
-  { label: "incorrect", answer: wrongAnswer, draft: result("incorrect", "Refresh keeps the same token"), outcome: "negative", strength: "moderate" },
-  { label: "unclear", answer: "I understand.", draft: result("unclear", "I understand") },
+  { label: "incorrect", answer: wrongAnswer, draft: { ...result("incorrect", "Refresh keeps the same token"), feedback }, outcome: "negative", strength: "moderate", feedback: "Not quite" },
+  { label: "incorrect without feedback", answer: wrongAnswer, draft: result("incorrect", "Refresh keeps the same token"), outcome: "negative", strength: "moderate" },
+  { label: "unclear", answer: "I don't know, I'm still confused.", draft: { ...result("unclear", "still confused"), feedback }, feedback: "Let's make it clearer" },
   { label: "unquoted", answer: knownAnswer, draft: result("correct", "not expressed by learner") },
   { label: "unrelated concept", answer: knownAnswer, draft: { ...result("correct", "creates a new token"), conceptId: "unrelated" } },
   { label: "out of range", answer: knownAnswer, draft: { ...result("correct", "creates a new token"), citations: [{ path: "server.js", startLine: 44 }] } },
@@ -48,6 +50,7 @@ test.each(scenarios)("generated Articulation with $label evaluation completes an
         { question: "What happens to the token on refresh?", citations },
         { component: "TextExplanation", props: { title: "Refresh creates a token", text: "The new token has no session.", citations } },
         scenario.draft,
+        { component: "TextExplanation", props: { title: "Another way", text: "Each page load runs line 2 again.", citations } },
       ][trace.length - 1];
       return { text: typeof draft === "string" ? draft : JSON.stringify(draft), filesWritten: [] };
     } },
@@ -77,6 +80,21 @@ test.each(scenarios)("generated Articulation with $label evaluation completes an
     expect(evidence).toEqual([]);
     const articulation = await submit("articulate", scenario.answer);
     expect(articulation.card.elements[articulation.card.root]?.props).toMatchObject({ citations });
+    if ("feedback" in scenario) {
+      // Live, a wrong or confused Articulation ended the Lesson with only "Completed" (P1-1, P1-2).
+      const card = backend.timeline.entries().findLast((value) => isKind(value, "lesson_card"))!;
+      expect(card).toMatchObject({ step: "explain" });
+      expect(card.card.elements[card.card.root]?.props).toMatchObject({ title: scenario.feedback, text: feedback, citations });
+      expect(backend.timeline.entries().some((entry) => entry.kind === "lesson_end")).toBe(false);
+      await backend.dispatch({ type: "send_message", text: "Can you explain it another way?" });
+      await backend.settled();
+      expect(trace[3]!.prompt).toContain(scenario.answer);
+      expect(trace[3]!.prompt).toContain(feedback);
+      expect(backend.timeline.entries().findLast((value) => isKind(value, "lesson_card"))!.card.elements.card?.props).toMatchObject({ title: "Another way" });
+      expect(evidence).toEqual([]);
+      await backend.dispatch({ type: "back_to_work" });
+      await backend.settled();
+    }
     const entries = backend.timeline.entries();
     expect(entries.findLast((entry) => entry.kind === "lesson_end")).toMatchObject({ outcome: "completed" });
     if ("noConcept" in scenario) {
@@ -92,7 +110,7 @@ test.each(scenarios)("generated Articulation with $label evaluation completes an
     if ("outcome" in scenario) {
       const event = entries.find((entry) => entry.kind === "answer_assessment")!;
       const submitted = entries.findLast((entry) => entry.kind === "card_answer")!;
-      expect(event).toMatchObject({ answerEntryId: submitted.id, conceptIds: [token.id], result: scenario.label });
+      expect(event).toMatchObject({ answerEntryId: submitted.id, conceptIds: [token.id], result: scenario.label.split(" ")[0] });
       expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", entryIds: [submitted.id, event.id], outcome: scenario.outcome, strength: scenario.strength }]);
     } else {
       expect(evidence).toEqual([]);
