@@ -1,10 +1,5 @@
-import type { CatalogComponent, DecisionService, Impasse, LessonStep, TimelineEntry } from "@aha/contracts";
-
-const COMPONENT_FOR_STEP: Record<LessonStep, CatalogComponent> = {
-  probe: "ProbeCard",
-  explain: "TextExplanation",
-  articulate: "ArticulationCard",
-};
+import type { DecisionService, Impasse, TimelineEntry } from "@aha/contracts";
+import { cardDecisions } from "./cards.ts";
 
 /**
  * Decision service stub: fixed rules instead of Jev.
@@ -52,13 +47,6 @@ export function createStubDecisions(): DecisionService {
     async selectConcepts({ impasse, concepts }) {
       return concepts.filter((c) => impasse.conceptIds.includes(c.id)).map((c) => c.id);
     },
-    async chooseComponent({ step }) {
-      return COMPONENT_FOR_STEP[step];
-    },
-    async checkGrounding({ citations, project }) {
-      const missingFiles = citations.map((c) => c.path).filter((p) => !project.files.includes(p));
-      const grounded = citations.length > 0 && missingFiles.length === 0;
-      return { grounded, missingFiles, reason: grounded ? "Cites project files" : "Cites no existing project file" };
-    },
+    ...cardDecisions,
   };
 }

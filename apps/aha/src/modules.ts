@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createBackgroundAgent, createPiAgentHost, createStubAgentHost, createStubBackgroundAgent } from "@aha/agent-host";
 import type { AhaModules, TimelineEntry } from "@aha/contracts";
-import { createStubDecisions } from "@aha/decisions";
+import { createDecisions, createStubDecisions, jevConfig } from "@aha/decisions";
 import { createLearnerModel, createStubLearnerModel } from "@aha/learner-model";
 import { createStubTeaching } from "@aha/teaching";
 
@@ -27,7 +27,7 @@ const REGISTRY: Registry = {
     // The user's own Pi in RPC mode: `pi` on the PATH, or AHA_PI_COMMAND.
     real: () => createPiAgentHost(),
   },
-  decisions: { stub: () => createStubDecisions() },
+  decisions: { stub: () => createStubDecisions(), real: () => createDecisions(jevConfig(process.env)) },
   learnerModel: { stub: () => createStubLearnerModel, real: () => createLearnerModel },
   teaching: { stub: () => createStubTeaching },
   background: { stub: () => createStubBackgroundAgent(), real: () => createBackgroundAgent() },

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { createDecisions } from "@aha/decisions";
 import { createBackend } from "@aha/app";
 import { currentMode, type AhaModules, type Evidence, type LearnerModelStore, type TimelineEntry } from "@aha/contracts";
 import { DEMO_SESSION_ID, demoSession } from "@aha/contracts/fixtures";
@@ -57,6 +58,32 @@ test("an idle session triggers Dreaming without an explicit end", async () => {
 });
 const last = <K extends TimelineEntry["kind"]>(entries: readonly TimelineEntry[], kind: K) =>
   entries.findLast((e) => e.kind === kind) as Extract<TimelineEntry, { kind: K }> | undefined;
+
+test("real decisions offer help once for the two recorded project 401s", async () => {
+  const modules = buildModules(allStubs, { script: demoSession });
+  const decisions = createDecisions({ apiKey: "fixture", fetch: async (_url, init) => {
+    const { state, questions } = JSON.parse(String(init?.body));
+    if (!questions.recurring) throw new Error("Unexpected Jev question in replay");
+    const match = Object.entries(state.earlierEvents).find(([, text]) =>
+      text === "GET /api/me 401 (Unauthorized)" && state.current === text);
+    return Response.json({ answers: {
+      earlier: { type: "choice", choice: match?.[0] ?? "none" },
+      recurring: { type: "noul", noul: match ? 1 : 0 },
+    } });
+  } });
+  const backend = await createBackend({ modules: { ...modules, decisions }, projectDir, sessionId: DEMO_SESSION_ID });
+  await replayUntilOffer(backend, demoSession);
+  const entries = backend.timeline.entries();
+  const errors = entries.filter((e) => e.kind === "error" && e.origin === "project" && e.message === "GET /api/me 401 (Unauthorized)");
+  expect(errors).toHaveLength(2);
+  const impasses = entries.filter((e) => e.kind === "impasse");
+  expect(impasses).toHaveLength(1);
+  expect(impasses[0]!.impasse.sourceEntryIds).toEqual(errors.map((e) => e.id));
+  const offers = entries.filter((e) => e.kind === "offer");
+  expect(offers).toHaveLength(1);
+  expect(offers[0]!.impasseId).toBe(impasses[0]!.impasse.id);
+  expect(offers[0]!.seq).toBeGreaterThan(errors[1]!.seq);
+});
 
 describe("session replay with stub modules", () => {
   test("the repeated error in the demo session puts an Offer card on the Timeline", async () => {
@@ -353,7 +380,8 @@ describe("module configuration", () => {
   });
 
   test("a real implementation that does not exist yet fails with a clear message", () => {
-    expect(() => buildModules({ ...allStubs, decisions: "real" })).toThrow(/No real implementation of decisions yet/);
+    expect(() => buildModules({ ...allStubs, learnerModel: "real" })).toThrow(/No real implementation of learnerModel yet/);
+    expect(buildModules({ ...allStubs, decisions: "real" }).decisions.detectImpasse).toBeTypeOf("function");
     expect(buildModules({ ...allStubs, background: "real" }).background).toBeDefined();
   });
 });

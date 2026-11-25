@@ -111,16 +111,24 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
   }
 
   async function react(entry: TimelineEntry) {
-    // Evidence failures are reported but never block or skip the Lesson flow below.
-    try {
-      await gateEvidence(entry);
-    } catch (error) {
-      onLearningError(error);
+    // A streamed turn may already have appended later events by the time this reaction runs.
+    const history = timeline.entries().filter((item) => item.seq <= entry.seq);
+    const evidence = gateEvidence(entry, history).catch(onLearningError);
+    if (entry.source === "agent-host" && (entry.kind === "user_message" || entry.kind === "error" || entry.kind === "agent_message")) {
+      const [write, read] = await Promise.allSettled([evidence, decisions.detectImpasse({ timeline: history })]);
+      if (write.status === "rejected") throw write.reason;
+      if (read.status === "rejected") throw read.reason;
+      const detection = read.value;
+      if (detection && !timeline.entries().some((item) => item.kind === "impasse" && item.impasse.id === detection.impasse.id)) {
+        timeline.append({ kind: "impasse", source: "decisions", impasse: detection.impasse });
+      }
+      return;
     }
+    await evidence;
     await reactLearning(entry);
   }
 
-  async function gateEvidence(entry: TimelineEntry) {
+  async function gateEvidence(entry: TimelineEntry, history: readonly TimelineEntry[]) {
     // Declines and abandoned Lessons are not Evidence. Assessments are Evidence by construction.
     if (entry.kind === "offer_response" && entry.response === "skip") return;
     if (entry.kind === "answer_assessment") {
@@ -135,17 +143,12 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         });
       }
     } else if (entry.kind !== "lesson_end" || entry.outcome !== "abandoned") {
-      const decided = await decisions.gateEvidence({ timeline: timeline.entries(), newEntries: [entry], concepts: await learner.listConcepts() });
+      const decided = await decisions.gateEvidence({ timeline: history, newEntries: [entry], concepts: await learner.listConcepts() });
       for (const { newConcept: _new, ...decision } of decided ?? []) await recordEvidence(decision);
     }
   }
 
   async function reactLearning(entry: TimelineEntry) {
-
-    if (entry.source === "agent-host" && (entry.kind === "error" || entry.kind === "agent_message")) {
-      const detection = await decisions.detectImpasse({ timeline: timeline.entries() });
-      if (detection) timeline.append({ kind: "impasse", source: "decisions", impasse: detection.impasse });
-    }
     if (entry.kind === "impasse") {
       if (entry.impasse.trigger === "detected") {
         const learnerContext = await learnerContextFor(entry.impasse);
