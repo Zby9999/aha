@@ -45,7 +45,9 @@ export function resolveCommand(command: string, args: string[], { platform = pro
 }
 
 function findOnWindows(command: string, env: NodeJS.ProcessEnv): string | undefined {
-  const extensions = ["", ...(env.PATHEXT ?? env.Pathext ?? ".COM;.EXE;.BAT;.CMD").split(";").filter(Boolean)];
+  // Windows matches names in any case; trying lower case too keeps the lookup right on a case-sensitive disk.
+  const pathext = (env.PATHEXT ?? env.Pathext ?? ".COM;.EXE;.BAT;.CMD").split(";").filter(Boolean);
+  const extensions = ["", ...new Set(pathext.flatMap((ext) => [ext, ext.toLowerCase()]))];
   const hasDir = isAbsolute(command) || /[\\/]/.test(command);
   const dirs = hasDir ? [""] : (env.Path ?? env.PATH ?? "").split(";").filter(Boolean);
   for (const dir of dirs) {
