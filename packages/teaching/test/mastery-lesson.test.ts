@@ -170,3 +170,16 @@ test("a direct generated answer also retries when it only cites an unrelated fil
     title: "A fresh token", citations: [{ path: "public/app.js", startLine: 2 }],
   });
 });
+
+test("Concepts picked by the read gate adapt to the ones the learner has met", async () => {
+  const { input, teaching } = fixture("correct_with_hints");
+  const unseen = { ...input.learner.concepts[0]!, id: "authentication", name: "Authentication", mastery: "not_encountered" as const };
+  const picked = { ...input, impasse: { ...input.impasse, conceptIds: [] }, learner: { concepts: [...input.learner.concepts, unseen] } };
+  const offer = await teaching.offer(picked);
+  expect(offer?.elements[offer.root]?.props).toMatchObject({ title: "Want a hint?" });
+  const started = await teaching.startLesson(picked);
+  expect(started.filter((entry) => entry.kind === "lesson_card").map((entry) => entry.step)).toEqual(["explain"]);
+
+  const nothingMet = { ...picked, learner: { concepts: [unseen] } };
+  expect((await teaching.startLesson(nothingMet)).filter((entry) => entry.kind === "lesson_card").map((entry) => entry.step)).toEqual(["probe"]);
+});

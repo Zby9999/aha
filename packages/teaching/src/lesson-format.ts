@@ -7,8 +7,12 @@ export function relevantConcepts(impasse: Impasse, learner: LearnerContext) {
 }
 
 export function lessonFormat(impasse: Impasse, learner: LearnerContext) {
-  const concepts = relevantConcepts(impasse, learner);
-  if (!concepts.length || impasse.conceptIds.some((id) => !concepts.some((concept) => concept.id === id))) return "full";
+  const relevant = relevantConcepts(impasse, learner);
+  if (!relevant.length || impasse.conceptIds.some((id) => !relevant.some((concept) => concept.id === id))) return "full";
+  // Concepts the Impasse names must all be known. Concepts the read gate picked are a looser match: adapt to the ones the
+  // learner has met, so one never-seen neighbour does not hold every later Lesson at full length.
+  const met = relevant.filter(({ mastery }) => mastery !== "not_encountered");
+  const concepts = impasse.conceptIds.length || !met.length ? relevant : met;
   const level = Math.min(...concepts.map(({ mastery }) => MASTERY_LEVELS.indexOf(mastery)));
   switch (MASTERY_LEVELS[level]) {
     case "seen_explanation": return "probe_first";
