@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
 import { Input } from "../components/ui/input.tsx";
 import { cardCatalog } from "./catalog.ts";
+import { InlineCode } from "./InlineCode.tsx";
 import { useCard } from "./context.ts";
 
 function Citations({ citations, expandable = false }: { citations: Citation[]; expandable?: boolean }) {
@@ -346,10 +347,10 @@ export const { registry } = defineRegistry(cardCatalog, {
       <Card aria-label="Explanation" className="lesson-reading-card" data-explanation>
         <CardHeader>
           <StepLabel>Explanation</StepLabel>
-          <CardTitle>{props.title}</CardTitle>
+          <CardTitle><InlineCode text={props.title} /></CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
-          <p className="text-sm leading-relaxed">{props.text}</p>
+          <p className="text-sm leading-relaxed"><InlineCode text={props.text} /></p>
           <Citations citations={props.citations} />
         </CardContent>
         <FlagExplanation />
