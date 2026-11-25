@@ -148,6 +148,11 @@ export const IMPASSE_CASES: ImpasseCase[] = [
     { error: "npm ERR! network request to https://registry.npmjs.org failed, reason: ETIMEDOUT" },
     "Try installing again.",
     { error: "npm ERR! network request to https://registry.npmjs.org failed, reason: ETIMEDOUT" }]),
+  impasse("neg/missing-tool", false, [
+    "Start the server.",
+    { error: "zsh: command not found: node" },
+    "Start it again please.",
+    { error: "zsh: command not found: node" }]),
 ];
 
 // ---------------------------------------------------------------- gateEvidence
@@ -208,7 +213,8 @@ export const EVIDENCE_CASES: EvidenceCase[] = [
 
 // ---------------------------------------------------------------- selectConcepts
 // An Ask-why Impasse. `expect`: at least one of these must be selected. `allowed`: every Concept a labeler would
-// accept as relevant (includes `expect`); selections outside it count against precision.
+// accept as relevant (includes `expect`); selections outside it count against precision. With an empty `expect`
+// no seed Concept fits (CSS, images, fonts) and nothing should be selected.
 
 export interface ConceptCase { name: string; text: string; expect: string[]; allowed: string[] }
 
@@ -240,4 +246,15 @@ export const CONCEPT_CASES: ConceptCase[] = [
     ["secret-management"], ["version-control", "environment-variables"]),
   select("test-fails-on-ci", "Why does my test pass on my laptop but fail on CI?",
     ["tests", "environment-variables", "deployment", "debugging"], ["dependencies"]),
+  select("nofit/cards-stack", "Why do my project cards stack vertically instead of sitting side by side?", []),
+  select("nofit/center-heading", "How do I center the heading in CSS?", []),
+  select("nofit/blurry-photo", "Why does my profile photo look blurry?", []),
+  select("nofit/font-on-phone", "Why is the font different on my phone?", []),
+  // Held out: added after the read-gate thresholds were chosen, to check they generalise.
+  select("heldout/await-json", "Why do I need await before response.json()?", ["promises", "async-operations"], ["http-request-response", "json-data"]),
+  select("heldout/empty-body-crash", "Why does the server crash when the request body is empty?",
+    ["input-validation", "error-handling"], ["json-data", "api-routes", "http-request-response"]),
+  select("heldout/404-route", "Why does my fetch to /api/project return 404?", ["api-routes", "http-status-codes"], ["http-request-response"]),
+  select("heldout/nofit-safari-button", "Why does my button look different in Safari?", []),
+  select("heldout/nofit-favicon", "Why is my favicon not showing in the browser tab?", []),
 ];

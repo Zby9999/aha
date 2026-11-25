@@ -8,7 +8,7 @@ Reproduce with a Jev key in `.env.local`:
 pnpm --filter @aha/decisions evaluate:full
 ```
 
-`EVAL_REPEATS` (default 3) and `EVAL_OUT` (a JSON file for every run and the summary) adjust the run. The labeled cases are in `packages/decisions/scripts/eval-cases.ts`; the raw results of the latest run (after the fix below) are in [`decision-layer-results.json`](decision-layer-results.json).
+`EVAL_REPEATS` (default 3) and `EVAL_OUT` (a JSON file for every run and the summary) adjust the run. The labeled cases are in `packages/decisions/scripts/eval-cases.ts`; the raw results of the latest run (after both fixes below) are in [`decision-layer-results.json`](decision-layer-results.json).
 
 ## Method
 
@@ -78,6 +78,28 @@ Findings 4–6 were fixed in the Decision Layer, then the same 51 cases were run
 | `detectImpasse` accuracy | 95.8% | 95.8% (unchanged) |
 
 The compounding case in finding 6 no longer happens: *"Why does clicking Add reload the whole page?"* now selects `dom-events` and `form-submission` (once also `page-reload-resets-state`), not `debugging`. Latency is unchanged (call p50 190 ms, max 520 ms, none over 1.5 s). Still open: the environment-failure Offer (finding 2), one remaining miss on the HTML-escaping question (2 of 3 runs empty), and the read gate still adds `client-server` or `rendering-state` to some Impasses.
+
+## Second fix and re-run
+
+The three issues left open above were fixed next, and the case set grew to 61: one more environment failure for `detectImpasse` (`command not found: node` twice), and 9 more `selectConcepts` cases — 4 questions no seed Concept fits (CSS layout, centring, a blurry image, fonts), where nothing should be selected, and 5 **held-out** cases written after the thresholds below were chosen.
+
+- **Environment failures.** The recurrence question now says that failures of the environment rather than the user's code (network or registry errors, a missing tool, a full disk) are not understanding gaps.
+- **Read-gate selection.** Instead of every Concept scoring at least 0.7, the read gate keeps the best-scoring Concept if it reaches 0.65, plus at most one more Concept that reaches 0.7. Raw scores showed why: almost every Concept relates to a web question somewhat, so a flat threshold let neighbours such as `client-server` in, while the HTML-escaping question's one right Concept hovered around 0.7 and was sometimes dropped. When one fitted, the best Concept scored at least 0.66; when none fitted, at most 0.60. The 0.65 floor sits in that gap, which is narrow; the held-out cases check it.
+
+| Measure | After first fix | After second fix |
+|---|---|---|
+| `detectImpasse` accuracy | 95.8% | **100%** (75 runs, incl. both environment failures) |
+| `detectImpasse` recall | 100% | 100% |
+| `selectConcepts` hit rate | 94.4% | **97.8%** |
+| `selectConcepts` precision | 73.0% | **93.2%** |
+| `selectConcepts` empty when a Concept fits | 5.6% | **0%** |
+| `selectConcepts` Concepts selected on average | 2.5 | 1.6 |
+| `selectConcepts` selection when no Concept fits | not measured | **0%** |
+| Held-out cases: hit rate / selection when none fits | — | 100% / 0% |
+| `selectConcepts` consistency | 75% | 76% |
+| `gateEvidence` | unchanged | Concept 100%, outcome 100%, write/no-write 100% |
+
+The one remaining read-gate miss: in 1 of 3 runs, *"Why does clicking Add reload the whole page?"* selected `page-reload-resets-state` and `dom-events` but not `form-submission`. Both selected Concepts are relevant, so the Lesson still fits. The `fix_judgement` / `caught_agent_mistake` ambiguity (finding 7) is a labeling question and was left as is. Latency is unchanged: call p50 under 200 ms, max 406 ms, none over 1.5 s.
 
 ## Limitations
 

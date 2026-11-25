@@ -92,6 +92,16 @@ describe("DecisionService", () => {
     expect(await service.chooseComponent({ impasse, step: "explain", learner: { concepts: [] } })).toBe("TextExplanation");
   });
 
+  it("selects the best concept and at most one close neighbour, or none when nothing fits", async () => {
+    const catalog = ["a", "b", "c", "d"].map((id) => ({ ...concept, id, name: id }));
+    const impasse = { id: "i", title: "Why?", trigger: "ask_why" as const, conceptIds: [], sourceEntryIds: [] };
+    const select = (scores: number[]) => createDecisions({ apiKey: "test", fetch: async () =>
+      response(Object.fromEntries(scores.map((score, i) => [`concept_${i}`, noul(score)]))) }).selectConcepts({ impasse, concepts: catalog });
+    expect(await select([0.75, 0.9, 0.8, 0.72])).toEqual(["b", "c"]);
+    expect(await select([0.1, 0.67, 0.2, 0.3])).toEqual(["b"]);
+    expect(await select([0.6, 0.5, 0.2, 0.3])).toEqual([]);
+  });
+
   it("keeps untrusted text in state and considers concepts beyond the first batch", async () => {
     const marker = "arbitrary prose from the session";
     const { timeline } = repeatedGap();
