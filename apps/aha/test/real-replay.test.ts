@@ -229,10 +229,12 @@ describe.each(["session_end", "idle"] as const)("with every module real, Dreamin
       await second.act({ type: "why", entryId: edit.id });
       const start = second.entries().findLast((e) => isKind(e, "lesson_start"))!;
 
-      // Adapted to correct with hints: a single hint card, no Probe or Articulation, and the Lesson completes.
-      expect(lessonSteps(second.entries(), start.lessonId)).toEqual(["explain"]);
+      // Adapted to correct with hints: a hint card and a one-sentence Articulation, with no Probe.
+      expect(lessonSteps(second.entries(), start.lessonId)).toEqual(["explain", "articulate"]);
       expect(backgroundTasks.slice(tasksBefore)).toEqual(["hint"]);
-      expect(second.entries().findLast((e) => isKind(e, "lesson_end"))).toMatchObject({ lessonId: start.lessonId, outcome: "completed" });
+      expect(currentMode(second.entries())).toBe("learning");
+      await second.act({ type: "back_to_work" });
+      expect(second.entries().findLast((e) => isKind(e, "lesson_end"))).toMatchObject({ lessonId: start.lessonId, outcome: "abandoned" });
       expect(currentMode(second.entries())).toBe("work");
       expect(second.errors).toEqual([]);
       // The read gate asked Jev which Concepts the Why concerns; the hint came from the learned one.

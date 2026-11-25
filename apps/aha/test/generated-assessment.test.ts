@@ -167,3 +167,45 @@ test("an assessment past the deadline is reported, not dropped silently", async 
   expect(evidence).toEqual([]);
   expect(warnings).toEqual([expect.stringMatching(/assessment took longer than 30 s; no Evidence recorded/)]);
 });
+
+test("a hint Lesson asks for a one-sentence Articulation, and a correct one is strong Evidence", async () => {
+  // Live, hint Lessons recorded nothing, so Lessons alone could never lift a Concept past correct_with_hints.
+  const base = buildModules({ agentHost: "stub", background: "real", decisions: "stub", learnerModel: "stub", teaching: "real" });
+  const trace: BackgroundRunRequest[] = [];
+  const evidence: Evidence[] = [];
+  const hinted = { ...token, mastery: "correct_with_hints" as const };
+  const drafts = [
+    { component: "TextExplanation", props: { title: "Check the token", text: "Look at where app.js makes the token.", citations } },
+    result("correct", "the server has no session for it"),
+  ];
+  const modules: AhaModules = {
+    ...base,
+    background: { async run(request) { trace.push(request); return { text: JSON.stringify(drafts[trace.length - 1]), filesWritten: [] }; } },
+    decisions: { ...base.decisions, async selectConcepts() { return [token.id]; } },
+    learnerModel(options) {
+      return {
+        ...base.learnerModel(options),
+        async readConcepts(ids) { return ids.includes(token.id) ? [hinted] : []; },
+        async appendEvidence(entry) { evidence.push(entry); },
+      };
+    },
+  };
+  const backend = await createBackend({ projectDir, sessionId: "hint-articulation", modules });
+  try {
+    const edit = backend.timeline.append({ kind: "file_edit", source: "agent-host", path: "public/app.js", change: "modify", diff: "@@ -1,2 +1,2 @@\n-const a = 1;\n+const a = 2;" });
+    await backend.dispatch({ type: "why", entryId: edit.id });
+    await backend.settled();
+    const cards = () => backend.timeline.entries().filter((value) => isKind(value, "lesson_card"));
+    expect(cards().map(({ step }) => step)).toEqual(["explain", "articulate"]);
+    expect(trace[0]!.prompt).toContain("Leave the conclusion to the user");
+    const articulation = cards()[1]!;
+    expect(articulation.card.elements[articulation.card.root]?.props).toMatchObject({ prompt: "In one sentence, what causes this behavior?", citations });
+    expect(backend.timeline.entries().some((entry) => entry.kind === "lesson_end")).toBe(false);
+    await backend.dispatch({ type: "card_answer", lessonId: articulation.lessonId, cardEntryId: articulation.id, answer: { type: "text", text: knownAnswer } });
+    await backend.settled();
+    expect(backend.timeline.entries().findLast((entry) => entry.kind === "lesson_end")).toMatchObject({ outcome: "completed" });
+    expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive", strength: "strong" }]);
+  } finally {
+    await backend.stop();
+  }
+});

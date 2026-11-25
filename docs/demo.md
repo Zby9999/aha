@@ -51,7 +51,7 @@ Open http://127.0.0.1:4317. The Preview tab shows the portfolio at http://localh
 | 4 | Type a prediction, e.g. *They stay logged in, because the token is still there.* | An **Explain** card: a data-flow diagram or text with code references from your project. Then an **Articulation** card. |
 | 5 | Explain the cause in your own words, e.g. *The page reads the saved token from localStorage and sends it in X-Session-Token, so the server finds the same session.* | The Lesson completes. The Memory tab's `sessions/local-….md` gets an Evidence entry for *session-tokens*, assessed correct or partial. |
 | 6 | Wait about 30 seconds. | Dreaming runs. `changelog.md` shows *session-tokens: not_encountered → correct_with_hints*, and so does the concept file. |
-| 7 | Turn on **Ask why** and send: *Why does the server need the session token on every request?* Or press Why on another token-related change. | An **adapted Lesson**: a single hint card that points to the lines to check. There is no Probe and no Articulation, and the Lesson completes at once. |
+| 7 | Turn on **Ask why** and send: *Why does the server need the session token on every request?* Or press Why on another token-related change. | An **adapted Lesson**: a hint card that points to the lines to check, then a one-sentence **Articulation**. There is no Probe. A correct answer is strong Evidence; two of them take a Concept to *explains_independently*. |
 | 8 | Ctrl-C in the terminal. | *Ending the session: updating the learner model…* Dreaming runs once more, then Aha exits. |
 
 Pi's replies vary from run to run. If Pi reports that a change is already done, ask for a different one, e.g. *In server.js, make a session token stop working one hour after login.* Then press Why on that change.

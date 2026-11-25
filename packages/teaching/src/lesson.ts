@@ -150,12 +150,21 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
             return [start, makeCard(id, "articulate", card("ArticulationCard", { lessonId: id, prompt: question, mode: "restate", citations: [anchor] }))];
           }
           const related = anchor ?? relevantCitation(input, sources, false);
-          const explanation = generator
-            ? (await generator.explain(input, sources, format === "hint"
-              ? { hint: true }
-              : { directQuestion: input.impasse.text ?? input.impasse.title }, lesson.controller.signal)).card
-            : fixtureShortcut(portfolio, format === "hint", sources, related);
-          return complete(lesson, [start, makeCard(id, "explain", explanation)]);
+          if (!generator) return complete(lesson, [start, makeCard(id, "explain", fixtureShortcut(portfolio, format === "hint", sources, related))]);
+          const explanation = await generator.explain(input, sources, format === "hint"
+            ? { hint: true }
+            : { directQuestion: input.impasse.text ?? input.impasse.title }, lesson.controller.signal);
+          if (format !== "hint") return complete(lesson, [start, makeCard(id, "explain", explanation.card)]);
+          if (active !== lesson) return [];
+          // A hint Lesson used to record nothing, so Lessons alone could never lift a Concept past correct_with_hints.
+          const prompt = "In one sentence, what causes this behavior?";
+          lesson.step = "articulate";
+          lesson.generated = { input, sources, question: prompt, articulation: { question: prompt, citations: explanation.citations, explanation: explanation.card } };
+          return [
+            start,
+            makeCard(id, "explain", explanation.card),
+            makeCard(id, "articulate", card("ArticulationCard", { lessonId: id, prompt, mode: "restate", citations: explanation.citations })),
+          ];
         }
         if (generator && sources) {
           probe = await generator.probe(input, sources, id, lesson.controller.signal);
@@ -254,7 +263,8 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       if (lesson?.id !== lessonId) return [];
       if (generator && lesson.generated) {
         const { input, sources, question: probe, answer } = lesson.generated;
-        const explanation = await generator.explain(input, sources, { probe, ...(answer ? { answer } : {}), followUp: question.slice(0, 1500) }, lesson.controller.signal);
+        const predictionPending = lesson.step === "probe" ? { predictionPending: true as const } : {};
+        const explanation = await generator.explain(input, sources, { probe, ...(answer ? { answer } : {}), ...predictionPending, followUp: question.slice(0, 1500) }, lesson.controller.signal);
         return active === lesson ? [makeCard(lessonId, "explain", explanation.card)] : [];
       }
       const aboutToken = lesson.portfolio && /token|session|refresh|401/i.test(question);

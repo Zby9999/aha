@@ -29,7 +29,7 @@ class InvalidLessonDraft extends Error {}
 
 type ExplanationContext =
   | { probe: string; answer: string; followUp?: never; hint?: never; brief?: true }
-  | { probe: string; answer?: string; followUp: string; hint?: never; brief?: never }
+  | { probe: string; answer?: string; predictionPending?: true; followUp: string; hint?: never; brief?: never }
   | { hint: true; followUp?: never; brief?: never }
   | { directQuestion: string; hint?: never; followUp?: never; brief?: never };
 
@@ -124,7 +124,7 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
             : `Respond to the prediction and explain the immediate cause. ${noPrediction}`;
       const textOnly = isQuestion || discussion.hint === true || discussion.brief === true;
       // Live, a question asked before the prediction got an answer that gave the Probe away.
-      const beforePrediction = isFollowUp && discussion.answer === undefined
+      const beforePrediction = "predictionPending" in discussion && discussion.predictionPending
         ? " The user has not answered the prediction question (discussion.probe) yet. Don't reveal or hint at its answer: don't state that outcome, and don't explain the code that decides it. If the question can't be answered without that, say only that it will be explained once they have made their prediction, and ask them to predict first."
         : "";
       const task = textOnly

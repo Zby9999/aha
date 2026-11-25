@@ -229,3 +229,11 @@ it("a wrong answer in a Lesson means the explanation was seen, and never lowers 
     "environment-variables": "seen_explanation", authorization: "seen_explanation", debugging: "not_encountered", cookies: "correct_with_hints",
   });
 });
+
+it("two strong Articulations reach explains_independently", async () => {
+  // A correct one-sentence Articulation in a hint Lesson is strong Evidence that the learner explains with little help.
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const strong: Observation = { conceptId: "password-hashing", type: "articulation", outcome: "positive", strength: "strong" };
+  expect(await masteryAfter(model, [strong])).toMatchObject({ "password-hashing": "correct_with_hints" });
+  expect(await masteryAfter(model, [strong])).toMatchObject({ "password-hashing": "explains_independently" });
+});

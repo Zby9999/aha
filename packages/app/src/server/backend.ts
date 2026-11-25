@@ -200,6 +200,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
       const earlier = timeline.entries().filter((event) => event.seq < entry.seq);
       if (earlier.some((event) => event.kind === "lesson_end" && event.lessonId === entry.lessonId)) return;
       const recordedByAnswer = new Map<string, Set<string>>();
+      // A Lesson without a Probe (a hint or a review) asks for the Articulation after little help, so a correct one is strong.
+      const probed = earlier.some((event) => event.kind === "lesson_card" && event.lessonId === entry.lessonId && event.step === "probe");
       for (const assessment of earlier) {
         if (assessment.kind !== "answer_assessment" || assessment.lessonId !== entry.lessonId) continue;
         const submitted = earlier.find((event) => event.kind === "card_answer" && event.id === assessment.answerEntryId);
@@ -213,7 +215,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
             conceptId,
             type: assessment.step === "probe" ? "probe_result" : submitted.answer.type === "fix_judgement" ? "fix_judgement" : "articulation",
             outcome: assessment.result === "incorrect" ? "negative" : "positive",
-            strength: assessment.result === "partial" ? "weak" : "moderate",
+            strength: assessment.result === "partial" ? "weak"
+              : assessment.result === "correct" && assessment.step === "articulate" && submitted.answer.type === "text" && !probed ? "strong" : "moderate",
             entryIds: [assessment.answerEntryId, assessment.id],
             note: `${assessment.step} answer assessed as ${assessment.result}`,
           });
