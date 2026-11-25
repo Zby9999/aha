@@ -8,6 +8,8 @@ const isSourceFile = (path: string) => SOURCE_FILE.test(path) && !path.split("/"
 
 export interface LessonSources {
   latestChange?: TimelineEntryOf<"file_edit">;
+  /** The session's earlier agent diffs of the shown files, oldest first: the before-state of the code. */
+  earlierChanges?: { path: string; diff: string }[];
   focusFiles?: string[];
   evidence: { kind: string; text: string }[];
   files: { path: string; firstLine: number; lines: string[] }[];
@@ -83,7 +85,14 @@ export async function captureLessonSources(
 
   if (!files.length && !allowEmpty) throw new Error("No readable project source was available for this Lesson.");
   const focusFiles = files.map(({ path }) => path).filter((path) => referencedFiles.includes(path) || question.includes(path));
-  return { files, evidence, focusFiles, ...(latestChange ? { latestChange } : {}) };
+  // Live, "why did my projects disappear before?" could only be explained in the fixed code; earlier diffs show how it happened.
+  const shown = new Set(files.map(({ path }) => path));
+  const earlierChanges = timeline
+    .filter((entry): entry is TimelineEntryOf<"file_edit"> & { diff: string } => isAgentEdit(entry) && entry !== latestChange && entry.seq <= throughSeq
+      && shown.has(entry.path) && Boolean(entry.diff?.trim()))
+    .slice(-4)
+    .map(({ path, diff }) => ({ path, diff: diff.slice(0, 1500) }));
+  return { files, evidence, focusFiles, ...(latestChange ? { latestChange } : {}), ...(earlierChanges.length ? { earlierChanges } : {}) };
 }
 
 export function changeCitation(sources: LessonSources): Citation | undefined {

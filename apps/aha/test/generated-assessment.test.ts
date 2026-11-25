@@ -21,7 +21,7 @@ const citations = [
 ];
 const knownAnswer = "Refresh creates a new token and the server has no session for it.";
 const wrongAnswer = "Refresh keeps the same token so the user stays logged in.";
-const result = (value: string, answerQuote: string) => ({ result: value, conceptId: token.id, answerQuote, citations });
+const result = (value: string, answerQuote: string, conceptId = token.id) => ({ result: value, credits: [{ conceptId, answerQuote }], citations });
 const feedback = "Refresh runs app.js again, so it makes a new token that the server has never seen.";
 const scenarios = [
   { label: "correct", answer: knownAnswer, draft: result("correct", "the server has no session for it"), outcome: "positive", strength: "moderate" },
@@ -30,7 +30,7 @@ const scenarios = [
   { label: "incorrect without feedback", answer: wrongAnswer, draft: result("incorrect", "Refresh keeps the same token"), outcome: "negative", strength: "moderate" },
   { label: "unclear", answer: "I don't know, I'm still confused.", draft: { ...result("unclear", "still confused"), feedback }, feedback: "Let's make it clearer" },
   { label: "unquoted", answer: knownAnswer, draft: result("correct", "not expressed by learner") },
-  { label: "unrelated concept", answer: knownAnswer, draft: { ...result("correct", "creates a new token"), conceptId: "unrelated" } },
+  { label: "unrelated concept", answer: knownAnswer, draft: result("correct", "creates a new token", "unrelated") },
   { label: "out of range", answer: knownAnswer, draft: { ...result("correct", "creates a new token"), citations: [{ path: "server.js", startLine: 44 }] } },
   { label: "no selected concept", answer: knownAnswer, draft: result("correct", "creates a new token"), noConcept: true },
   { label: "malformed", answer: knownAnswer, draft: "not JSON" },
@@ -223,6 +223,55 @@ test("a hint Lesson asks for a one-sentence Articulation, and a correct one is s
     await backend.settled();
     expect(backend.timeline.entries().findLast((entry) => entry.kind === "lesson_end")).toMatchObject({ outcome: "completed" });
     expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive", strength: "strong" }]);
+  } finally {
+    await backend.stop();
+  }
+});
+
+test("an Articulation can credit two Concepts, each with its own quote, and each gets one Evidence", async () => {
+  // Live, an answer that explained five Concepts correctly was credited with one.
+  const base = buildModules({ agentHost: "stub", background: "real", decisions: "stub", learnerModel: "stub", teaching: "real" });
+  const reload: Concept = { ...token, id: DEMO_CONCEPTS.pageReload, name: "Page reload" };
+  const storage: Concept = { ...token, id: "browser-storage", name: "Browser storage" };
+  const trace: BackgroundRunRequest[] = [];
+  const evidence: Evidence[] = [];
+  const answer = "A refresh runs app.js again and the new token has no session on the server.";
+  const drafts = [
+    { question: "What happens to the token on refresh?", citations },
+    { component: "TextExplanation", props: { title: "Refresh creates a token", text: "The new token has no session.", citations } },
+    { result: "correct", citations, credits: [
+      { conceptId: reload.id, answerQuote: "A refresh runs app.js again" },
+      { conceptId: token.id, answerQuote: "the new token has no session" },
+      { conceptId: storage.id, answerQuote: "on the server" },
+    ] },
+  ];
+  const modules: AhaModules = {
+    ...base,
+    background: { async run(request) { trace.push(request); return { text: JSON.stringify(drafts[trace.length - 1]), filesWritten: [] }; } },
+    decisions: { ...base.decisions, async selectConcepts() { return [token.id, reload.id, storage.id]; } },
+    learnerModel(options) {
+      return {
+        ...base.learnerModel(options),
+        async readConcepts(ids) { return [token, reload, storage].filter(({ id }) => ids.includes(id)); },
+        async appendEvidence(entry) { evidence.push(entry); },
+      };
+    },
+  };
+  const backend = await createBackend({ projectDir, sessionId: "two-credits", modules });
+  try {
+    await backend.dispatch({ type: "ask_why", text: "Why does public/app.js get logged out on refresh?" });
+    await backend.settled();
+    for (const [step, text] of [["probe", "I don't know."], ["articulate", answer]] as const) {
+      const entry = backend.timeline.entries().filter((value) => isKind(value, "lesson_card")).find((value) => value.step === step)!;
+      await backend.dispatch({ type: "card_answer", lessonId: entry.lessonId, cardEntryId: entry.id, answer: { type: "text", text } });
+      await backend.settled();
+    }
+    expect(trace[2]!.prompt).toContain("Credit at most two listed Concepts");
+    const event = backend.timeline.entries().find((entry) => entry.kind === "answer_assessment")!;
+    expect(event).toMatchObject({ result: "correct", conceptIds: [reload.id, token.id] });
+    expect(evidence.map(({ conceptId, type, outcome }) => [conceptId, type, outcome])).toEqual([
+      [reload.id, "articulation", "positive"], [token.id, "articulation", "positive"],
+    ]);
   } finally {
     await backend.stop();
   }

@@ -178,3 +178,26 @@ test("an explanation of a prediction or a Why? on a change cannot carry general 
   const explain = entries.find((entry) => entry.kind === "lesson_card")!;
   expect(explain.kind === "lesson_card" && explain.card.elements.card?.props).not.toHaveProperty("background");
 });
+
+test("a Lesson sees the session's earlier diffs of its files and covers at most two causes", async () => {
+  // Live, "why did my projects disappear in three ways before?" got only one cause, and only in the fixed code.
+  const timeline = createTimeline({ sessionId: "before-state" });
+  timeline.append({ kind: "file_edit", source: "agent-host", path: "server.js", change: "modify", diff: "@@ -1 +1 @@\n-app.listen(3000);\n+app.listen(PORT);" });
+  timeline.append({ kind: "file_edit", source: "agent-host", path: "other.md", change: "modify", diff: "@@ -1 +1 @@\n+notes" });
+  const latest = timeline.append({ kind: "file_edit", source: "agent-host", path: "server.js", change: "modify", diff: "@@ -1,2 +1,2 @@\n+const PORT = process.env.PORT || 3000;" });
+  const run = vi.fn(async (_request: BackgroundRunRequest) => ({ text: JSON.stringify(probe), filesWritten: [] }));
+  const teaching = createTeaching({
+    background: { run },
+    decisions: { async checkGrounding() { return { grounded: true, missingFiles: [], reason: "ok" }; }, async chooseComponent() { return "TextExplanation"; } },
+  });
+  await teaching.startLesson({
+    impasse: { id: "w", trigger: "why", title: "Why: Edited server.js", sourceEntryIds: [latest.id], conceptIds: [] },
+    learner: { concepts: [] }, project: { projectDir, files: ["server.js"] }, timeline: timeline.entries(),
+  });
+  const [request] = run.mock.lastCall!;
+  const context = JSON.parse(request.prompt.split("Lesson context (JSON):\n")[1]!);
+  expect(context.earlierChanges).toEqual([{ path: "server.js", diff: "@@ -1 +1 @@\n-app.listen(3000);\n+app.listen(PORT);" }]);
+  expect(request.systemPrompt).toContain("use them as the before-state");
+  expect(request.systemPrompt).toContain("Cover at most two causes");
+  expect(request.systemPrompt).toContain("root cause first");
+});

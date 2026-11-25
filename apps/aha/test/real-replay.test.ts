@@ -99,7 +99,7 @@ const scriptedModel: FauxResponseFactory = (context) => {
   if (prompt.startsWith("Assess the actual Articulation answer")) {
     const answer = lesson.discussion!.answer!;
     const conceptId = lesson.discussion!.concepts!.find(({ id }) => id === SESSION_TOKENS)?.id ?? lesson.discussion!.concepts![0]!.id;
-    return reply("assess", { result: "partial", conceptId, answerQuote: answer.split(" ").slice(0, 4).join(" "), citations });
+    return reply("assess", { result: "partial", credits: [{ conceptId, answerQuote: answer.split(" ").slice(0, 4).join(" ") }], citations });
   }
   const task = prompt.startsWith("Give one short hint") ? "hint" : prompt.startsWith("Answer the user's question") ? "answer" : "explain";
   return reply(task, { component: "TextExplanation", props: { title: "Where the token comes from", text: "The page makes a new token each time it loads.", citations } });

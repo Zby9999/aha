@@ -13,7 +13,7 @@ A light, skippable suggestion to start a lesson at an impasse the system detecte
 _Avoid_: prompt, interruption, popup
 
 **Lesson**:
-The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence. When the Articulation is wrong or unclear, the Lesson shows a feedback card and stays open for questions; Back to work then completes it.
+The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence. A Lesson covers at most two causes, root cause first, and names any other one for a later Ask why. When the Articulation is wrong or unclear, the Lesson shows a feedback card and stays open for questions; Back to work then completes it.
 _Avoid_: tutorial, teaching session
 
 **Mode**:
@@ -25,7 +25,7 @@ The prediction or choice the user makes before an explanation, which exposes the
 _Avoid_: quiz, test
 
 **Articulation**:
-The user's own restatement of the idea, or their judgment of whether the agent's fix addresses the cause.
+The user's own restatement of the idea, or their judgment of whether the agent's fix addresses the cause. Its assessment can credit up to two Concepts, each backed by its own quote from the answer, and each becomes one piece of evidence.
 _Avoid_: summary, reflection
 
 ## Learner model
