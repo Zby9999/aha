@@ -17,7 +17,7 @@ describe("lesson-card catalog", () => {
       expect(definition.props.safeParse(root.props).error).toBeUndefined();
       return [root.type];
     });
-    expect(new Set(checked)).toEqual(new Set(["OfferCard", "ProbeCard", "ArticulationCard"]));
+    expect(new Set(checked)).toEqual(new Set(["OfferCard", "ProbeCard", "DataFlowDiagram", "ArticulationCard"]));
   });
 
   test("rejects a card with missing props", () => {
