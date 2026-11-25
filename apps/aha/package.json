@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Composition root: picks a stub or real implementation per module and starts the app.",
   "scripts": {
-    "start": "pnpm --filter @aha/app build:ui && node src/main.ts",
+    "start": "pnpm --filter @aha/app build:ui && node --env-file-if-exists=../../.env.local src/main.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
