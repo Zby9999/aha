@@ -7,6 +7,7 @@
 //   FAKE_PI_LOG       File that receives each command received, one JSON per line.
 //   FAKE_PI_EVENTS    JSONL file of records (e.g. a recorded Pi event stream) emitted after accepting each prompt.
 //   FAKE_PI_SPLIT     "turns": prompt n emits only the n-th run of FAKE_PI_EVENTS (records up to its agent_settled).
+// In FAKE_PI_EVENTS, __CWD__ stands for the fake Pi's working directory (as JSON string content).
 // A prompt "__crash__" makes the process exit with code 3.
 import { appendFileSync, readFileSync } from "node:fs";
 
@@ -19,7 +20,7 @@ if (env.FAKE_PI_ON_START === "exit") {
 if (env.FAKE_PI_LOG) appendFileSync(env.FAKE_PI_LOG, `${JSON.stringify({ type: "__start__", argv: process.argv.slice(2), cwd: process.cwd(), learnerContextFile: env.AHA_LEARNER_CONTEXT_FILE })}\n`);
 
 const MODEL ={ id: "fake-model", name: "Fake Model", provider: "fake", api: "fake" };
-const events = env.FAKE_PI_EVENTS ? readFileSync(env.FAKE_PI_EVENTS, "utf8").split("\n").filter((line) => line.trim()) : [];
+const events = env.FAKE_PI_EVENTS ? readFileSync(env.FAKE_PI_EVENTS, "utf8").replaceAll("__CWD__", JSON.stringify(process.cwd()).slice(1, -1)).split("\n").filter((line) => line.trim()) : [];
 const turns = [[]];
 for (const line of events) {
   turns.at(-1).push(line);

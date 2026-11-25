@@ -1,4 +1,4 @@
-import { statSync } from "node:fs";
+import { realpathSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import type { NewTimelineEntry, Timeline } from "@aha/contracts";
@@ -39,6 +39,8 @@ type Entry = NewTimelineEntry extends infer E ? (E extends NewTimelineEntry ? Om
  */
 export function createPiEventMapper({ projectDir, timeline }: { projectDir: string; timeline: Timeline }) {
   const root = resolve(projectDir);
+  /** Pi runs in the project's real path, so its absolute paths may go through it (macOS: /tmp is /private/tmp). */
+  const roots = [...new Set([root, realPath(root)])];
   let messages = 0;
   let reply: { id: string; textBlocks: number } | undefined;
   /** A failed model request's error, held back until we know whether Pi retries it. */
@@ -56,9 +58,12 @@ export function createPiEventMapper({ projectDir, timeline }: { projectDir: stri
   const projectPath = (path: unknown) => {
     if (typeof path !== "string" || path === "") return undefined;
     const cleaned = path.replace(/^@/, "").replace(/^~(?=$|[\\/])/, homedir());
-    const rel = relative(root, resolve(root, cleaned));
-    const outside = rel === "" || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel);
-    return outside ? undefined : rel.split(sep).join("/");
+    for (const base of roots) {
+      const rel = relative(base, resolve(root, cleaned));
+      const outside = rel === "" || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel);
+      if (!outside) return rel.split(sep).join("/");
+    }
+    return undefined;
   };
 
   return function map(record: PiRecord): void {
@@ -177,4 +182,12 @@ function textOf(content: unknown, separator: string): string {
     .filter((block) => block?.type === "text" && typeof block.text === "string")
     .map((block) => block.text)
     .join(separator);
+}
+
+function realPath(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
 }

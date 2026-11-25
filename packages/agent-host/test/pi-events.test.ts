@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createTimeline, type AgentSession, type Timeline, type TimelineEntry } from "@aha/contracts";
@@ -32,13 +32,13 @@ afterEach(async () => {
   rmSync(log, { force: true });
 });
 
-async function replay(events: string, until: (entries: readonly TimelineEntry[]) => boolean) {
+async function replay(events: string, until: (entries: readonly TimelineEntry[]) => boolean, dir = projectDir) {
   const host = createPiAgentHost({
     command: process.execPath,
     args: [FAKE_PI],
     env: { ...process.env, FAKE_PI_EVENTS: fixture(events), FAKE_PI_LOG: log },
   });
-  session = await host.startSession({ projectDir, timeline });
+  session = await host.startSession({ projectDir: dir, timeline });
   await session.sendUserMessage("Fix my login");
   const deadline = Date.now() + 3000;
   while (!until(timeline.entries())) {
@@ -138,4 +138,16 @@ test("a reply's deltas add up to its final text, also with several text blocks",
 test("paths Pi resolves with a leading @ are recorded project-relative", async () => {
   const entries = await replay("at-path.rpc.jsonl", (e) => e.some((x) => x.kind === "file_edit"));
   expect(entries.find((e) => e.kind === "file_edit")).toMatchObject({ path: "public/app.js", change: "modify" });
+});
+
+test("an absolute path through the project's real path is recorded project-relative when Aha got a link to it", async () => {
+  // macOS: /tmp links to /private/tmp, and Pi writes to the real path it runs in.
+  const link = `${projectDir}-link`;
+  symlinkSync(projectDir, link, "junction");
+  try {
+    const entries = await replay("real-path.rpc.jsonl", (e) => e.some((x) => x.kind === "file_edit"), link);
+    expect(entries.find((e) => e.kind === "file_edit")).toMatchObject({ path: "public/app.js", change: "modify" });
+  } finally {
+    rmSync(link, { force: true });
+  }
 });
