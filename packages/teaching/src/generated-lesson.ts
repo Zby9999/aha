@@ -114,11 +114,13 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
     async explain(input: LessonInput, sources: LessonSources, discussion: ExplanationContext, signal?: AbortSignal) {
       const isFollowUp = discussion.followUp !== undefined;
       const isQuestion = isFollowUp || "directQuestion" in discussion;
+      // Live, "I don't know" got "Your prediction is not quite right".
+      const noPrediction = "If the user did not make a prediction (for example they said they don't know), don't call it right or wrong; just explain.";
       const goal = discussion.hint
         ? "Give one short hint pointing to where the user should check next. Leave the conclusion to the user."
         : isQuestion ? "Answer the user's question directly in one or two sentences."
-          : discussion.brief ? "Correct or confirm the prediction in one or two sentences, explaining one immediate cause."
-            : "Respond to the prediction and explain the immediate cause.";
+          : discussion.brief ? `Correct or confirm the prediction in one or two sentences, explaining one immediate cause. ${noPrediction}`
+            : `Respond to the prediction and explain the immediate cause. ${noPrediction}`;
       const textOnly = isQuestion || discussion.hint === true || discussion.brief === true;
       // Live, a question asked before the prediction got an answer that gave the Probe away.
       const beforePrediction = isFollowUp && discussion.answer === undefined
@@ -126,7 +128,7 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
         : "";
       const task = textOnly
         ? `${goal}${beforePrediction} Use the cited code and this shape: ${TEXT_SHAPE}`
-        : `Correct or confirm the user's prediction, then explain the immediate cause.
+        : `Correct or confirm the user's prediction, then explain the immediate cause. ${noPrediction}
 Use TextExplanation for a local assignment, return value, or other short cause within one part of the project. Use DataFlowDiagram when a value crosses distinct parts of the project shown in the excerpts, for example browser code sending a token to a server.
 Every arrow must be supported by the excerpts. Do not infer UI updates, extra actions, or cycles that the code does not show. Use one path with 2–5 nodes in causal order, ending at the observed outcome. Keep diagram feedback to one sentence that adds something the diagram doesn't show. For text, use one short paragraph.
 Supported shapes:

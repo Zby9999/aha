@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createTimeline, type BackgroundRunRequest, type LessonInput, type NewTimelineEntry } from "@aha/contracts";
+import { createTimeline, type BackgroundRunRequest, type Concept, type LessonInput, type NewTimelineEntry } from "@aha/contracts";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { createTeaching } from "../src/index.ts";
 
@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 afterEach(() => rm(projectDir, { recursive: true, force: true }));
 
-async function startLesson(question = "Why does server.js read process.env.PORT?") {
+async function startLesson(question = "Why does server.js read process.env.PORT?", concepts: Concept[] = []) {
   const timeline = createTimeline({ sessionId: "prompts" });
   const run = vi.fn(async (request: BackgroundRunRequest) => ({ text: JSON.stringify(request.prompt.includes('"question":"..."') ? probe : text), filesWritten: [] }));
   const teaching = createTeaching({
@@ -29,7 +29,7 @@ async function startLesson(question = "Why does server.js read process.env.PORT?
   });
   const input: LessonInput = {
     impasse: { id: "i", trigger: "ask_why", title: question, text: question, sourceEntryIds: [], conceptIds: [] },
-    learner: { concepts: [] },
+    learner: { concepts },
     project: { projectDir, files: ["server.js"] },
     timeline: timeline.entries(),
   };
@@ -57,4 +57,22 @@ test("every generated card is asked for in the learner's own language", async ()
   await answer("我不知道");
   expect(run.mock.calls.length).toBeGreaterThan(1);
   for (const [request] of run.mock.calls) expect(request.systemPrompt).toContain("same language the user writes in");
+});
+
+test("after \"I don't know\" the lesson neither judges a prediction nor asks about one", async () => {
+  // Live: "Your prediction is not quite right" answered "I don't know", then "what caused the behavior you predicted?".
+  const { answer, lastPrompt } = await startLesson();
+  const entries = await answer("I don't know");
+  expect(lastPrompt()).toContain("If the user did not make a prediction");
+  const articulation = entries.find((entry) => entry.kind === "lesson_card" && entry.step === "articulate")!;
+  const props = articulation.kind === "lesson_card" ? articulation.card.elements[articulation.card.root]!.props : {};
+  expect(props).toMatchObject({ prompt: "In your own words, what causes this behavior?" });
+});
+
+test("a brief Lesson after \"I don't know\" does not judge a prediction either", async () => {
+  const seen: Concept = { id: "env", name: "Environment variables", mastery: "seen_explanation", evidence: [], relatedFiles: [], userEdited: false };
+  const { answer, lastPrompt } = await startLesson(undefined, [seen]);
+  await answer("I don't know");
+  expect(lastPrompt()).toContain("one or two sentences");
+  expect(lastPrompt()).toContain("If the user did not make a prediction");
 });
