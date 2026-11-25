@@ -48,3 +48,11 @@ test("a question asked before the Probe is answered must not give the Probe's an
   await teaching.followUp({ lessonId: card.lessonId!, question: "Also limit the title to 80 characters.", timeline: timeline.entries() });
   expect(lastPrompt()).toContain("has not answered the prediction question yet");
 });
+
+test("every generated card is asked for in the learner's own language", async () => {
+  // Live, a Chinese question got an English Probe and a Chinese explanation.
+  const { run, answer } = await startLesson("为什么 server.js 里要写 process.env.PORT || 3000？");
+  await answer("我不知道");
+  expect(run.mock.calls.length).toBeGreaterThan(1);
+  for (const [request] of run.mock.calls) expect(request.systemPrompt).toContain("same language the user writes in");
+});
