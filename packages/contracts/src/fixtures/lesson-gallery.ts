@@ -1,5 +1,5 @@
 import type { CardSpec } from "../cards.ts";
-import type { cardComponentDefinitions } from "../catalog.ts";
+import type { lessonCardComponentDefinitions } from "../catalog.ts";
 import { card } from "./build.ts";
 import { portfolioSessionFlow } from "./demo-session.ts";
 
@@ -69,4 +69,4 @@ export const lessonGalleryFixtures = {
     text: "On refresh, the browser creates a new token. The server has no session for it, so /api/me returns 401.",
     citations: [browserToken, lookupSession],
   }),
-} satisfies Record<keyof typeof cardComponentDefinitions, CardSpec>;
+} satisfies Record<keyof typeof lessonCardComponentDefinitions, CardSpec>;
