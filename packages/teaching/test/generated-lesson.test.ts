@@ -101,3 +101,44 @@ test.each(["repaired diagram", "grounded text fallback", "invalid text fallback"
     await Promise.all([rm(projectDir, { recursive: true, force: true }), rm(outsideDir, { recursive: true, force: true })]);
   }
 });
+
+test("a first Explain draft that runs out of time falls back to the text draft", async () => {
+  const projectDir = await mkdtemp(join(tmpdir(), "aha-generated-"));
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    await writeFile(join(projectDir, "paging.ts"), source);
+    const timeline = createTimeline({ sessionId: "slow" });
+    const edit = timeline.append({ kind: "file_edit", source: "agent-host", path: "paging.ts", change: "modify", diff: "@@ -233 +233 @@\n+  page = 1;" });
+    const input: LessonInput = {
+      impasse: { id: "reset", trigger: "why", title: "Why does resetting change page?", sourceEntryIds: [edit.id], conceptIds: [] },
+      learner: { concepts: [] },
+      project: { projectDir, files: ["paging.ts"] },
+      timeline: timeline.entries(),
+    };
+    const textExplanation = { component: "TextExplanation", props: { title: "Reset goes to page 1", text: "Reset assigns 1 to page.", citations } };
+    const run = vi.fn(async ({ signal }: BackgroundRunRequest) => {
+      if (run.mock.calls.length === 2) {
+        // The first Explain draft never answers; only its deadline ends it.
+        await new Promise((_, reject) => signal?.addEventListener("abort", () => reject(signal.reason)));
+      }
+      const output = run.mock.calls.length === 1 ? createProbe : textExplanation;
+      return { text: JSON.stringify(output), filesWritten: [] };
+    });
+    const checkGrounding = vi.fn(async () => ({ grounded: true, missingFiles: [], reason: "Supported by paging.ts" }));
+    const lesson = createTeaching({ background: { run }, decisions: { checkGrounding, async chooseComponent() { return "DataFlowDiagram"; } } });
+
+    const probe = (await lesson.startLesson(input)).map((entry) => timeline.append(entry)).find((entry) => entry.kind === "lesson_card")!;
+    const answer = { type: "text", text: "It stays on page 4." } as const;
+    timeline.append({ kind: "card_answer", source: "app", lessonId: probe.lessonId, cardEntryId: probe.id, step: "probe", answer });
+    const response = lesson.answer({ lessonId: probe.lessonId, cardEntryId: probe.id, answer, timeline: timeline.entries() });
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    expect((await response)[0]).toMatchObject({
+      kind: "lesson_card", step: "explain", card: { elements: { card: { type: "TextExplanation", props: { citations } } } },
+    });
+    expect(run).toHaveBeenCalledTimes(3);
+  } finally {
+    vi.useRealTimers();
+    await rm(projectDir, { recursive: true, force: true });
+  }
+});
