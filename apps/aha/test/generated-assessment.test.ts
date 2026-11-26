@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { createBackend } from "@aha/app";
-import { isKind, type AhaModules, type BackgroundRunRequest, type Concept, type Evidence } from "@aha/contracts";
+import { createBackend, type Backend } from "@aha/app";
+import { currentMode, isKind, type AhaModules, type BackgroundRunRequest, type Concept, type Evidence, type TimelineEntryOf } from "@aha/contracts";
 import { DEMO_CONCEPTS } from "@aha/contracts/fixtures";
 import { expect, test, vi } from "vitest";
 import { buildModules } from "../src/modules.ts";
@@ -121,26 +121,38 @@ test.each(scenarios)("generated Articulation with $label evaluation completes an
   }
 });
 
-async function answerWithSlowAssessment(assessmentMs: number) {
+async function withTimedAssessment(
+  delays: readonly number[],
+  verify: (state: {
+    backend: Backend;
+    articulation: TimelineEntryOf<"lesson_card">;
+    evidence: Evidence[];
+    prompts: string[];
+    warnings: unknown[];
+  }) => Promise<void>,
+  { ignoreAbort = false } = {},
+) {
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   const base = buildModules({ agentHost: "stub", background: "real", decisions: "stub", learnerModel: "stub", teaching: "real" });
   let calls = 0;
   const evidence: Evidence[] = [];
+  const prompts: string[] = [];
   const modules: AhaModules = {
     ...base,
-    background: { async run({ signal }) {
+    background: { async run({ signal, prompt }) {
       calls += 1;
-      const draft = [
-        { question: "What happens to the token on refresh?", citations },
-        { component: "TextExplanation", props: { title: "Refresh creates a token", text: "The new token has no session.", citations } },
-        result("correct", "the server has no session for it"),
-      ][calls - 1];
-      if (calls === 3) {
+      if (calls >= 3) {
+        prompts.push(prompt);
+        const assessmentMs = delays[calls - 3] ?? 0;
         await new Promise<void>((resolve, reject) => {
           const timer = setTimeout(resolve, assessmentMs);
-          signal?.addEventListener("abort", () => { clearTimeout(timer); reject(signal.reason); });
+          if (!ignoreAbort) signal?.addEventListener("abort", () => { clearTimeout(timer); reject(signal.reason); });
         });
+        return { text: JSON.stringify(result("correct", "the server has no session for it")), filesWritten: [] };
       }
+      const draft = calls === 1
+        ? { question: "What happens to the token on refresh?", citations }
+        : { component: "TextExplanation", props: { title: "Refresh creates a token", text: "The new token has no session.", citations } };
       return { text: JSON.stringify(draft), filesWritten: [] };
     } },
     decisions: { ...base.decisions, async selectConcepts() { return [token.id]; } },
@@ -160,11 +172,12 @@ async function answerWithSlowAssessment(assessmentMs: number) {
     const card = (step: "probe" | "articulate") => backend.timeline.entries().filter((value) => isKind(value, "lesson_card")).find((value) => value.step === step)!;
     await backend.dispatch({ type: "card_answer", lessonId: card("probe").lessonId, cardEntryId: card("probe").id, answer: { type: "text", text: "It keeps the same token." } });
     await backend.settled();
-    await backend.dispatch({ type: "card_answer", lessonId: card("articulate").lessonId, cardEntryId: card("articulate").id, answer: { type: "text", text: knownAnswer } });
-    await vi.advanceTimersByTimeAsync(assessmentMs);
-    await backend.settled();
-    return { assessment: backend.timeline.entries().find((entry) => entry.kind === "answer_assessment"), evidence, warnings: warn.mock.calls.flat() };
+    const articulation = card("articulate");
+    await backend.dispatch({ type: "card_answer", lessonId: articulation.lessonId, cardEntryId: articulation.id, answer: { type: "text", text: knownAnswer } });
+    await vi.advanceTimersByTimeAsync(Math.min(delays[0]!, 30_000));
+    await verify({ backend, articulation, evidence, prompts, warnings: warn.mock.calls.flat() });
   } finally {
+    await vi.advanceTimersByTimeAsync(Math.max(...delays));
     warn.mockRestore();
     vi.useRealTimers();
     await backend.stop();
@@ -173,17 +186,93 @@ async function answerWithSlowAssessment(assessmentMs: number) {
 
 test("a long Articulation whose assessment takes 15 s still records Evidence", async () => {
   // Live, a complete three-cause answer timed out at the old 10 s assessment deadline and earned nothing.
-  const { assessment, evidence, warnings } = await answerWithSlowAssessment(15_000);
-  expect(assessment).toMatchObject({ result: "correct" });
-  expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive" }]);
-  expect(warnings).toEqual([]);
+  await withTimedAssessment([15_000], async ({ backend, evidence, warnings }) => {
+    await backend.settled();
+    expect(backend.timeline.entries().find((entry) => entry.kind === "answer_assessment")).toMatchObject({ result: "correct" });
+    expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive" }]);
+    expect(warnings).toEqual([]);
+  });
 });
 
-test("an assessment past the deadline is reported, not dropped silently", async () => {
-  const { assessment, evidence, warnings } = await answerWithSlowAssessment(31_000);
-  expect(assessment).toBeUndefined();
-  expect(evidence).toEqual([]);
-  expect(warnings).toEqual([expect.stringMatching(/assessment took longer than 30 s; no Evidence recorded/)]);
+test("Articulation timeouts keep the original answer retryable and a successful retry writes Evidence once", async () => {
+  await withTimedAssessment([31_000, 31_000, 1], async ({ backend, articulation, evidence, prompts, warnings }) => {
+    const entries = () => backend.timeline.entries();
+    const answer = entries().findLast((entry) => isKind(entry, "card_answer"))!;
+    expect(answer.answer).toEqual({ type: "text", text: knownAnswer });
+    expect(entries().findLast((entry) => isKind(entry, "lesson_error"))).toMatchObject({
+      lessonId: articulation.lessonId,
+      cardEntryId: articulation.id,
+      message: "The assessment timed out.",
+    });
+    expect(currentMode(entries())).toBe("learning");
+    expect(entries().some((entry) => entry.kind === "lesson_end" || entry.kind === "answer_assessment")).toBe(false);
+    expect(evidence).toEqual([]);
+    expect(warnings).toEqual([expect.stringMatching(/assessment took longer than 30 s; no Evidence recorded/)]);
+
+    const retry = { type: "retry_answer", lessonId: articulation.lessonId, cardEntryId: articulation.id } as const;
+    const secondAttempt = backend.dispatch(retry);
+    await vi.advanceTimersByTimeAsync(31_000);
+    await secondAttempt;
+    expect(entries().filter((entry) => entry.kind === "lesson_error")).toHaveLength(2);
+    expect(entries().some((entry) => entry.kind === "lesson_end")).toBe(false);
+
+    const thirdAttempt = backend.dispatch(retry);
+    await vi.advanceTimersByTimeAsync(1);
+    await thirdAttempt;
+    await backend.settled();
+    expect(prompts).toHaveLength(3);
+    expect(prompts[1]).toBe(prompts[0]);
+    expect(prompts[2]).toBe(prompts[0]);
+    expect(entries().filter((entry) => entry.kind === "card_answer" && entry.step === "articulate")).toHaveLength(1);
+    expect(entries().filter((entry) => entry.kind === "answer_assessment")).toMatchObject([{ answerEntryId: answer.id, result: "correct" }]);
+    expect(entries().filter((entry) => entry.kind === "lesson_answer_recovered")).toHaveLength(1);
+    expect(entries().filter((entry) => entry.kind === "lesson_end")).toMatchObject([{ outcome: "completed" }]);
+    expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive" }]);
+    expect(currentMode(entries())).toBe("work");
+    await expect(backend.dispatch(retry)).rejects.toThrow("There is nothing to retry");
+  });
+});
+
+test("a model that ignores cancellation cannot postpone a retry past the assessment deadline", async () => {
+  await withTimedAssessment([45_000, 1], async ({ backend, articulation, evidence, prompts }) => {
+    const entries = () => backend.timeline.entries();
+    expect(entries().findLast((entry) => isKind(entry, "lesson_error"))).toMatchObject({
+      cardEntryId: articulation.id,
+      message: "The assessment timed out.",
+    });
+    expect(entries().some((entry) => entry.kind === "lesson_end")).toBe(false);
+
+    const retry = backend.dispatch({ type: "retry_answer", lessonId: articulation.lessonId, cardEntryId: articulation.id });
+    await vi.advanceTimersByTimeAsync(1);
+    await retry;
+    await backend.settled();
+    expect(prompts).toHaveLength(2);
+    expect(currentMode(entries())).toBe("work");
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(entries().filter((entry) => entry.kind === "answer_assessment")).toHaveLength(1);
+    expect(entries().filter((entry) => entry.kind === "lesson_end")).toMatchObject([{ outcome: "completed" }]);
+    expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive" }]);
+  }, { ignoreAbort: true });
+});
+
+test("leaving after an Articulation timeout discards the retry's late result", async () => {
+  await withTimedAssessment([31_000, 15_000], async ({ backend, articulation, evidence, prompts }) => {
+    const result = backend.dispatch({ type: "retry_answer", lessonId: articulation.lessonId, cardEntryId: articulation.id });
+    await vi.advanceTimersByTimeAsync(0);
+    await backend.dispatch({ type: "back_to_work" });
+    const modeOnExit = currentMode(backend.timeline.entries());
+    await vi.advanceTimersByTimeAsync(15_000);
+    await result;
+    await backend.settled();
+
+    const entries = backend.timeline.entries();
+    expect(modeOnExit).toBe("work");
+    expect(prompts).toHaveLength(2);
+    expect(entries.filter((entry) => entry.kind === "lesson_error")).toHaveLength(1);
+    expect(entries.filter((entry) => entry.kind === "lesson_end")).toMatchObject([{ outcome: "abandoned" }]);
+    expect(entries.some((entry) => entry.kind === "answer_assessment" || entry.kind === "lesson_answer_recovered")).toBe(false);
+    expect(evidence).toEqual([]);
+  }, { ignoreAbort: true });
 });
 
 test("a hint Lesson asks for a one-sentence Articulation, and a correct one is strong Evidence", async () => {
