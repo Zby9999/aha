@@ -1,0 +1,2445 @@
+{
+  "summary": {
+    "meta": {
+      "repeats": 3,
+      "timeoutMs": 10000,
+      "productionTimeoutMs": 1500,
+      "catalogSize": 35,
+      "cases": {
+        "detectImpasse": 24,
+        "gateEvidence": 15,
+        "selectConcepts": 12
+      }
+    },
+    "detectImpasse": {
+      "runs": 72,
+      "unavailable": 0,
+      "tp": 36,
+      "fp": 3,
+      "fn": 0,
+      "tn": 33,
+      "accuracy": 0.958,
+      "precision": 0.923,
+      "recall": 1,
+      "f1": 0.96,
+      "consistency": 1,
+      "errors": [
+        "neg/environment-not-understanding#0",
+        "neg/environment-not-understanding#1",
+        "neg/environment-not-understanding#2"
+      ],
+      "latency": {
+        "decisionsCallingJev": 72,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 1,
+        "decisionP50": 205,
+        "decisionP95": 329,
+        "decisionMax": 617,
+        "callP50": 204,
+        "callP95": 328,
+        "callMax": 615,
+        "callsOverProductionTimeout": 0,
+        "calls": 72
+      }
+    },
+    "gateEvidence": {
+      "runs": 45,
+      "unavailable": 0,
+      "writeAccuracy": 1,
+      "falseWriteRate": 0,
+      "missedWriteRate": 0,
+      "kindAccuracy": 0.889,
+      "conceptAccuracyWhenWritten": 0.778,
+      "outcomeAccuracyWhenWritten": 0.889,
+      "consistency": 1,
+      "errors": [
+        "mistake/hash-compare#0: caught_agent_mistake/debugging",
+        "judgement/try-catch-hides-401#0: fix_judgement/debugging",
+        "judgement/hardcoded-key#0: caught_agent_mistake/secret-management",
+        "mistake/hash-compare#1: caught_agent_mistake/debugging",
+        "judgement/try-catch-hides-401#1: fix_judgement/debugging",
+        "judgement/hardcoded-key#1: caught_agent_mistake/secret-management",
+        "mistake/hash-compare#2: caught_agent_mistake/debugging",
+        "judgement/try-catch-hides-401#2: fix_judgement/debugging",
+        "judgement/hardcoded-key#2: caught_agent_mistake/secret-management"
+      ],
+      "latency": {
+        "decisionsCallingJev": 45,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 2.933,
+        "decisionP50": 418,
+        "decisionP95": 488,
+        "decisionMax": 526,
+        "callP50": 202,
+        "callP95": 245,
+        "callMax": 333,
+        "callsOverProductionTimeout": 0,
+        "calls": 132
+      }
+    },
+    "selectConcepts": {
+      "runs": 36,
+      "unavailable": 0,
+      "hitRate": 0.917,
+      "precision": 0.687,
+      "emptyRate": 0.083,
+      "meanSelected": 3.194,
+      "consistency": 0.5,
+      "misses": [
+        "html-in-description#0: []",
+        "html-in-description#1: []",
+        "html-in-description#2: []"
+      ],
+      "latency": {
+        "decisionsCallingJev": 36,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 2,
+        "decisionP50": 210,
+        "decisionP95": 421,
+        "decisionMax": 452,
+        "callP50": 200,
+        "callP95": 278,
+        "callMax": 452,
+        "callsOverProductionTimeout": 0,
+        "calls": 72
+      }
+    }
+  },
+  "runs": [
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 617
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 332
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 209
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 186
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 192
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 201
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 182
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 215
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 189
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 204
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 177
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 208
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 205
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 219
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 197
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 223
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 230
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 193
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 199
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 191
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 218
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 210
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 201
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 0,
+      "expected": false,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 205
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 443
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 400
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "async-operations",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 418
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 392
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "negative",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 422
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 451
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 0,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 429
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 0,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 488
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 0,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 450
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 407
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 411
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 205
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 403
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 426
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 519
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "authentication",
+        "client-server",
+        "http-request-response"
+      ],
+      "calls": 2,
+      "latencyMs": 237
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "authentication",
+        "data-belongs-to-user",
+        "client-server",
+        "rendering-state",
+        "shared-state",
+        "database-persistence",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 187
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "rendering-state",
+        "component-state"
+      ],
+      "calls": 2,
+      "latencyMs": 205
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 196
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "dom-events",
+        "form-submission",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 214
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 230
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 219
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 231
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "database-persistence",
+        "unique-identifiers",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 217
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "cookies",
+        "authentication",
+        "client-server",
+        "shared-state",
+        "database-persistence"
+      ],
+      "calls": 2,
+      "latencyMs": 210
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 193
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "debugging",
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 195
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 185
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 193
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 190
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 189
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 197
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 193
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 192
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 210
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 210
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 177
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 207
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 189
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 205
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 195
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 214
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 192
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 190
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 214
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 184
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 206
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 196
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 1,
+      "expected": false,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 208
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 429
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 402
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "async-operations",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 388
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 412
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "negative",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 432
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 401
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 1,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 425
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 1,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 424
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 1,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 423
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 393
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 406
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 188
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 381
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 403
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 442
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "authentication",
+        "client-server",
+        "http-request-response"
+      ],
+      "calls": 2,
+      "latencyMs": 210
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "data-belongs-to-user",
+        "client-server",
+        "rendering-state",
+        "shared-state",
+        "database-persistence",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 189
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "rendering-state",
+        "component-state",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 204
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 279
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "dom-events",
+        "form-submission",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 194
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 184
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 206
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 187
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "database-persistence",
+        "unique-identifiers",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 205
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "cookies",
+        "authentication",
+        "client-server",
+        "rendering-state",
+        "shared-state",
+        "database-persistence"
+      ],
+      "calls": 2,
+      "latencyMs": 195
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 219
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "debugging",
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 216
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 223
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 206
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 205
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 217
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 207
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 238
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 329
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 364
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 282
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 194
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 269
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 215
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 196
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 206
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 186
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 221
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 203
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 204
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 214
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 259
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 2,
+      "expected": false,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 243
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 526
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 414
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "async-operations",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 477
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 409
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "negative",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 418
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 428
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 2,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "debugging",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 439
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 2,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 415
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 2,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 427
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 431
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 408
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 213
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 424
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 391
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 458
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "authentication",
+        "client-server",
+        "http-request-response"
+      ],
+      "calls": 2,
+      "latencyMs": 233
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "authentication",
+        "data-belongs-to-user",
+        "client-server",
+        "rendering-state",
+        "shared-state",
+        "database-persistence",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 216
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "rendering-state",
+        "component-state",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 227
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 452
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "dom-events",
+        "form-submission",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 368
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "secret-management",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 421
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "authentication",
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 250
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 193
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "database-persistence",
+        "unique-identifiers",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 252
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "cookies",
+        "authentication",
+        "client-server",
+        "shared-state",
+        "database-persistence",
+        "debugging"
+      ],
+      "calls": 2,
+      "latencyMs": 196
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 224
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables",
+        "debugging",
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 266
+    }
+  ]
+}
