@@ -1,0 +1,2834 @@
+{
+  "summary": {
+    "meta": {
+      "repeats": 3,
+      "timeoutMs": 10000,
+      "productionTimeoutMs": 1500,
+      "catalogSize": 35,
+      "cases": {
+        "detectImpasse": 25,
+        "gateEvidence": 15,
+        "selectConcepts": 21
+      }
+    },
+    "detectImpasse": {
+      "runs": 75,
+      "unavailable": 0,
+      "tp": 36,
+      "fp": 0,
+      "fn": 0,
+      "tn": 39,
+      "accuracy": 1,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "consistency": 1,
+      "errors": [],
+      "latency": {
+        "decisionsCallingJev": 75,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 1,
+        "decisionP50": 192,
+        "decisionP95": 301,
+        "decisionMax": 408,
+        "callP50": 191,
+        "callP95": 300,
+        "callMax": 406,
+        "callsOverProductionTimeout": 0,
+        "calls": 75
+      }
+    },
+    "gateEvidence": {
+      "runs": 45,
+      "unavailable": 0,
+      "writeAccuracy": 1,
+      "falseWriteRate": 0,
+      "missedWriteRate": 0,
+      "kindAccuracy": 0.889,
+      "conceptAccuracyWhenWritten": 1,
+      "outcomeAccuracyWhenWritten": 1,
+      "consistency": 1,
+      "errors": [
+        "judgement/hardcoded-key#0: caught_agent_mistake/secret-management",
+        "judgement/hardcoded-key#1: caught_agent_mistake/secret-management",
+        "judgement/hardcoded-key#2: caught_agent_mistake/secret-management"
+      ],
+      "latency": {
+        "decisionsCallingJev": 45,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 2.933,
+        "decisionP50": 412,
+        "decisionP95": 539,
+        "decisionMax": 635,
+        "callP50": 199,
+        "callP95": 275,
+        "callMax": 389,
+        "callsOverProductionTimeout": 0,
+        "calls": 132
+      }
+    },
+    "selectConcepts": {
+      "runs": 63,
+      "unavailable": 0,
+      "fitRuns": 45,
+      "noFitRuns": 18,
+      "hitRate": 0.978,
+      "precision": 0.932,
+      "emptyRateWhenFit": 0,
+      "meanSelectedWhenFit": 1.644,
+      "falseSelectionWhenNoFit": 0,
+      "heldOut": {
+        "hitRate": 1,
+        "falseSelectionWhenNoFit": 0
+      },
+      "consistency": 0.762,
+      "misses": [
+        "add-reloads-page#0: [page-reload-resets-state, dom-events]"
+      ],
+      "latency": {
+        "decisionsCallingJev": 63,
+        "decisionsShortCircuited": 0,
+        "meanCallsPerDecision": 2,
+        "decisionP50": 209,
+        "decisionP95": 269,
+        "decisionMax": 329,
+        "callP50": 199,
+        "callP95": 258,
+        "callMax": 322,
+        "callsOverProductionTimeout": 0,
+        "calls": 126
+      }
+    }
+  },
+  "runs": [
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 408
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 258
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 192
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 203
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 284
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 314
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 178
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 208
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 255
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 0,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 187
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 183
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 186
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 178
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 178
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 207
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 187
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 285
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 183
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 177
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 223
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 203
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 191
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "session-tokens",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 444
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 417
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 0,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "promises",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 465
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "password-hashing",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 538
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 421
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 0,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 398
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 0,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "request-headers",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 475
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 0,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 485
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 0,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 473
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 398
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 539
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 296
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 404
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 404
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 0,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 488
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "client-server"
+      ],
+      "calls": 2,
+      "latencyMs": 222
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "data-belongs-to-user",
+        "database-persistence"
+      ],
+      "calls": 2,
+      "latencyMs": 233
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "rendering-state"
+      ],
+      "calls": 2,
+      "latencyMs": 212
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 230
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "page-reload-resets-state",
+        "dom-events"
+      ],
+      "calls": 2,
+      "latencyMs": 216
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables"
+      ],
+      "calls": 2,
+      "latencyMs": 229
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 216
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [
+        "output-escaping"
+      ],
+      "calls": 2,
+      "latencyMs": 256
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "unique-identifiers"
+      ],
+      "calls": 2,
+      "latencyMs": 269
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "client-server"
+      ],
+      "calls": 2,
+      "latencyMs": 220
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 204
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 220
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 259
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 199
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 310
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 229
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 224
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "error-handling",
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 226
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 212
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 204
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 194
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 185
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 182
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 185
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 254
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 183
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 177
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 180
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 200
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 189
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 180
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 217
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 1,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 207
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 189
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 183
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 190
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 182
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 221
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 186
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 241
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 185
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 218
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 185
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 198
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 176
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "session-tokens",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 410
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 391
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 1,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "promises",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 366
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "password-hashing",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 395
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 414
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 1,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 422
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 1,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "request-headers",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 462
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 1,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 414
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 1,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 420
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 402
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 366
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 182
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 421
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 419
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 1,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 412
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "client-server"
+      ],
+      "calls": 2,
+      "latencyMs": 205
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "data-belongs-to-user",
+        "database-persistence"
+      ],
+      "calls": 2,
+      "latencyMs": 250
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "rendering-state"
+      ],
+      "calls": 2,
+      "latencyMs": 234
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 211
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "dom-events",
+        "form-submission"
+      ],
+      "calls": 2,
+      "latencyMs": 208
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables"
+      ],
+      "calls": 2,
+      "latencyMs": 192
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 240
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [
+        "output-escaping"
+      ],
+      "calls": 2,
+      "latencyMs": 202
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "database-persistence",
+        "unique-identifiers"
+      ],
+      "calls": 2,
+      "latencyMs": 204
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "authentication"
+      ],
+      "calls": 2,
+      "latencyMs": 191
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 197
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 210
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 191
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 218
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 329
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 206
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 198
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 218
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 191
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 192
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 213
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-paraphrase",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 197
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-zh",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 193
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/refresh-logout-mixed-language",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 197
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/fetch-undefined",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 195
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/cards-stack",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 177
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/env-undefined",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 181
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/repeated-401-errors",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 198
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/form-reload-with-unrelated-turn-between",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 284
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/plaintext-passwords",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 204
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/json-parse",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 210
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/401-vs-403",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 176
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "pos/delete-removes-two",
+      "repeat": 2,
+      "expected": true,
+      "actual": true,
+      "calls": 1,
+      "latencyMs": 222
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 184
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/resolved",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 180
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-errors",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 192
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/repeated-routine-request",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 206
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/prompt-injection",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 326
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/follow-up-progress",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 267
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/fixed-report",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 274
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/praise",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 194
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/same-topic-different-gap",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 268
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/different-gaps-zh",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 301
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/unrelated-404",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 183
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/environment-not-understanding",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 204
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "session-tokens",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 449
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/token-localstorage-zh",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "session-tokens",
+          "browser-storage",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "browser-storage",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 379
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "fix/render-after-fetch",
+      "repeat": 2,
+      "expected": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concepts": [
+          "async-operations",
+          "promises",
+          "rendering-state"
+        ]
+      },
+      "actual": {
+        "kind": "independent_fix",
+        "outcome": "positive",
+        "concept": "promises",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 384
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/hash-compare",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "password-hashing",
+          "authentication"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "password-hashing",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 381
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/server-validation",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "input-validation",
+          "client-server"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "input-validation",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 635
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "mistake/innerhtml",
+      "repeat": 2,
+      "expected": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concepts": [
+          "output-escaping"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "output-escaping",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 544
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/try-catch-hides-401",
+      "repeat": 2,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "request-headers",
+          "session-tokens",
+          "error-handling",
+          "http-status-codes"
+        ]
+      },
+      "actual": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concept": "request-headers",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 384
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "judgement/hardcoded-key",
+      "repeat": 2,
+      "expected": {
+        "kind": "fix_judgement",
+        "outcome": "positive",
+        "concepts": [
+          "secret-management",
+          "environment-variables"
+        ]
+      },
+      "actual": {
+        "kind": "caught_agent_mistake",
+        "outcome": "positive",
+        "concept": "secret-management",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 376
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "gap/form-reload-again",
+      "repeat": 2,
+      "expected": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concepts": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": {
+        "kind": "repeated_gap",
+        "outcome": "negative",
+        "concept": "page-reload-resets-state",
+        "count": 1
+      },
+      "calls": 3,
+      "latencyMs": 412
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/self-report",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 381
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/routine",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 411
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/thanks",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 2,
+      "latencyMs": 197
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/agent-success",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 390
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/plain-question",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 420
+    },
+    {
+      "fn": "gateEvidence",
+      "case": "none/prompt-injection",
+      "repeat": 2,
+      "expected": {
+        "kind": "none"
+      },
+      "actual": {
+        "kind": "none",
+        "count": 0
+      },
+      "calls": 3,
+      "latencyMs": 446
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "token-every-request",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "session-tokens"
+        ],
+        "allowed": [
+          "session-tokens",
+          "client-server",
+          "http-request-response",
+          "request-headers",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "client-server"
+      ],
+      "calls": 2,
+      "latencyMs": 197
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "projects-gone-after-relogin",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "data-belongs-to-user"
+        ],
+        "allowed": [
+          "data-belongs-to-user",
+          "shared-state",
+          "data-modeling",
+          "database-persistence",
+          "session-tokens",
+          "authentication"
+        ]
+      },
+      "actual": [
+        "data-belongs-to-user",
+        "database-persistence"
+      ],
+      "calls": 2,
+      "latencyMs": 207
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "render-before-fetch",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "async-operations",
+          "promises"
+        ],
+        "allowed": [
+          "async-operations",
+          "promises",
+          "rendering-state",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "component-state"
+      ],
+      "calls": 2,
+      "latencyMs": 202
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "hash-passwords",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "password-hashing"
+        ],
+        "allowed": [
+          "password-hashing",
+          "authentication",
+          "secret-management",
+          "database-persistence"
+        ]
+      },
+      "actual": [
+        "password-hashing"
+      ],
+      "calls": 2,
+      "latencyMs": 201
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "add-reloads-page",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "form-submission"
+        ],
+        "allowed": [
+          "form-submission",
+          "dom-events",
+          "page-reload-resets-state"
+        ]
+      },
+      "actual": [
+        "dom-events",
+        "form-submission"
+      ],
+      "calls": 2,
+      "latencyMs": 208
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "env-undefined",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "environment-variables"
+        ],
+        "allowed": [
+          "environment-variables",
+          "secret-management",
+          "debugging"
+        ]
+      },
+      "actual": [
+        "client-server",
+        "environment-variables"
+      ],
+      "calls": 2,
+      "latencyMs": 225
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "401-vs-403",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "http-status-codes"
+        ],
+        "allowed": [
+          "http-status-codes",
+          "authentication",
+          "authorization"
+        ]
+      },
+      "actual": [
+        "http-status-codes"
+      ],
+      "calls": 2,
+      "latencyMs": 200
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "html-in-description",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "output-escaping"
+        ],
+        "allowed": [
+          "output-escaping",
+          "rendering-state",
+          "input-validation"
+        ]
+      },
+      "actual": [
+        "output-escaping"
+      ],
+      "calls": 2,
+      "latencyMs": 189
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "duplicate-ids",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "unique-identifiers"
+        ],
+        "allowed": [
+          "unique-identifiers",
+          "database-persistence",
+          "data-modeling"
+        ]
+      },
+      "actual": [
+        "database-persistence",
+        "unique-identifiers"
+      ],
+      "calls": 2,
+      "latencyMs": 200
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "refresh-logout-zh",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage"
+        ],
+        "allowed": [
+          "page-reload-resets-state",
+          "session-tokens",
+          "browser-storage",
+          "client-server",
+          "authentication",
+          "cookies"
+        ]
+      },
+      "actual": [
+        "session-tokens",
+        "authentication"
+      ],
+      "calls": 2,
+      "latencyMs": 235
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "commit-env-file",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "secret-management"
+        ],
+        "allowed": [
+          "secret-management",
+          "version-control",
+          "environment-variables"
+        ]
+      },
+      "actual": [
+        "secret-management"
+      ],
+      "calls": 2,
+      "latencyMs": 202
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "test-fails-on-ci",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging"
+        ],
+        "allowed": [
+          "tests",
+          "environment-variables",
+          "deployment",
+          "debugging",
+          "dependencies"
+        ]
+      },
+      "actual": [
+        "deployment"
+      ],
+      "calls": 2,
+      "latencyMs": 209
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 194
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 195
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 220
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 222
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 197
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "error-handling",
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 192
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 200
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 206
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 287
+    }
+  ]
+}
