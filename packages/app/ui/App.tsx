@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { composerPlaceholder, conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -135,7 +135,7 @@ export function App() {
                 formRef.current?.requestSubmit();
               }
             }}
-            placeholder={learning ? "Ask a follow-up about this Lesson…" : asking ? "What do you want to understand?" : "Message your agent…"}
+            placeholder={composerPlaceholder(session, asking)}
             aria-label="Message"
             className="p-3"
           />

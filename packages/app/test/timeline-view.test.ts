@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
+import { composerPlaceholder, conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -110,4 +110,18 @@ test("a failed answer offers Retry until teaching moves the Lesson on", () => {
   expect(sessionView(t.entries()).canRetry(error)).toBe(true);
   t.append({ kind: "lesson_answer_recovered", source: "app", lessonId: "l1", cardEntryId: probe.id });
   expect(sessionView(t.entries()).canRetry(error)).toBe(false);
+});
+
+test("the composer says what a message will do in each Mode", () => {
+  const t = createTimeline({ sessionId: "s" });
+  expect(composerPlaceholder(sessionView(t.entries()), false)).toBe("Message your agent…");
+  expect(composerPlaceholder(sessionView(t.entries()), true)).toBe("What do you want to understand?");
+  const impasse = { id: "impasse-1", trigger: "why" as const, title: "Why: the change to server.js", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "impasse-1" });
+  // Live, Enter did nothing while the Lesson was starting, and nothing said why.
+  expect(composerPlaceholder(sessionView(t.entries()), false)).toMatch(/Preparing the Lesson/);
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "lesson-1", impasseId: "impasse-1" });
+  // A work request typed here becomes a Lesson question; say that the agent does not get it.
+  expect(composerPlaceholder(sessionView(t.entries()), false)).toMatch(/Back to work/);
 });

@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { createBackend } from "@aha/app";
 import { isKind, type AhaModules, type BackgroundRunRequest, type Concept, type Evidence } from "@aha/contracts";
 import { DEMO_CONCEPTS } from "@aha/contracts/fixtures";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { buildModules } from "../src/modules.ts";
 
 const projectDir = join(import.meta.dirname, "../../../examples/portfolio");
@@ -101,4 +101,69 @@ test.each(scenarios)("generated Articulation with $label evaluation completes an
   } finally {
     await backend.stop();
   }
+});
+
+async function answerWithSlowAssessment(assessmentMs: number) {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  const base = buildModules({ agentHost: "stub", background: "real", decisions: "stub", learnerModel: "stub", teaching: "real" });
+  let calls = 0;
+  const evidence: Evidence[] = [];
+  const modules: AhaModules = {
+    ...base,
+    background: { async run({ signal }) {
+      calls += 1;
+      const draft = [
+        { question: "What happens to the token on refresh?", citations },
+        { component: "TextExplanation", props: { title: "Refresh creates a token", text: "The new token has no session.", citations } },
+        result("correct", "the server has no session for it"),
+      ][calls - 1];
+      if (calls === 3) {
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(resolve, assessmentMs);
+          signal?.addEventListener("abort", () => { clearTimeout(timer); reject(signal.reason); });
+        });
+      }
+      return { text: JSON.stringify(draft), filesWritten: [] };
+    } },
+    decisions: { ...base.decisions, async selectConcepts() { return [token.id]; } },
+    learnerModel(options) {
+      return {
+        ...base.learnerModel(options),
+        async readConcepts(ids) { return ids.includes(token.id) ? [token] : []; },
+        async appendEvidence(entry) { evidence.push(entry); },
+      };
+    },
+  };
+  const backend = await createBackend({ projectDir, sessionId: "slow-assessment", modules });
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    await backend.dispatch({ type: "ask_why", text: "Why does public/app.js get logged out on refresh?" });
+    await backend.settled();
+    const card = (step: "probe" | "articulate") => backend.timeline.entries().filter((value) => isKind(value, "lesson_card")).find((value) => value.step === step)!;
+    await backend.dispatch({ type: "card_answer", lessonId: card("probe").lessonId, cardEntryId: card("probe").id, answer: { type: "text", text: "It keeps the same token." } });
+    await backend.settled();
+    await backend.dispatch({ type: "card_answer", lessonId: card("articulate").lessonId, cardEntryId: card("articulate").id, answer: { type: "text", text: knownAnswer } });
+    await vi.advanceTimersByTimeAsync(assessmentMs);
+    await backend.settled();
+    return { assessment: backend.timeline.entries().find((entry) => entry.kind === "answer_assessment"), evidence, warnings: warn.mock.calls.flat() };
+  } finally {
+    warn.mockRestore();
+    vi.useRealTimers();
+    await backend.stop();
+  }
+}
+
+test("a long Articulation whose assessment takes 15 s still records Evidence", async () => {
+  // Live, a complete three-cause answer timed out at the old 10 s assessment deadline and earned nothing.
+  const { assessment, evidence, warnings } = await answerWithSlowAssessment(15_000);
+  expect(assessment).toMatchObject({ result: "correct" });
+  expect(evidence).toMatchObject([{ conceptId: token.id, type: "articulation", outcome: "positive" }]);
+  expect(warnings).toEqual([]);
+});
+
+test("an assessment past the deadline is reported, not dropped silently", async () => {
+  const { assessment, evidence, warnings } = await answerWithSlowAssessment(31_000);
+  expect(assessment).toBeUndefined();
+  expect(evidence).toEqual([]);
+  expect(warnings).toEqual([expect.stringMatching(/assessment took longer than 30 s; no Evidence recorded/)]);
 });
