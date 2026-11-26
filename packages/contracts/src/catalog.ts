@@ -91,9 +91,11 @@ export const dataFlowDiagramSchema = z.object({
   return ids.size === nodes.length && endpoints.size === ids.size && [...endpoints].every((id) => ids.has(id));
 }, { path: ["edges"], message: "Connections must reference every node by a unique node ID." });
 
-/** Counts sentences in English and in CJK text, for limits such as `background`'s two sentences. */
+const sentenceSegmenter = new Intl.Segmenter("en", { granularity: "sentence" });
+
+/** Counts sentences in English and in CJK text, without splitting words or decimals at internal periods. */
 export function sentenceCount(text: string): number {
-  return text.split(/(?<=[.!?。！？])\s*/).filter((part) => part.trim()).length;
+  return Array.from(sentenceSegmenter.segment(text)).filter(({ segment }) => segment.trim()).length;
 }
 
 export const textExplanationSchema = z.object({
