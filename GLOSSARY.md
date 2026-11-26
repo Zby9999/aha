@@ -13,7 +13,7 @@ A light, skippable suggestion to start a lesson at an impasse the system detecte
 _Avoid_: prompt, interruption, popup
 
 **Lesson**:
-The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence.
+The short sequence that follows an accepted impasse: Probe, Explain, Articulate, then back to work. Only one Lesson runs at a time, in learning mode; the user's messages during it are follow-up questions inside it, and Back to work leaves it early without evidence. A Lesson covers at most two causes, root cause first, and names any other one for a later Ask why. When the Articulation is wrong or unclear, the Lesson shows a feedback card and stays open for questions; Back to work then completes it.
 _Avoid_: tutorial, teaching session
 
 **Mode**:
@@ -25,7 +25,7 @@ The prediction or choice the user makes before an explanation, which exposes the
 _Avoid_: quiz, test
 
 **Articulation**:
-The user's own restatement of the idea, or their judgment of whether the agent's fix addresses the cause.
+The user's own restatement of the idea, or their judgment of whether the agent's fix addresses the cause. Its assessment can credit up to two Concepts, each backed by its own quote from the answer, and each becomes one piece of evidence.
 _Avoid_: summary, reflection
 
 ## Learner model
@@ -43,7 +43,7 @@ An observed behavior that says something about the user's understanding of a con
 _Avoid_: signal, score
 
 **Mastery Level**:
-One of five ordered states of a concept: not encountered, seen an explanation, correct with hints, explains independently, catches the agent's mistakes.
+One of five ordered states of a concept: not encountered, seen an explanation, correct with hints, explains independently, catches the agent's mistakes. Dreaming sets it from evidence alone and never lowers it. A wrong Probe or Articulation answer in a Lesson reaches seen an explanation. One piece of evidence reaches at most correct with hints; each of the top two levels needs two positive pieces, one of the matching kind. The matching kind for explains independently is an independent fix or a strong Articulation, such as a correct one-sentence Articulation in a hint Lesson.
 _Avoid_: score, proficiency
 
 **Learner Context**:
@@ -57,7 +57,7 @@ _Avoid_: memory sync, summarization
 ## Work
 
 **Grounding**:
-An explanation is grounded when it cites real files in the user's project or the agent's latest change. Every explanation must pass the grounding check.
+An explanation is grounded when it cites real files in the user's project or the agent's latest change. Every explanation must pass the grounding check. The one exception is an answer to the learner's own question (Ask why or a follow-up), which may add up to two sentences of general background, labelled as not from the project; the rest of the card still cites the code.
 _Avoid_: relevance, accuracy
 
 **Timeline**:

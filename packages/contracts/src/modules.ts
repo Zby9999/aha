@@ -224,7 +224,10 @@ export interface Teaching {
   answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
   /** Answer a follow-up question asked in learning mode, inside the same Lesson (e.g. an `explain` lesson_card). */
   followUp(input: { lessonId: string; question: string; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
-  /** Back to work without Evidence. */
+  /**
+   * Back to work. Ends a Lesson still in progress as abandoned, without Evidence. A Lesson waiting for questions after
+   * Articulation feedback has done every step, so it ends completed.
+   */
   abandon(lessonId: string): Promise<NewTimelineEntry[]>;
 }
 

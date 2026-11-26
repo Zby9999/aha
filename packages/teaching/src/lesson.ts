@@ -12,8 +12,13 @@ type RunningLesson = {
   portfolio: boolean;
   format: ReturnType<typeof lessonFormat>;
   controller: AbortController;
-  step: "probe" | "articulate";
-  generated?: { input: LessonInput; sources: LessonSources; question: string; answer?: string; articulation?: { question: string; citations: Citation[]; explanation?: CardSpec } };
+  /** "feedback": the Articulation was wrong or unclear and got feedback; the Lesson stays open for questions until Back to work. */
+  step: "probe" | "articulate" | "feedback";
+  generated?: {
+    input: LessonInput; sources: LessonSources; question: string; answer?: string;
+    articulation?: { question: string; citations: Citation[]; explanation?: CardSpec };
+    feedback?: { answer: string; feedback: string };
+  };
 };
 
 const predictions = [
@@ -150,12 +155,24 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
             return [start, makeCard(id, "articulate", card("ArticulationCard", { lessonId: id, prompt: question, mode: "restate", citations: [anchor] }))];
           }
           const related = anchor ?? relevantCitation(input, sources, false);
-          const explanation = generator
-            ? (await generator.explain(input, sources, format === "hint"
-              ? { hint: true }
-              : { directQuestion: input.impasse.text ?? input.impasse.title }, lesson.controller.signal)).card
-            : fixtureShortcut(portfolio, format === "hint", sources, related);
-          return complete(lesson, [start, makeCard(id, "explain", explanation)]);
+          if (!generator) return complete(lesson, [start, makeCard(id, "explain", fixtureShortcut(portfolio, format === "hint", sources, related))]);
+          // A question the learner asked is always answered; mastery only makes the answer shorter. The hint that leaves
+          // the conclusion to the learner is for a Why? on an agent change (live, "why a salt?" got a hint and no answer).
+          const hint = format === "hint" && input.impasse.trigger !== "ask_why";
+          const explanation = await generator.explain(input, sources, hint
+            ? { hint: true }
+            : { directQuestion: input.impasse.text ?? input.impasse.title }, lesson.controller.signal);
+          if (format !== "hint") return complete(lesson, [start, makeCard(id, "explain", explanation.card)]);
+          if (active !== lesson) return [];
+          // A hint Lesson used to record nothing, so Lessons alone could never lift a Concept past correct_with_hints.
+          const prompt = "In one sentence, what causes this behavior?";
+          lesson.step = "articulate";
+          lesson.generated = { input, sources, question: prompt, articulation: { question: prompt, citations: explanation.citations, explanation: explanation.card } };
+          return [
+            start,
+            makeCard(id, "explain", explanation.card),
+            makeCard(id, "articulate", card("ArticulationCard", { lessonId: id, prompt, mode: "restate", citations: explanation.citations })),
+          ];
         }
         if (generator && sources) {
           probe = await generator.probe(input, sources, id, lesson.controller.signal);
@@ -242,7 +259,17 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
         const graded = await generator.assess(input, sources, {
           ...articulation, answer: submitted.answer.text, concepts: relevantConcepts(input.impasse, input.learner),
         }, lesson.controller.signal);
-        return complete(lesson, graded ? [assess(lesson, submitted, graded.result, [graded.conceptId])] : []);
+        if (active !== lesson) return [];
+        const assessment = graded && graded.result !== "unclear" ? [assess(lesson, submitted, graded.result, graded.conceptIds)] : [];
+        if (!graded?.feedback) return complete(lesson, assessment);
+        // Live, a wrong or confused Articulation ended the Lesson with only "Completed". Correct it and stay for questions.
+        lesson.step = "feedback";
+        lesson.generated.feedback = { answer: submitted.answer.text.slice(0, 1500), feedback: graded.feedback.text };
+        return [...assessment, makeCard(lessonId, "explain", card("TextExplanation", {
+          title: graded.result === "incorrect" ? "Not quite" : "Let's make it clearer",
+          text: graded.feedback.text,
+          citations: graded.feedback.citations,
+        }))];
       }
       const assessment = lesson.portfolio && lesson.format !== "review" && submitted.answer.type === "fix_judgement"
         ? [assess(lesson, submitted, submitted.answer.addressesCause === fixFeedback.addressesCause ? "correct" : "incorrect", [DEMO_CONCEPTS.sessionToken])]
@@ -253,8 +280,11 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       const lesson = active;
       if (lesson?.id !== lessonId) return [];
       if (generator && lesson.generated) {
-        const { input, sources, question: probe, answer } = lesson.generated;
-        const explanation = await generator.explain(input, sources, { probe, ...(answer ? { answer } : {}), followUp: question.slice(0, 1500) }, lesson.controller.signal);
+        const { input, sources, question: probe, answer, feedback } = lesson.generated;
+        const predictionPending = lesson.step === "probe" ? { predictionPending: true as const } : {};
+        const explanation = await generator.explain(input, sources, {
+          probe, ...(answer ? { answer } : {}), ...predictionPending, ...(feedback ? { articulation: feedback } : {}), followUp: question.slice(0, 1500),
+        }, lesson.controller.signal);
         return active === lesson ? [makeCard(lessonId, "explain", explanation.card)] : [];
       }
       const aboutToken = lesson.portfolio && /token|session|refresh|401/i.test(question);
@@ -268,9 +298,11 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
     },
     async abandon(lessonId) {
       if (active?.id !== lessonId) return [];
+      // After feedback every step is done, so Back to work completes the Lesson and its assessment becomes Evidence.
+      const outcome = active.step === "feedback" ? "completed" : "abandoned";
       active.controller.abort();
       active = undefined;
-      return [{ kind: "lesson_end", source: "teaching", lessonId, outcome: "abandoned" }];
+      return [{ kind: "lesson_end", source: "teaching", lessonId, outcome }];
     },
   };
 }
