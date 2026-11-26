@@ -104,7 +104,12 @@ const gateWritten = gatePositive.filter((row) => row.actual.kind !== "none");
 
 const select = of("selectConcepts");
 const selectValid = select.filter((row) => row.actual !== null);
-const selected = selectValid.flatMap((row) => row.actual.map((id: string) => row.expected.allowed.includes(id)));
+const selectFit = selectValid.filter((row) => row.expected.expect.length > 0);
+const selectNoFit = selectValid.filter((row) => row.expected.expect.length === 0);
+const selected = selectFit.flatMap((row) => row.actual.map((id: string) => row.expected.allowed.includes(id)));
+const hits = (rows: any[]) => rows.filter((row) => row.actual.some((id: string) => row.expected.expect.includes(id))).length;
+const heldOut = selectFit.filter((row) => row.case.startsWith("heldout/"));
+const heldOutNoFit = selectNoFit.filter((row) => row.case.startsWith("heldout/"));
 
 const summary = {
   meta: { repeats, timeoutMs, productionTimeoutMs: PRODUCTION_TIMEOUT_MS, catalogSize: SEED_CATALOG.length,
@@ -133,12 +138,17 @@ const summary = {
   },
   selectConcepts: {
     runs: select.length, unavailable: select.length - selectValid.length,
-    hitRate: ratio(selectValid.filter((row) => row.actual.some((id: string) => row.expected.expect.includes(id))).length, selectValid.length),
+    fitRuns: selectFit.length, noFitRuns: selectNoFit.length,
+    hitRate: ratio(hits(selectFit), selectFit.length),
     precision: ratio(selected.filter(Boolean).length, selected.length),
-    emptyRate: ratio(selectValid.filter((row) => row.actual.length === 0).length, selectValid.length),
-    meanSelected: ratio(selected.length, selectValid.length),
+    emptyRateWhenFit: ratio(selectFit.filter((row) => row.actual.length === 0).length, selectFit.length),
+    meanSelectedWhenFit: ratio(selected.length, selectFit.length),
+    falseSelectionWhenNoFit: ratio(selectNoFit.filter((row) => row.actual.length > 0).length, selectNoFit.length),
+    heldOut: { hitRate: ratio(hits(heldOut), heldOut.length),
+      falseSelectionWhenNoFit: ratio(heldOutNoFit.filter((row) => row.actual.length > 0).length, heldOutNoFit.length) },
     consistency: consistency(select, (row) => JSON.stringify([...(row.actual ?? [])].sort())),
-    misses: selectValid.filter((row) => !row.actual.some((id: string) => row.expected.expect.includes(id)))
+    misses: selectValid.filter((row) => row.expected.expect.length
+      ? !row.actual.some((id: string) => row.expected.expect.includes(id)) : row.actual.length > 0)
       .map((row) => `${row.case}#${row.repeat}: [${row.actual.join(", ")}]`),
     latency: latency("selectConcepts"),
   },

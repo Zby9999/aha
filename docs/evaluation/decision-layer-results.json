@@ -6,40 +6,36 @@
       "productionTimeoutMs": 1500,
       "catalogSize": 35,
       "cases": {
-        "detectImpasse": 24,
+        "detectImpasse": 25,
         "gateEvidence": 15,
-        "selectConcepts": 12
+        "selectConcepts": 21
       }
     },
     "detectImpasse": {
-      "runs": 72,
+      "runs": 75,
       "unavailable": 0,
       "tp": 36,
-      "fp": 3,
+      "fp": 0,
       "fn": 0,
-      "tn": 33,
-      "accuracy": 0.958,
-      "precision": 0.923,
+      "tn": 39,
+      "accuracy": 1,
+      "precision": 1,
       "recall": 1,
-      "f1": 0.96,
+      "f1": 1,
       "consistency": 1,
-      "errors": [
-        "neg/environment-not-understanding#0",
-        "neg/environment-not-understanding#1",
-        "neg/environment-not-understanding#2"
-      ],
+      "errors": [],
       "latency": {
-        "decisionsCallingJev": 72,
+        "decisionsCallingJev": 75,
         "decisionsShortCircuited": 0,
         "meanCallsPerDecision": 1,
-        "decisionP50": 184,
-        "decisionP95": 208,
-        "decisionMax": 327,
-        "callP50": 184,
-        "callP95": 207,
-        "callMax": 325,
+        "decisionP50": 192,
+        "decisionP95": 301,
+        "decisionMax": 408,
+        "callP50": 191,
+        "callP95": 300,
+        "callMax": 406,
         "callsOverProductionTimeout": 0,
-        "calls": 72
+        "calls": 75
       }
     },
     "gateEvidence": {
@@ -61,40 +57,46 @@
         "decisionsCallingJev": 45,
         "decisionsShortCircuited": 0,
         "meanCallsPerDecision": 2.933,
-        "decisionP50": 384,
-        "decisionP95": 445,
-        "decisionMax": 481,
-        "callP50": 186,
-        "callP95": 223,
-        "callMax": 297,
+        "decisionP50": 412,
+        "decisionP95": 539,
+        "decisionMax": 635,
+        "callP50": 199,
+        "callP95": 275,
+        "callMax": 389,
         "callsOverProductionTimeout": 0,
         "calls": 132
       }
     },
     "selectConcepts": {
-      "runs": 36,
+      "runs": 63,
       "unavailable": 0,
-      "hitRate": 0.944,
-      "precision": 0.73,
-      "emptyRate": 0.056,
-      "meanSelected": 2.472,
-      "consistency": 0.75,
+      "fitRuns": 45,
+      "noFitRuns": 18,
+      "hitRate": 0.978,
+      "precision": 0.932,
+      "emptyRateWhenFit": 0,
+      "meanSelectedWhenFit": 1.644,
+      "falseSelectionWhenNoFit": 0,
+      "heldOut": {
+        "hitRate": 1,
+        "falseSelectionWhenNoFit": 0
+      },
+      "consistency": 0.762,
       "misses": [
-        "html-in-description#0: []",
-        "html-in-description#2: []"
+        "add-reloads-page#0: [page-reload-resets-state, dom-events]"
       ],
       "latency": {
-        "decisionsCallingJev": 36,
+        "decisionsCallingJev": 63,
         "decisionsShortCircuited": 0,
         "meanCallsPerDecision": 2,
-        "decisionP50": 208,
-        "decisionP95": 279,
-        "decisionMax": 522,
-        "callP50": 195,
-        "callP95": 240,
-        "callMax": 520,
+        "decisionP50": 209,
+        "decisionP95": 269,
+        "decisionMax": 329,
+        "callP50": 199,
+        "callP95": 258,
+        "callMax": 322,
         "callsOverProductionTimeout": 0,
-        "calls": 72
+        "calls": 126
       }
     }
   },
@@ -106,7 +108,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 327
+      "latencyMs": 408
     },
     {
       "fn": "detectImpasse",
@@ -115,7 +117,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 195
+      "latencyMs": 258
     },
     {
       "fn": "detectImpasse",
@@ -124,7 +126,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 177
+      "latencyMs": 192
     },
     {
       "fn": "detectImpasse",
@@ -133,7 +135,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 193
+      "latencyMs": 203
     },
     {
       "fn": "detectImpasse",
@@ -142,7 +144,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 180
+      "latencyMs": 200
     },
     {
       "fn": "detectImpasse",
@@ -151,7 +153,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 194
+      "latencyMs": 188
     },
     {
       "fn": "detectImpasse",
@@ -160,7 +162,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 284
     },
     {
       "fn": "detectImpasse",
@@ -169,7 +171,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 179
+      "latencyMs": 314
     },
     {
       "fn": "detectImpasse",
@@ -178,7 +180,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 175
+      "latencyMs": 178
     },
     {
       "fn": "detectImpasse",
@@ -187,7 +189,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 208
     },
     {
       "fn": "detectImpasse",
@@ -196,7 +198,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 173
+      "latencyMs": 255
     },
     {
       "fn": "detectImpasse",
@@ -205,7 +207,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 181
+      "latencyMs": 187
     },
     {
       "fn": "detectImpasse",
@@ -214,7 +216,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 199
+      "latencyMs": 183
     },
     {
       "fn": "detectImpasse",
@@ -223,7 +225,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 192
+      "latencyMs": 186
     },
     {
       "fn": "detectImpasse",
@@ -232,7 +234,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 195
+      "latencyMs": 188
     },
     {
       "fn": "detectImpasse",
@@ -241,7 +243,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 178
     },
     {
       "fn": "detectImpasse",
@@ -250,7 +252,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 191
+      "latencyMs": 178
     },
     {
       "fn": "detectImpasse",
@@ -259,7 +261,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 194
+      "latencyMs": 207
     },
     {
       "fn": "detectImpasse",
@@ -268,7 +270,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 202
+      "latencyMs": 187
     },
     {
       "fn": "detectImpasse",
@@ -277,7 +279,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 192
+      "latencyMs": 285
     },
     {
       "fn": "detectImpasse",
@@ -286,7 +288,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 208
+      "latencyMs": 183
     },
     {
       "fn": "detectImpasse",
@@ -295,7 +297,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 210
+      "latencyMs": 177
     },
     {
       "fn": "detectImpasse",
@@ -304,16 +306,25 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 184
+      "latencyMs": 223
     },
     {
       "fn": "detectImpasse",
       "case": "neg/environment-not-understanding",
       "repeat": 0,
       "expected": false,
-      "actual": true,
+      "actual": false,
       "calls": 1,
-      "latencyMs": 176
+      "latencyMs": 203
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 0,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 191
     },
     {
       "fn": "gateEvidence",
@@ -335,7 +346,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 445
+      "latencyMs": 444
     },
     {
       "fn": "gateEvidence",
@@ -357,7 +368,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 410
+      "latencyMs": 417
     },
     {
       "fn": "gateEvidence",
@@ -379,7 +390,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 383
+      "latencyMs": 465
     },
     {
       "fn": "gateEvidence",
@@ -400,7 +411,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 419
+      "latencyMs": 538
     },
     {
       "fn": "gateEvidence",
@@ -421,7 +432,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 402
+      "latencyMs": 421
     },
     {
       "fn": "gateEvidence",
@@ -441,7 +452,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 481
+      "latencyMs": 398
     },
     {
       "fn": "gateEvidence",
@@ -464,7 +475,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 433
+      "latencyMs": 475
     },
     {
       "fn": "gateEvidence",
@@ -485,7 +496,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 386
+      "latencyMs": 485
     },
     {
       "fn": "gateEvidence",
@@ -507,7 +518,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 417
+      "latencyMs": 473
     },
     {
       "fn": "gateEvidence",
@@ -521,7 +532,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 422
+      "latencyMs": 398
     },
     {
       "fn": "gateEvidence",
@@ -535,7 +546,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 389
+      "latencyMs": 539
     },
     {
       "fn": "gateEvidence",
@@ -549,7 +560,7 @@
         "count": 0
       },
       "calls": 2,
-      "latencyMs": 196
+      "latencyMs": 296
     },
     {
       "fn": "gateEvidence",
@@ -563,7 +574,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 418
+      "latencyMs": 404
     },
     {
       "fn": "gateEvidence",
@@ -577,7 +588,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 375
+      "latencyMs": 404
     },
     {
       "fn": "gateEvidence",
@@ -591,7 +602,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 379
+      "latencyMs": 488
     },
     {
       "fn": "selectConcepts",
@@ -615,7 +626,7 @@
         "client-server"
       ],
       "calls": 2,
-      "latencyMs": 219
+      "latencyMs": 222
     },
     {
       "fn": "selectConcepts",
@@ -636,13 +647,10 @@
       },
       "actual": [
         "data-belongs-to-user",
-        "client-server",
-        "rendering-state",
-        "shared-state",
         "database-persistence"
       ],
       "calls": 2,
-      "latencyMs": 204
+      "latencyMs": 233
     },
     {
       "fn": "selectConcepts",
@@ -662,11 +670,10 @@
       },
       "actual": [
         "async-operations",
-        "rendering-state",
-        "component-state"
+        "rendering-state"
       ],
       "calls": 2,
-      "latencyMs": 228
+      "latencyMs": 212
     },
     {
       "fn": "selectConcepts",
@@ -687,7 +694,7 @@
         "password-hashing"
       ],
       "calls": 2,
-      "latencyMs": 212
+      "latencyMs": 230
     },
     {
       "fn": "selectConcepts",
@@ -705,11 +712,10 @@
       },
       "actual": [
         "page-reload-resets-state",
-        "dom-events",
-        "form-submission"
+        "dom-events"
       ],
       "calls": 2,
-      "latencyMs": 217
+      "latencyMs": 216
     },
     {
       "fn": "selectConcepts",
@@ -730,7 +736,7 @@
         "environment-variables"
       ],
       "calls": 2,
-      "latencyMs": 227
+      "latencyMs": 229
     },
     {
       "fn": "selectConcepts",
@@ -750,7 +756,7 @@
         "http-status-codes"
       ],
       "calls": 2,
-      "latencyMs": 241
+      "latencyMs": 216
     },
     {
       "fn": "selectConcepts",
@@ -766,9 +772,11 @@
           "input-validation"
         ]
       },
-      "actual": [],
+      "actual": [
+        "output-escaping"
+      ],
       "calls": 2,
-      "latencyMs": 206
+      "latencyMs": 256
     },
     {
       "fn": "selectConcepts",
@@ -786,11 +794,10 @@
       },
       "actual": [
         "client-server",
-        "database-persistence",
         "unique-identifiers"
       ],
       "calls": 2,
-      "latencyMs": 192
+      "latencyMs": 269
     },
     {
       "fn": "selectConcepts",
@@ -813,15 +820,10 @@
       },
       "actual": [
         "session-tokens",
-        "cookies",
-        "authentication",
-        "client-server",
-        "rendering-state",
-        "shared-state",
-        "database-persistence"
+        "client-server"
       ],
       "calls": 2,
-      "latencyMs": 239
+      "latencyMs": 220
     },
     {
       "fn": "selectConcepts",
@@ -841,7 +843,7 @@
         "secret-management"
       ],
       "calls": 2,
-      "latencyMs": 209
+      "latencyMs": 204
     },
     {
       "fn": "selectConcepts",
@@ -866,7 +868,148 @@
         "deployment"
       ],
       "calls": 2,
-      "latencyMs": 232
+      "latencyMs": 220
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 259
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 199
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 310
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 229
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 224
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "error-handling",
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 226
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 0,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 212
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 204
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 0,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 194
     },
     {
       "fn": "detectImpasse",
@@ -875,7 +1018,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 209
+      "latencyMs": 185
     },
     {
       "fn": "detectImpasse",
@@ -884,7 +1027,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 175
+      "latencyMs": 182
     },
     {
       "fn": "detectImpasse",
@@ -893,7 +1036,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 176
+      "latencyMs": 185
     },
     {
       "fn": "detectImpasse",
@@ -902,7 +1045,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 175
+      "latencyMs": 254
     },
     {
       "fn": "detectImpasse",
@@ -911,7 +1054,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 183
     },
     {
       "fn": "detectImpasse",
@@ -920,7 +1063,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 190
+      "latencyMs": 177
     },
     {
       "fn": "detectImpasse",
@@ -929,7 +1072,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 180
     },
     {
       "fn": "detectImpasse",
@@ -938,7 +1081,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 191
+      "latencyMs": 200
     },
     {
       "fn": "detectImpasse",
@@ -947,7 +1090,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 191
+      "latencyMs": 189
     },
     {
       "fn": "detectImpasse",
@@ -956,7 +1099,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 190
+      "latencyMs": 180
     },
     {
       "fn": "detectImpasse",
@@ -965,7 +1108,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 178
+      "latencyMs": 217
     },
     {
       "fn": "detectImpasse",
@@ -974,7 +1117,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 180
+      "latencyMs": 207
     },
     {
       "fn": "detectImpasse",
@@ -983,7 +1126,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 172
+      "latencyMs": 189
     },
     {
       "fn": "detectImpasse",
@@ -992,7 +1135,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 183
     },
     {
       "fn": "detectImpasse",
@@ -1001,7 +1144,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 189
+      "latencyMs": 190
     },
     {
       "fn": "detectImpasse",
@@ -1010,7 +1153,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 189
+      "latencyMs": 182
     },
     {
       "fn": "detectImpasse",
@@ -1019,7 +1162,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 221
     },
     {
       "fn": "detectImpasse",
@@ -1028,7 +1171,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 201
+      "latencyMs": 186
     },
     {
       "fn": "detectImpasse",
@@ -1037,7 +1180,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 180
+      "latencyMs": 241
     },
     {
       "fn": "detectImpasse",
@@ -1046,7 +1189,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 190
+      "latencyMs": 185
     },
     {
       "fn": "detectImpasse",
@@ -1055,7 +1198,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 191
+      "latencyMs": 218
     },
     {
       "fn": "detectImpasse",
@@ -1064,7 +1207,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 185
     },
     {
       "fn": "detectImpasse",
@@ -1073,16 +1216,25 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 186
+      "latencyMs": 188
     },
     {
       "fn": "detectImpasse",
       "case": "neg/environment-not-understanding",
       "repeat": 1,
       "expected": false,
-      "actual": true,
+      "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 198
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 1,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 176
     },
     {
       "fn": "gateEvidence",
@@ -1104,7 +1256,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 411
+      "latencyMs": 410
     },
     {
       "fn": "gateEvidence",
@@ -1126,7 +1278,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 379
+      "latencyMs": 391
     },
     {
       "fn": "gateEvidence",
@@ -1148,7 +1300,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 361
+      "latencyMs": 366
     },
     {
       "fn": "gateEvidence",
@@ -1169,7 +1321,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 363
+      "latencyMs": 395
     },
     {
       "fn": "gateEvidence",
@@ -1190,7 +1342,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 405
+      "latencyMs": 414
     },
     {
       "fn": "gateEvidence",
@@ -1210,7 +1362,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 365
+      "latencyMs": 422
     },
     {
       "fn": "gateEvidence",
@@ -1233,7 +1385,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 390
+      "latencyMs": 462
     },
     {
       "fn": "gateEvidence",
@@ -1254,7 +1406,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 384
+      "latencyMs": 414
     },
     {
       "fn": "gateEvidence",
@@ -1276,7 +1428,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 365
+      "latencyMs": 420
     },
     {
       "fn": "gateEvidence",
@@ -1290,7 +1442,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 379
+      "latencyMs": 402
     },
     {
       "fn": "gateEvidence",
@@ -1304,7 +1456,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 373
+      "latencyMs": 366
     },
     {
       "fn": "gateEvidence",
@@ -1318,7 +1470,7 @@
         "count": 0
       },
       "calls": 2,
-      "latencyMs": 207
+      "latencyMs": 182
     },
     {
       "fn": "gateEvidence",
@@ -1332,7 +1484,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 386
+      "latencyMs": 421
     },
     {
       "fn": "gateEvidence",
@@ -1346,7 +1498,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 372
+      "latencyMs": 419
     },
     {
       "fn": "gateEvidence",
@@ -1360,7 +1512,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 359
+      "latencyMs": 412
     },
     {
       "fn": "selectConcepts",
@@ -1384,7 +1536,7 @@
         "client-server"
       ],
       "calls": 2,
-      "latencyMs": 187
+      "latencyMs": 205
     },
     {
       "fn": "selectConcepts",
@@ -1404,15 +1556,11 @@
         ]
       },
       "actual": [
-        "authentication",
         "data-belongs-to-user",
-        "client-server",
-        "rendering-state",
-        "shared-state",
         "database-persistence"
       ],
       "calls": 2,
-      "latencyMs": 195
+      "latencyMs": 250
     },
     {
       "fn": "selectConcepts",
@@ -1432,11 +1580,10 @@
       },
       "actual": [
         "async-operations",
-        "rendering-state",
-        "component-state"
+        "rendering-state"
       ],
       "calls": 2,
-      "latencyMs": 208
+      "latencyMs": 234
     },
     {
       "fn": "selectConcepts",
@@ -1457,7 +1604,7 @@
         "password-hashing"
       ],
       "calls": 2,
-      "latencyMs": 225
+      "latencyMs": 211
     },
     {
       "fn": "selectConcepts",
@@ -1478,7 +1625,7 @@
         "form-submission"
       ],
       "calls": 2,
-      "latencyMs": 206
+      "latencyMs": 208
     },
     {
       "fn": "selectConcepts",
@@ -1499,7 +1646,7 @@
         "environment-variables"
       ],
       "calls": 2,
-      "latencyMs": 197
+      "latencyMs": 192
     },
     {
       "fn": "selectConcepts",
@@ -1519,7 +1666,7 @@
         "http-status-codes"
       ],
       "calls": 2,
-      "latencyMs": 187
+      "latencyMs": 240
     },
     {
       "fn": "selectConcepts",
@@ -1539,7 +1686,7 @@
         "output-escaping"
       ],
       "calls": 2,
-      "latencyMs": 197
+      "latencyMs": 202
     },
     {
       "fn": "selectConcepts",
@@ -1556,12 +1703,11 @@
         ]
       },
       "actual": [
-        "client-server",
         "database-persistence",
         "unique-identifiers"
       ],
       "calls": 2,
-      "latencyMs": 181
+      "latencyMs": 204
     },
     {
       "fn": "selectConcepts",
@@ -1584,15 +1730,10 @@
       },
       "actual": [
         "session-tokens",
-        "cookies",
-        "authentication",
-        "client-server",
-        "rendering-state",
-        "shared-state",
-        "database-persistence"
+        "authentication"
       ],
       "calls": 2,
-      "latencyMs": 185
+      "latencyMs": 191
     },
     {
       "fn": "selectConcepts",
@@ -1637,7 +1778,147 @@
         "deployment"
       ],
       "calls": 2,
-      "latencyMs": 196
+      "latencyMs": 210
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 191
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 218
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 329
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 206
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 198
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 218
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 1,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 191
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 192
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 1,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 213
     },
     {
       "fn": "detectImpasse",
@@ -1646,7 +1927,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 196
+      "latencyMs": 197
     },
     {
       "fn": "detectImpasse",
@@ -1655,7 +1936,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 171
+      "latencyMs": 193
     },
     {
       "fn": "detectImpasse",
@@ -1664,7 +1945,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 189
+      "latencyMs": 197
     },
     {
       "fn": "detectImpasse",
@@ -1673,7 +1954,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 182
+      "latencyMs": 195
     },
     {
       "fn": "detectImpasse",
@@ -1682,7 +1963,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 179
+      "latencyMs": 177
     },
     {
       "fn": "detectImpasse",
@@ -1691,7 +1972,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 199
+      "latencyMs": 181
     },
     {
       "fn": "detectImpasse",
@@ -1700,7 +1981,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 177
+      "latencyMs": 198
     },
     {
       "fn": "detectImpasse",
@@ -1709,7 +1990,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 173
+      "latencyMs": 284
     },
     {
       "fn": "detectImpasse",
@@ -1718,7 +1999,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 180
+      "latencyMs": 204
     },
     {
       "fn": "detectImpasse",
@@ -1727,7 +2008,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 190
+      "latencyMs": 210
     },
     {
       "fn": "detectImpasse",
@@ -1736,7 +2017,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 190
+      "latencyMs": 176
     },
     {
       "fn": "detectImpasse",
@@ -1745,7 +2026,7 @@
       "expected": true,
       "actual": true,
       "calls": 1,
-      "latencyMs": 173
+      "latencyMs": 222
     },
     {
       "fn": "detectImpasse",
@@ -1754,7 +2035,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 174
+      "latencyMs": 184
     },
     {
       "fn": "detectImpasse",
@@ -1763,7 +2044,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 197
+      "latencyMs": 180
     },
     {
       "fn": "detectImpasse",
@@ -1772,7 +2053,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 187
+      "latencyMs": 192
     },
     {
       "fn": "detectImpasse",
@@ -1781,7 +2062,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 192
+      "latencyMs": 206
     },
     {
       "fn": "detectImpasse",
@@ -1790,7 +2071,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 207
+      "latencyMs": 326
     },
     {
       "fn": "detectImpasse",
@@ -1799,7 +2080,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 173
+      "latencyMs": 267
     },
     {
       "fn": "detectImpasse",
@@ -1808,7 +2089,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 176
+      "latencyMs": 274
     },
     {
       "fn": "detectImpasse",
@@ -1817,7 +2098,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 188
+      "latencyMs": 194
     },
     {
       "fn": "detectImpasse",
@@ -1826,7 +2107,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 178
+      "latencyMs": 268
     },
     {
       "fn": "detectImpasse",
@@ -1835,7 +2116,7 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 195
+      "latencyMs": 301
     },
     {
       "fn": "detectImpasse",
@@ -1844,16 +2125,25 @@
       "expected": false,
       "actual": false,
       "calls": 1,
-      "latencyMs": 189
+      "latencyMs": 183
     },
     {
       "fn": "detectImpasse",
       "case": "neg/environment-not-understanding",
       "repeat": 2,
       "expected": false,
-      "actual": true,
+      "actual": false,
       "calls": 1,
-      "latencyMs": 175
+      "latencyMs": 188
+    },
+    {
+      "fn": "detectImpasse",
+      "case": "neg/missing-tool",
+      "repeat": 2,
+      "expected": false,
+      "actual": false,
+      "calls": 1,
+      "latencyMs": 204
     },
     {
       "fn": "gateEvidence",
@@ -1875,7 +2165,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 479
+      "latencyMs": 449
     },
     {
       "fn": "gateEvidence",
@@ -1897,7 +2187,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 375
+      "latencyMs": 379
     },
     {
       "fn": "gateEvidence",
@@ -1919,7 +2209,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 396
+      "latencyMs": 384
     },
     {
       "fn": "gateEvidence",
@@ -1940,7 +2230,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 372
+      "latencyMs": 381
     },
     {
       "fn": "gateEvidence",
@@ -1961,7 +2251,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 370
+      "latencyMs": 635
     },
     {
       "fn": "gateEvidence",
@@ -1981,7 +2271,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 399
+      "latencyMs": 544
     },
     {
       "fn": "gateEvidence",
@@ -2004,7 +2294,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 403
+      "latencyMs": 384
     },
     {
       "fn": "gateEvidence",
@@ -2025,7 +2315,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 368
+      "latencyMs": 376
     },
     {
       "fn": "gateEvidence",
@@ -2047,7 +2337,7 @@
         "count": 1
       },
       "calls": 3,
-      "latencyMs": 389
+      "latencyMs": 412
     },
     {
       "fn": "gateEvidence",
@@ -2061,7 +2351,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 388
+      "latencyMs": 381
     },
     {
       "fn": "gateEvidence",
@@ -2075,7 +2365,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 375
+      "latencyMs": 411
     },
     {
       "fn": "gateEvidence",
@@ -2089,7 +2379,7 @@
         "count": 0
       },
       "calls": 2,
-      "latencyMs": 189
+      "latencyMs": 197
     },
     {
       "fn": "gateEvidence",
@@ -2103,7 +2393,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 380
+      "latencyMs": 390
     },
     {
       "fn": "gateEvidence",
@@ -2117,7 +2407,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 384
+      "latencyMs": 420
     },
     {
       "fn": "gateEvidence",
@@ -2131,7 +2421,7 @@
         "count": 0
       },
       "calls": 3,
-      "latencyMs": 364
+      "latencyMs": 446
     },
     {
       "fn": "selectConcepts",
@@ -2155,7 +2445,7 @@
         "client-server"
       ],
       "calls": 2,
-      "latencyMs": 208
+      "latencyMs": 197
     },
     {
       "fn": "selectConcepts",
@@ -2175,16 +2465,11 @@
         ]
       },
       "actual": [
-        "session-tokens",
-        "authentication",
         "data-belongs-to-user",
-        "client-server",
-        "rendering-state",
-        "shared-state",
         "database-persistence"
       ],
       "calls": 2,
-      "latencyMs": 202
+      "latencyMs": 207
     },
     {
       "fn": "selectConcepts",
@@ -2204,11 +2489,10 @@
       },
       "actual": [
         "async-operations",
-        "rendering-state",
         "component-state"
       ],
       "calls": 2,
-      "latencyMs": 220
+      "latencyMs": 202
     },
     {
       "fn": "selectConcepts",
@@ -2229,7 +2513,7 @@
         "password-hashing"
       ],
       "calls": 2,
-      "latencyMs": 199
+      "latencyMs": 201
     },
     {
       "fn": "selectConcepts",
@@ -2271,7 +2555,7 @@
         "environment-variables"
       ],
       "calls": 2,
-      "latencyMs": 279
+      "latencyMs": 225
     },
     {
       "fn": "selectConcepts",
@@ -2291,7 +2575,7 @@
         "http-status-codes"
       ],
       "calls": 2,
-      "latencyMs": 225
+      "latencyMs": 200
     },
     {
       "fn": "selectConcepts",
@@ -2307,9 +2591,11 @@
           "input-validation"
         ]
       },
-      "actual": [],
+      "actual": [
+        "output-escaping"
+      ],
       "calls": 2,
-      "latencyMs": 190
+      "latencyMs": 189
     },
     {
       "fn": "selectConcepts",
@@ -2326,12 +2612,11 @@
         ]
       },
       "actual": [
-        "client-server",
         "database-persistence",
         "unique-identifiers"
       ],
       "calls": 2,
-      "latencyMs": 236
+      "latencyMs": 200
     },
     {
       "fn": "selectConcepts",
@@ -2354,15 +2639,10 @@
       },
       "actual": [
         "session-tokens",
-        "cookies",
-        "authentication",
-        "client-server",
-        "rendering-state",
-        "shared-state",
-        "database-persistence"
+        "authentication"
       ],
       "calls": 2,
-      "latencyMs": 522
+      "latencyMs": 235
     },
     {
       "fn": "selectConcepts",
@@ -2382,7 +2662,7 @@
         "secret-management"
       ],
       "calls": 2,
-      "latencyMs": 181
+      "latencyMs": 202
     },
     {
       "fn": "selectConcepts",
@@ -2407,7 +2687,148 @@
         "deployment"
       ],
       "calls": 2,
-      "latencyMs": 212
+      "latencyMs": 209
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/cards-stack",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 194
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/center-heading",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 195
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/blurry-photo",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 220
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "nofit/font-on-phone",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 222
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/await-json",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "promises",
+          "async-operations"
+        ],
+        "allowed": [
+          "promises",
+          "async-operations",
+          "http-request-response",
+          "json-data"
+        ]
+      },
+      "actual": [
+        "async-operations",
+        "promises"
+      ],
+      "calls": 2,
+      "latencyMs": 197
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/empty-body-crash",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "input-validation",
+          "error-handling"
+        ],
+        "allowed": [
+          "input-validation",
+          "error-handling",
+          "json-data",
+          "api-routes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "error-handling",
+        "input-validation"
+      ],
+      "calls": 2,
+      "latencyMs": 192
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/404-route",
+      "repeat": 2,
+      "expected": {
+        "expect": [
+          "api-routes",
+          "http-status-codes"
+        ],
+        "allowed": [
+          "api-routes",
+          "http-status-codes",
+          "http-request-response"
+        ]
+      },
+      "actual": [
+        "http-status-codes",
+        "api-routes"
+      ],
+      "calls": 2,
+      "latencyMs": 200
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-safari-button",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 206
+    },
+    {
+      "fn": "selectConcepts",
+      "case": "heldout/nofit-favicon",
+      "repeat": 2,
+      "expected": {
+        "expect": [],
+        "allowed": []
+      },
+      "actual": [],
+      "calls": 2,
+      "latencyMs": 287
     }
   ]
 }
