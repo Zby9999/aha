@@ -13,7 +13,7 @@ const recordedServerEdit = demoSession.filter((entry) => isKind(entry, "file_edi
 
 const test = base.extend<{
   teachingImplementation: "stub" | "real";
-  failFirstLessonAnswer: boolean;
+  failFirstLessonAnswer: false | "probe" | "articulate";
   workspace: { timeline: Timeline; evidence: Evidence[]; holdNextLesson: () => () => void };
 }>({
   teachingImplementation: ["stub", { option: true }],
@@ -41,8 +41,11 @@ const test = base.extend<{
               return teaching.startLesson(input);
             },
             async answer(input) {
-              if (failFirstLessonAnswer && !failed) {
+              if (!failed && failFirstLessonAnswer && input.timeline.some((entry) =>
+                entry.kind === "lesson_card" && entry.id === input.cardEntryId && entry.step === failFirstLessonAnswer
+              )) {
                 failed = true;
+                if (failFirstLessonAnswer === "articulate") throw new DOMException("The step took too long.", "TimeoutError");
                 throw new Error("Test Lesson answer failure");
               }
               return teaching.answer(input);
@@ -387,7 +390,7 @@ test.describe("fixture teaching", () => {
 });
 
 test.describe("Lesson answer recovery", () => {
-  test.use({ failFirstLessonAnswer: true });
+  test.use({ failFirstLessonAnswer: "probe" });
 
   test("retains the prediction after a failed answer request, then retries and records an explanation flag", async ({ page, workspace }) => {
     await page.getByRole("button", { name: "Show me why" }).click();
@@ -413,6 +416,32 @@ test.describe("Lesson answer recovery", () => {
     ]);
     await page.reload();
     await expect(card(page, "Explanation").getByRole("status")).toHaveText("Flagged as incorrect");
+  });
+});
+
+test.describe("Articulation timeout", () => {
+  test.use({ failFirstLessonAnswer: "articulate" });
+
+  test("shows the saved answer and lets the learner retry its assessment", async ({ page, workspace }) => {
+    await page.getByRole("button", { name: "Show me why" }).click();
+    await card(page, "Probe").getByRole("textbox", { name: "Answer" }).fill("The page generates a new token.");
+    await answer(page, "Probe").click();
+    const articulation = card(page, "Articulation");
+    const text = "The server can't find a session for the new token.";
+    await articulation.getByRole("textbox", { name: "Answer" }).fill(text);
+    await answer(page, "Articulation").click();
+
+    const alert = page.getByRole("alert").filter({ hasText: "The assessment timed out. Your answer is saved." });
+    await expect(alert).toBeVisible();
+    await expect(articulation).toContainText(text);
+    await expect(page.getByRole("button", { name: "Back to work", exact: true })).toBeEnabled();
+    const completed = page.getByText("Lesson complete. Back to work.", { exact: true });
+    await expect(completed).toHaveCount(0);
+
+    await alert.getByRole("button", { name: "Retry", exact: true }).click();
+    await expect(completed).toBeVisible();
+    expect(workspace.timeline.entries().filter((entry) => entry.kind === "card_answer" && entry.step === "articulate"))
+      .toMatchObject([{ answer: { type: "text", text } }]);
   });
 });
 

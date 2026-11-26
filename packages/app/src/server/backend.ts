@@ -147,7 +147,9 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
       publishLessonEntries(request, entries);
     } catch (error) {
       if (activeRequest !== request) return;
-      timeline.append({ kind: "lesson_error", source: "app", lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, message: "Couldn't prepare the next step." });
+      const timedOut = answer.step === "articulate" && error instanceof DOMException && error.name === "TimeoutError";
+      const message = timedOut ? "The assessment timed out." : "Couldn't prepare the next step.";
+      timeline.append({ kind: "lesson_error", source: "app", lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, message });
       throw error;
     }
   }
