@@ -8,6 +8,7 @@
   },
   "scripts": {
     "evaluate": "node --env-file-if-exists=../../.env.local scripts/evaluate.ts",
+    "evaluate:full": "node --env-file-if-exists=../../.env.local scripts/evaluate-full.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

@@ -74,11 +74,12 @@ describe("DecisionService", () => {
       return response(state.event.startsWith("I am")
         ? { kind: choice("none"), strength: choice("weak"), outcome: choice("positive"), concept: choice("new") }
         : { kind: choice("caught_agent_mistake"), strength: choice("strong"),
-          outcome: choice("positive"), concept: choice("concept_0") });
+          outcome: choice("negative"), concept: choice("concept_0") });
     });
     const service = createDecisions({ apiKey: "test", fetch: request });
     const evidence = await service.gateEvidence({ timeline: entries, newEntries: entries, concepts: [concept] });
-    expect(evidence).toMatchObject([{ conceptId: concept.id, type: "caught_agent_mistake", entryIds: [entries[2]!.id] }]);
+    // Catching the agent's mistake shows understanding, even when Jev reads the mistake as a gap.
+    expect(evidence).toMatchObject([{ conceptId: concept.id, type: "caught_agent_mistake", outcome: "positive", entryIds: [entries[2]!.id] }]);
     expect(request).toHaveBeenCalledTimes(2);
   });
 
@@ -89,6 +90,16 @@ describe("DecisionService", () => {
     expect(await service.selectConcepts({ impasse, concepts: [concept, { ...concept, id: "css", name: "CSS" }] }))
       .toEqual([concept.id]);
     expect(await service.chooseComponent({ impasse, step: "explain", learner: { concepts: [] } })).toBe("TextExplanation");
+  });
+
+  it("selects the best concept and at most one close neighbour, or none when nothing fits", async () => {
+    const catalog = ["a", "b", "c", "d"].map((id) => ({ ...concept, id, name: id }));
+    const impasse = { id: "i", title: "Why?", trigger: "ask_why" as const, conceptIds: [], sourceEntryIds: [] };
+    const select = (scores: number[]) => createDecisions({ apiKey: "test", fetch: async () =>
+      response(Object.fromEntries(scores.map((score, i) => [`concept_${i}`, noul(score)]))) }).selectConcepts({ impasse, concepts: catalog });
+    expect(await select([0.75, 0.9, 0.8, 0.72])).toEqual(["b", "c"]);
+    expect(await select([0.1, 0.67, 0.2, 0.3])).toEqual(["b"]);
+    expect(await select([0.6, 0.5, 0.2, 0.3])).toEqual([]);
   });
 
   it("keeps untrusted text in state and considers concepts beyond the first batch", async () => {
