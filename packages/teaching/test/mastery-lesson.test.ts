@@ -171,15 +171,38 @@ test("a direct generated answer also retries when it only cites an unrelated fil
   });
 });
 
-test("Concepts picked by the read gate adapt to the ones the learner has met", async () => {
+test.each([["correct_with_hints", false], ["explains_independently", true]] as const)(
+  "automatically selected mixed mastery starts with a Probe (%s, unseen first: %s)",
+  async (mastery, unseenFirst) => {
+    const { input, teaching, timeline } = fixture(mastery);
+    const known = input.learner.concepts[0]!;
+    const unseen = { ...known, id: "authentication", name: "Authentication", mastery: "not_encountered" as const };
+    const picked = {
+      ...input,
+      impasse: { ...input.impasse, conceptIds: [] },
+      learner: { concepts: unseenFirst ? [unseen, known] : [known, unseen] },
+    };
+
+    const offer = await teaching.offer(picked);
+    expect(offer?.elements[offer.root]).toMatchObject({ type: "OfferCard" });
+    expect(offer?.elements[offer.root]?.props).not.toMatchObject({ title: "Want a hint?" });
+    const started = (await teaching.startLesson(picked)).map((entry) => timeline.append(entry));
+    const cards = started.filter((entry) => entry.kind === "lesson_card");
+    expect(cards.map((entry) => entry.step)).toEqual(["probe"]);
+
+    const probe = cards[0]!;
+    const answer = { type: "choice", optionId: "new" } as const;
+    timeline.append({ kind: "card_answer", source: "app", lessonId: probe.lessonId, cardEntryId: probe.id, step: "probe", answer });
+    const next = await teaching.answer({ lessonId: probe.lessonId, cardEntryId: probe.id, answer, timeline: timeline.entries() });
+    expect(next.filter((entry) => entry.kind === "lesson_card").map((entry) => entry.step)).toEqual(["explain", "articulate"]);
+  },
+);
+
+test("a familiar concept can still start a short Lesson when selected by the read gate", async () => {
   const { input, teaching } = fixture("correct_with_hints");
-  const unseen = { ...input.learner.concepts[0]!, id: "authentication", name: "Authentication", mastery: "not_encountered" as const };
-  const picked = { ...input, impasse: { ...input.impasse, conceptIds: [] }, learner: { concepts: [...input.learner.concepts, unseen] } };
+  const picked = { ...input, impasse: { ...input.impasse, conceptIds: [] } };
   const offer = await teaching.offer(picked);
   expect(offer?.elements[offer.root]?.props).toMatchObject({ title: "Want a hint?" });
   const started = await teaching.startLesson(picked);
   expect(started.filter((entry) => entry.kind === "lesson_card").map((entry) => entry.step)).toEqual(["explain"]);
-
-  const nothingMet = { ...picked, learner: { concepts: [unseen] } };
-  expect((await teaching.startLesson(nothingMet)).filter((entry) => entry.kind === "lesson_card").map((entry) => entry.step)).toEqual(["probe"]);
 });
