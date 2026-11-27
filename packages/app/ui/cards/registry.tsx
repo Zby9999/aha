@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import type { Citation } from "@aha/contracts";
 import { defineRegistry } from "@json-render/react";
-import { ArrowDownIcon, ArrowRightIcon, BookIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
+import { ArrowDownIcon, ArrowRightIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
 import { Button } from "../components/ui/button.tsx";
 import { AhaMascot, type MascotAccessory } from "@/components/AhaMascot";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
@@ -163,7 +163,7 @@ export const { registry } = defineRegistry(cardCatalog, {
       return (
         <Card aria-label="Offer" className="lesson-invitation" data-offer-state={done ? "inactive" : "available"}>
           <CardHeader>
-            <span className="lesson-offer-caption"><BookIcon aria-hidden="true" />Optional lesson</span>
+            <span className="lesson-offer-caption">Optional lesson</span>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.body}</CardDescription>
             <CardMascot accessory="bulb" />
