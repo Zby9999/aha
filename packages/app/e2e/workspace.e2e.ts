@@ -178,6 +178,9 @@ test("the gallery renders each lesson card at a phone width and keeps preview ac
   await expect(references).toHaveAttribute("aria-expanded", "false");
   await references.press("Enter");
   await expect(page.getByRole("list", { name: "Code references" })).toContainText("server.js:38–44");
+  // A reference opens the cited lines from the project, with a little context around them.
+  await page.getByRole("button", { name: "server.js:38–44" }).click();
+  await expect(page.getByLabel("server.js lines 36–46")).toContainText("app.get('/api/me'");
   await page.getByRole("button", { name: "Flag as incorrect" }).click();
   await expect(page.getByRole("status")).toHaveText("Flagged as incorrect");
   await page.getByRole("button", { name: "Reset preview" }).press("Enter");

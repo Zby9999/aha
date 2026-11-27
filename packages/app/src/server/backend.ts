@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import * as nodePath from "node:path";
 import { join } from "node:path";
 import {
@@ -34,6 +34,8 @@ export interface BackendOptions {
 
 export interface Backend extends AppBackend {
   readLearnerModel(): Promise<{ concepts: Concept[]; files: LearnerModelFile[] }>;
+  /** A project file's text, so a cited file can be shown. Only files a Lesson may cite: not dependencies, Aha's folder or `.env*`. */
+  readProjectFile(path: string): Promise<string>;
   writeLearnerModelFile(file: LearnerModelFile): Promise<void>;
   /** The agent's models, current model and `/` commands, asked fresh from the agent. */
   agentSettings(): Promise<AgentSettings>;
@@ -401,6 +403,13 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     dispatch,
     readLearnerModel: async () => ({ concepts: await learner.readConcepts((await learner.listConcepts()).map((concept) => concept.id)), files: await learner.readFiles() }),
     writeLearnerModelFile: (file) => learner.writeFile(file),
+    readProjectFile: async (path) => {
+      // Only a path from the project's own file list: no `..`, absolute paths or ignored folders get through.
+      if (!readableProjectFile(projectDir, path)) throw new Error(`Not a project file: ${path}`);
+      const file = join(projectDir, ...path.split("/"));
+      if (statSync(file).size > MAX_PROJECT_FILE_BYTES) throw new Error(`Too large to show: ${path}`);
+      return readFileSync(file, "utf8");
+    },
     agentSettings: () => session.getSettings(),
     onAgentSettings: (listener) => {
       settingsListeners.add(listener);
@@ -444,6 +453,14 @@ function describe(entry: TimelineEntry): string {
   if (entry.kind === "file_edit") return `the change to ${entry.path}`;
   if (entry.kind === "agent_message") return entry.text.slice(0, 80);
   return entry.kind;
+}
+
+const MAX_PROJECT_FILE_BYTES = 512 * 1024;
+
+/** True for a project-relative path a Lesson may cite and the UI may show; secrets in `.env*` files stay hidden. */
+export function readableProjectFile(projectDir: string, path: string): boolean {
+  const name = path.split("/").at(-1) ?? "";
+  return !name.startsWith(".env") && snapshot(projectDir).files.includes(path);
 }
 
 /** Project-relative paths of the project's files, skipping dependencies and Aha's own folder. */

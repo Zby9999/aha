@@ -412,6 +412,7 @@
 .lesson-fix-feedback { border-inline-start: 2px solid var(--workspace-accent); padding-inline-start: 0.75rem; }
 
 .lesson-evidence-trigger { min-height: 2.5rem; }
+.lesson-citation-trigger[aria-expanded="true"] .lesson-citation-chevron { rotate: 180deg; }
 .lesson-evidence-trigger[aria-expanded="true"] [data-icon="inline-end"] { rotate: 180deg; }
 
 .lesson-process {

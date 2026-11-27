@@ -7,23 +7,36 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
 import { Input } from "../components/ui/input.tsx";
 import { cardCatalog } from "./catalog.ts";
+import { CitedCode, type LineRange } from "./CitedCode.tsx";
 import { InlineCode } from "./InlineCode.tsx";
 import { useCard } from "./context.ts";
 
 function Citations({ citations, expandable = false }: { citations: Citation[]; expandable?: boolean }) {
   if (citations.length === 0) return null;
-  const files = new Map<string, Set<string>>();
+  const files = new Map<string, { labels: Set<string>; ranges: LineRange[] }>();
   for (const { path, startLine, endLine } of citations) {
-    const lines = files.get(path) ?? new Set<string>();
-    if (startLine !== undefined) lines.add(endLine !== undefined && endLine !== startLine ? `${startLine}–${endLine}` : `${startLine}`);
-    files.set(path, lines);
+    const file = files.get(path) ?? { labels: new Set<string>(), ranges: [] };
+    if (startLine !== undefined) {
+      file.labels.add(endLine !== undefined && endLine !== startLine ? `${startLine}–${endLine}` : `${startLine}`);
+      file.ranges.push({ start: startLine, end: endLine ?? startLine });
+    }
+    files.set(path, file);
   }
+  // Each reference opens the cited lines from the project, so the learner can check the claim against the code.
   const references = (
       <ul aria-label="Code references" className="grid gap-1 text-xs text-muted-foreground">
-        {[...files].map(([path, lines]) => (
-          <li key={path} className="flex items-start gap-2">
-            <FileCode2 aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
-            <code className="min-w-0 wrap-anywhere">{path}{lines.size > 0 && `:${[...lines].join(", ")}`}</code>
+        {[...files].map(([path, { labels, ranges }]) => (
+          <li key={path}>
+            <Collapsible>
+              <CollapsibleTrigger className="lesson-citation-trigger flex w-full items-start gap-2 rounded-md px-1 py-0.5 text-start hover:bg-muted hover:text-foreground">
+                <FileCode2 aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
+                <code className="min-w-0 flex-1 wrap-anywhere">{path}{labels.size > 0 && `:${[...labels].join(", ")}`}</code>
+                <ChevronDown aria-hidden="true" className="lesson-citation-chevron mt-0.5 size-3 shrink-0" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-1.5 pb-1">
+                <CitedCode path={path} ranges={ranges} />
+              </CollapsibleContent>
+            </Collapsible>
           </li>
         ))}
       </ul>
