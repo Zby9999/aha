@@ -173,8 +173,7 @@
 .workspace-project svg { width: 1rem; height: 1rem; flex: none; }
 .workspace-project span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-main {
-  display: grid;
-  grid-template-columns: minmax(20rem, 1.18fr) minmax(0, 1.55fr);
+  display: flex;
   min-height: 0;
   flex: 1;
 }
@@ -188,24 +187,24 @@
 }
 
 .workspace-chat,
+.workspace-detail,
 .workspace-preview,
 .workspace-learn {
   display: flex;
   flex-direction: column;
 }
 
+.workspace-chat,
+.workspace-detail { height: 100%; }
 .workspace-chat { background: var(--card); }
+.workspace-detail > section { flex: 1; }
 
-.workspace-detail {
-  display: grid;
-  gap: 0;
-  border-left: 1px solid var(--border);
-}
-
-.workspace-detail { grid-template-rows: auto minmax(0, 1fr); }
-.workspace-tabbar { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: var(--card); }
-.workspace-tabbar [data-slot="tabs-trigger"] { padding-inline: 0.65rem; }
-.workspace-tabbar [data-slot="tabs-trigger"][data-active] { box-shadow: 0 1px 3px var(--workspace-shadow); }
+.workspace-header-tools { display: flex; flex: none; align-items: center; gap: 0.25rem; }
+.workspace-header-tools button { color: var(--muted-foreground); }
+.workspace-header-tools button[aria-pressed="true"] { background: var(--muted); color: var(--foreground); }
+.workspace-main [data-slot="resizable-handle"] { transition: background-color 150ms; }
+.workspace-main [data-slot="resizable-handle"]:hover,
+.workspace-main [data-slot="resizable-handle"][data-separator="active"] { background: var(--ring); }
 
 .workspace-pane-heading {
   display: flex;
@@ -515,13 +514,9 @@
 }
 
 @media (max-width: 52.999rem) {
-  .workspace-main {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-  }
-
+  .workspace-main { flex-direction: column; }
   .workspace-chat { height: clamp(25rem, 68dvh, 42rem); }
-  .workspace-detail { border-top: 1px solid var(--border); border-left: 0; }
+  .workspace-detail { height: auto; border-top: 1px solid var(--border); }
   .workspace-preview { min-height: 23rem; }
   .workspace-learn { min-height: 14rem; }
 }
