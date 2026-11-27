@@ -24,14 +24,14 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
   }
   // Each reference opens the cited lines from the project, so the learner can check the claim against the code.
   const references = (
-      <ul aria-label="Code references" className="grid gap-1 text-xs text-muted-foreground">
+      <ul aria-label="Code references" className="-mx-2 grid gap-0.5 text-xs text-muted-foreground">
         {[...files].map(([path, { labels, ranges }]) => (
           <li key={path}>
             <Collapsible>
-              <CollapsibleTrigger className="lesson-citation-trigger flex w-full items-start gap-2 rounded-md px-1 py-0.5 text-start hover:bg-muted hover:text-foreground">
-                <FileCode2 aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
-                <code className="min-w-0 flex-1 wrap-anywhere">{path}{labels.size > 0 && `:${[...labels].join(", ")}`}</code>
-                <ChevronDown aria-hidden="true" className="lesson-citation-chevron mt-0.5 size-3 shrink-0" />
+              <CollapsibleTrigger className="lesson-citation-trigger flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-start transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none">
+                <FileCode2 aria-hidden="true" className="size-3.5 shrink-0" />
+                <code className="min-w-0 flex-1 leading-snug wrap-anywhere">{path}{labels.size > 0 && `:${[...labels].join(", ")}`}</code>
+                <ChevronDown aria-hidden="true" className="lesson-citation-chevron size-3.5 shrink-0 transition-transform" />
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-1.5 pb-1">
                 <CitedCode path={path} ranges={ranges} />

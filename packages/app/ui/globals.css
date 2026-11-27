@@ -316,7 +316,7 @@
 
 .workspace-learn-cards > * { flex: none; }
 .workspace-learn-cards > * { scroll-margin-block-start: 1rem; }
-.workspace-learn-cards button { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
+.workspace-learn-cards button:not(.lesson-citation-trigger) { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
 
 .lesson-reading-card {
   gap: 0.8rem;
