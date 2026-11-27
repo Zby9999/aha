@@ -1,7 +1,7 @@
 import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createTimeline, type BackgroundRunRequest, type LessonInput, type NewTimelineEntry, type TeachingOptions } from "@aha/contracts";
+import { createTimeline, isKind, type BackgroundRunRequest, type Concept, type LessonInput, type NewTimelineEntry, type TeachingOptions } from "@aha/contracts";
 import { expect, test, vi } from "vitest";
 import { createTeaching } from "../src/index.ts";
 
@@ -139,6 +139,49 @@ test("a first Explain draft that runs out of time falls back to the text draft",
     expect(run).toHaveBeenCalledTimes(3);
   } finally {
     vi.useRealTimers();
+    await rm(projectDir, { recursive: true, force: true });
+  }
+});
+
+test("a partial Articulation gets feedback naming what was missed, and the Lesson stays open (#94)", async () => {
+  const projectDir = await mkdtemp(join(tmpdir(), "aha-partial-"));
+  try {
+    await writeFile(join(projectDir, "paging.ts"), source);
+    const timeline = createTimeline({ sessionId: "partial" });
+    const edit = timeline.append({ kind: "file_edit", source: "agent-host", path: "paging.ts", change: "modify", diff: "@@ -233 +233 @@\n+  page = 1;" });
+    const concept: Concept = { id: "state", name: "State", mastery: "not_encountered", evidence: [], relatedFiles: [], userEdited: false };
+    const input: LessonInput = {
+      impasse: { id: "reset", trigger: "why", title: "Why does resetting change page?", sourceEntryIds: [edit.id], conceptIds: [] },
+      learner: { concepts: [concept] }, project: { projectDir, files: ["paging.ts"] }, timeline: timeline.entries(),
+    };
+    const missed = "You explained the reset, but not that page starts at 1 on line 232.";
+    const outputs = [
+      createProbe, explanation,
+      { result: "partial", credits: [{ conceptId: "state", answerQuote: "Reset assigns 1" }], feedback: missed, citations },
+    ];
+    const run = vi.fn(async (_request: BackgroundRunRequest) => ({ text: JSON.stringify(outputs.shift()), filesWritten: [] }));
+    const lesson = createTeaching({
+      background: { run },
+      decisions: { async checkGrounding() { return { grounded: true, missingFiles: [], reason: "ok" }; }, async chooseComponent() { return "DataFlowDiagram"; } },
+    });
+    const append = (entries: NewTimelineEntry[]) => entries.map((entry) => timeline.append(entry));
+    const submit = async (step: "probe" | "articulate", text: string) => {
+      const card = timeline.entries().filter((entry) => isKind(entry, "lesson_card")).findLast((entry) => entry.step === step)!;
+      const answer = { type: "text", text } as const;
+      timeline.append({ kind: "card_answer", source: "app", lessonId: card.lessonId, cardEntryId: card.id, step, answer });
+      return append(await lesson.answer({ lessonId: card.lessonId, cardEntryId: card.id, answer, timeline: timeline.entries() }));
+    };
+    append(await lesson.startLesson(input));
+    await submit("probe", "It keeps page 4.");
+    const entries = await submit("articulate", "Reset assigns 1 to page.");
+    expect(run.mock.lastCall![0].prompt).toContain("For partial, incorrect or unclear, also write feedback");
+    expect(run.mock.lastCall![0].prompt).toContain("for partial, name what the answer left out");
+    expect(entries.map(({ kind }) => kind)).toEqual(["answer_assessment", "lesson_card"]);
+    expect(entries[0]).toMatchObject({ result: "partial", conceptIds: ["state"] });
+    expect(entries[1]).toMatchObject({ step: "explain", card: { elements: { card: { props: { title: "Almost: one part is missing", text: missed, citations } } } } });
+    const lessonId = (entries[1] as { lessonId: string }).lessonId;
+    await expect(lesson.abandon(lessonId)).resolves.toEqual([expect.objectContaining({ kind: "lesson_end", outcome: "completed" })]);
+  } finally {
     await rm(projectDir, { recursive: true, force: true });
   }
 });

@@ -26,6 +26,8 @@ const feedback = "Refresh runs app.js again, so it makes a new token that the se
 const scenarios = [
   { label: "correct", answer: knownAnswer, draft: result("correct", "the server has no session for it"), outcome: "positive", strength: "moderate" },
   { label: "partial", answer: "Refresh creates a new token.", draft: result("partial", "Refresh creates a new token"), outcome: "positive", strength: "weak" },
+  // Live (W5), an answer that left out one cause ended with only "Lesson complete" (#94).
+  { label: "partial with feedback", answer: "Refresh creates a new token.", draft: { ...result("partial", "Refresh creates a new token"), feedback }, outcome: "positive", strength: "weak", feedback: "Almost: one part is missing" },
   { label: "incorrect", answer: wrongAnswer, draft: { ...result("incorrect", "Refresh keeps the same token"), feedback }, outcome: "negative", strength: "moderate", feedback: "Not quite" },
   { label: "incorrect without feedback", answer: wrongAnswer, draft: result("incorrect", "Refresh keeps the same token"), outcome: "negative", strength: "moderate" },
   { label: "unclear", answer: "I don't know, I'm still confused.", draft: { ...result("unclear", "still confused"), feedback }, feedback: "Let's make it clearer" },

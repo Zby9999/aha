@@ -12,7 +12,7 @@ type RunningLesson = {
   portfolio: boolean;
   format: ReturnType<typeof lessonFormat>;
   controller: AbortController;
-  /** "feedback": the Articulation was wrong or unclear and got feedback; the Lesson stays open for questions until Back to work. */
+  /** "feedback": the Articulation was partial, wrong or unclear and got feedback; the Lesson stays open for questions until Back to work. */
   step: "probe" | "articulate" | "feedback";
   generated?: {
     input: LessonInput; sources: LessonSources; question: string; answer?: string;
@@ -294,7 +294,7 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
         lesson.step = "feedback";
         lesson.generated.feedback = { answer: submitted.answer.text.slice(0, 1500), feedback: graded.feedback.text };
         return [...assessment, makeCard(lessonId, "explain", card("TextExplanation", {
-          title: graded.result === "incorrect" ? "Not quite" : "Let's make it clearer",
+          title: graded.result === "incorrect" ? "Not quite" : graded.result === "partial" ? "Almost: one part is missing" : "Let's make it clearer",
           text: graded.feedback.text,
           citations: graded.feedback.citations,
         }))];
