@@ -68,6 +68,7 @@ export function App() {
       projectName={projectName}
       modeChange={modeChange}
       defaultTab={reviewing ? "explain" : session.defaultTab}
+      showExplain={learning || Boolean(reviewing) || session.defaultTab === "explain"}
       viewKey={reviewing}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (

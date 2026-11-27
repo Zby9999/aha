@@ -13,16 +13,19 @@ interface WorkspaceProps {
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
+  /** The Explain tab exists only while a Lesson is open: running, being reviewed, or just finished on its explanation. */
+  showExplain: boolean;
   /** A view within the Mode, such as a reviewed Lesson; changing it resets a manual tab choice like a Mode change does. */
   viewKey?: string | undefined;
 }
 
-export function Workspace({ projectName, modeChange, defaultTab, children, preview, explain, viewKey }: WorkspaceProps) {
+export function Workspace({ projectName, modeChange, defaultTab, children, preview, explain, showExplain, viewKey }: WorkspaceProps) {
   const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
   const mode = modeChange?.mode ?? "work";
   // A manual choice lasts until the next Timeline transition, including after a reconnect.
   const revision = `${modeChange ? `${modeChange.id}:${modeChange.at}` : ""}|${viewKey ?? ""}`;
-  const tab = manualTab?.revision === revision ? manualTab.tab : defaultTab;
+  const chosen = manualTab?.revision === revision ? manualTab.tab : defaultTab;
+  const tab = chosen === "explain" && !showExplain ? "preview" : chosen;
 
   return (
     <div className="workspace-shell">
@@ -48,7 +51,7 @@ export function Workspace({ projectName, modeChange, defaultTab, children, previ
           <div className="workspace-tabbar">
             <TabsList aria-label="Workspace views">
               <TabsTrigger value="preview"><Monitor />Preview</TabsTrigger>
-              <TabsTrigger value="explain"><Sparkles />Explain</TabsTrigger>
+              {showExplain && <TabsTrigger value="explain"><Sparkles />Explain</TabsTrigger>}
               <TabsTrigger value="memory"><BookOpen />Memory</TabsTrigger>
             </TabsList>
           </div>

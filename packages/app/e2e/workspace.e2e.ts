@@ -109,6 +109,8 @@ const test = base.extend<{
 });
 
 const tab = (page: Page, name: string) => page.getByRole("tab", { name, exact: true });
+/** Reopens the latest past Lesson; the Explain tab exists only while a Lesson is open. */
+const review = (page: Page) => page.getByRole("button", { name: "Review", exact: true }).last();
 const why = (page: Page) => page.getByRole("button", { name: "Why?", exact: true });
 const askWhy = (page: Page) => page.getByRole("button", { name: "Ask why", exact: true });
 const card = (page: Page, name: string) => page.getByRole("log", { name: "Lesson cards" }).getByLabel(name, { exact: true });
@@ -118,9 +120,10 @@ test("the pending state of a new Lesson stays visible and replaces the previous 
   await page.getByRole("button", { name: "Show me why" }).click();
   await expect(card(page, "Probe")).toBeVisible();
   await page.getByRole("button", { name: "Back to work", exact: true }).click();
-  await tab(page, "Explain").click();
+  await review(page).click();
   const oldOutcome = page.getByText("Ended early · Read-only", { exact: true });
   await expect(oldOutcome).toBeVisible();
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
 
   const continueLesson = workspace.holdNextLesson();
   try {
@@ -230,7 +233,7 @@ test("the workspace tabs follow the Lesson and records Probe and Articulation an
     { step: "articulate", answer: { type: "text", text: articulation } },
   ]);
 
-  await tab(page, "Explain").click();
+  await review(page).click();
   await expect(card(page, "Articulation")).toContainText(articulation);
   await expect(answer(page, "Articulation")).toHaveCount(0);
 });
@@ -248,11 +251,13 @@ test("Why is tied to a file edit and Back to work unlocks lesson entry points", 
 
   await page.getByRole("button", { name: "Back to work", exact: true }).click();
   await expect(page.getByRole("button", { name: "Show me why" })).toBeEnabled();
-  await tab(page, "Explain").click();
+  await review(page).click();
   await expect(card(page, "Probe")).toContainText("No prediction submitted.");
   await expect(card(page, "Probe").getByRole("textbox")).toHaveCount(0);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "lesson_end")).toMatchObject({ outcome: "abandoned" });
   expect(workspace.evidence).toHaveLength(0);
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  await expect(tab(page, "Explain")).toHaveCount(0);
 
   const userTurns = workspace.timeline.entries().filter((e) => e.kind === "user_message").length;
   const question = "What does sessionStorage do here?";
@@ -347,7 +352,7 @@ test.describe("fixture teaching", () => {
     const finalQuestion = card(page, "Articulation");
     await expect(finalQuestion.getByRole("button", { name: "Only hides the symptom" })).toBeEnabled();
     await page.getByRole("button", { name: "Back to work", exact: true }).click();
-    await tab(page, "Explain").click();
+    await review(page).click();
 
     await expect(page.getByText("Ended early · Read-only", { exact: true })).toBeVisible();
     await expect(card(page, "Probe")).toContainText("Your prediction · There is no token until I log in");
@@ -393,7 +398,7 @@ test.describe("fixture teaching", () => {
     await judgement.getByRole("button", { name: "Fixes the cause", exact: true }).click();
     await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
     await page.reload();
-    await tab(page, "Explain").click();
+    await review(page).click();
     await expect(judgement).toContainText("Your answer · Fixes the cause");
     await expect(judgement.getByRole("region", { name: "Fix feedback" }).getByRole("heading", { name: "Only hides the symptom" })).toBeVisible();
     await expect(judgement).toContainText("Saving the list doesn’t fix the token mismatch.");
@@ -421,14 +426,14 @@ test.describe("Lesson answer recovery", () => {
     await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
     expect(workspace.timeline.entries().findLast((entry) => entry.kind === "lesson_end")).toMatchObject({ outcome: "completed" });
     const explanation = workspace.timeline.entries().filter((entry) => isKind(entry, "lesson_card")).find((entry) => entry.step === "explain")!;
-    await tab(page, "Explain").click();
+    await review(page).click();
     await card(page, "Explanation").getByRole("button", { name: "Flag as incorrect" }).click();
     await expect(card(page, "Explanation").getByRole("status")).toHaveText("Flagged as incorrect");
     expect(workspace.timeline.entries().filter((entry) => entry.kind === "explanation_flagged")).toMatchObject([
       { lessonId: explanation.lessonId, cardEntryId: explanation.id },
     ]);
     await page.reload();
-    await tab(page, "Explain").click();
+    await review(page).click();
     await expect(card(page, "Explanation").getByRole("status")).toHaveText("Flagged as incorrect");
   });
 });
