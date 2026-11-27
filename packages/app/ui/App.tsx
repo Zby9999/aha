@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { activeLesson, isKind, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
 import { AhaMascot } from "@/components/AhaMascot";
-import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
+import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, EditFileIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
 import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/message-scroller";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { chatEntries, composerPlaceholder, conversationItems, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { cardGist, chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -56,6 +56,22 @@ export function App() {
   const reviewTitle = lessonTitle(entries, review?.impasseId);
   const shownLessonId = learning ? activeLesson(entries)?.lessonId : reviewing ?? lastLessonId;
   const items = conversationItems(chatEntries(entries, reviewing), connected && !learning && !reviewing);
+  // Teaching is answering something asked on the left: say so on the left too, not only in the Learning panel.
+  const progress = learning ? lessonProgress(entries) : undefined;
+  const answering = progress === "Answering your question" || progress === "Preparing the lesson" ? progress : undefined;
+  // A reply's link opens the Learning panel and brings its card into view.
+  const [revealed, setRevealed] = useState<{ entryId: string; at: number }>();
+  useEffect(() => {
+    if (!revealed) return;
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => {
+      const card = document.querySelector<HTMLElement>(`[data-card-entry-id="${CSS.escape(revealed.entryId)}"]`);
+      if (!card) return;
+      card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      card.dataset.revealed = String(revealed.at);
+    }));
+    return () => cancelAnimationFrame(frame);
+  }, [revealed]);
+  const showCard = (entryId: string) => setRevealed({ entryId, at: Date.now() });
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
   const canSend = connected && !reviewing && Boolean(text.trim()) && (!learning || session.lessonReady);
@@ -81,6 +97,7 @@ export function App() {
       defaultTab={reviewing ? "explain" : session.defaultTab}
       showExplain={learning || Boolean(reviewing) || session.defaultTab === "explain"}
       viewKey={reviewing}
+      revealExplain={revealed?.at}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
         <LearningPanel
@@ -110,9 +127,25 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} onShowCard={showCard} />
                 </MessageScrollerItem>
               ))}
+              {answering && (
+                <MessageScrollerItem messageId="lesson-answering" className="p-1">
+                  <Message className="gap-3">
+                    <AhaMascot mood="thinking" className="workspace-reply-mark self-start" />
+                    <MessageContent className="gap-3">
+                      <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
+                      <Trace role="status">
+                        <TraceLine status="running">
+                          <TraceIcon><Spinner aria-hidden="true" /></TraceIcon>
+                          <TraceTitle>{answering}…</TraceTitle>
+                        </TraceLine>
+                      </Trace>
+                    </MessageContent>
+                  </Message>
+                </MessageScrollerItem>
+              )}
             </MessageScrollerContent>
           </MessageScrollerViewport>
           <MessageScrollerButton />
@@ -233,8 +266,10 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected, onReview }: {
+function ViewItemView({ item, dispatch, session, connected, onReview, onShowCard }: {
   item: ConversationItem;
+  /** Opens the Learning panel at a card, from the reply that points to it. */
+  onShowCard?: ((entryId: string) => void) | undefined;
   /** Opens a past Lesson's conversation; absent while a Lesson runs or is being reviewed. */
   onReview?: ((lessonId: string) => void) | undefined;
   dispatch: Dispatch;
@@ -273,6 +308,7 @@ function ViewItemView({ item, dispatch, session, connected, onReview }: {
   return (
     <Entry
       entry={entry}
+      onShowCard={onShowCard}
       dispatch={dispatch}
       done={!connected || session.isDone(entry)}
       canStartLesson={connected && session.canStartLesson}
@@ -298,12 +334,43 @@ function UserMessage({ children, mark }: { children: React.ReactNode; mark?: Rea
   );
 }
 
+/** Teaching's reply in the conversation: the gist of the card it put in the Learning panel, and a way to open it. */
+function LessonReply({ entry, answered, onShowCard }: { entry: TimelineEntryOf<"lesson_card">; answered: boolean; onShowCard?: ((entryId: string) => void) | undefined }) {
+  const gist = cardGist(entry.card);
+  return (
+    <Message className="gap-3">
+      <AhaMascot className="workspace-reply-mark self-start" />
+      <MessageContent className="gap-3">
+        <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
+        {gist.kind === "question" ? (
+          <div className="grid gap-1 text-sm leading-relaxed">
+            <p className="text-muted-foreground">{entry.step === "probe" ? "Before I explain, a question for you:" : "Your turn:"}</p>
+            {gist.text && <p className="font-medium wrap-anywhere">{gist.text}</p>}
+          </div>
+        ) : (
+          <div className="grid gap-1 text-sm leading-relaxed">
+            {gist.title && <p className="font-semibold wrap-anywhere">{gist.title}</p>}
+            {gist.text && <p className="wrap-anywhere">{gist.text}</p>}
+          </div>
+        )}
+        {onShowCard && (
+          <Button size="sm" variant="outline" className="justify-self-start self-start" onClick={() => onShowCard(entry.id)}>
+            {gist.kind === "question" ? (answered ? "See it in the Learning panel" : "Answer in the Learning panel") : "Full explanation in the Learning panel"}
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        )}
+      </MessageContent>
+    </Message>
+  );
+}
+
 function Meta({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
+function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview, onShowCard }: {
   entry: TimelineEntry;
+  onShowCard?: ((entryId: string) => void) | undefined;
   dispatch: Dispatch;
   done: boolean;
   canStartLesson: boolean;
@@ -356,6 +423,8 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       return <Meta>{entry.response === "accept" ? "Let's look at why." : "Skipped. The agent carries on."}</Meta>;
     case "lesson_question":
       return <UserMessage>{entry.text}</UserMessage>;
+    case "lesson_card":
+      return <LessonReply entry={entry} answered={done} onShowCard={onShowCard} />;
     case "lesson_error":
       return (
         <Alert variant="destructive">
@@ -390,7 +459,6 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
     case "session_start":
     case "session_end":
     case "lesson_start":
-    case "lesson_card":
     case "card_answer":
     case "mode_change":
     case "answer_assessment":

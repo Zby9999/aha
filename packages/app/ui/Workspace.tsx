@@ -33,9 +33,11 @@ interface WorkspaceProps {
   showExplain: boolean;
   /** A view within the Mode, such as a reviewed Lesson; changing it resets a manual view choice like a Mode change does. */
   viewKey?: string | undefined;
+  /** Changes when something asks to show the Learning panel (a reply's link): opens the panel on it. */
+  revealExplain?: number | undefined;
 }
 
-export function Workspace({ projectName, modeChange, defaultTab, children, preview, explain, showExplain, viewKey }: WorkspaceProps) {
+export function Workspace({ projectName, modeChange, defaultTab, children, preview, explain, showExplain, viewKey, revealExplain }: WorkspaceProps) {
   const [manualView, setManualView] = useState<{ view: SideView; revision: string }>();
   const [collapsed, setCollapsed] = useState(false);
   const wide = useMediaQuery(WIDE);
@@ -54,6 +56,14 @@ export function Workspace({ projectName, modeChange, defaultTab, children, previ
   useEffect(() => {
     if (base === "explain") panel.current?.expand();
   }, [revision, base, panel]);
+
+  useEffect(() => {
+    if (revealExplain === undefined || !showExplain) return;
+    panel.current?.expand();
+    setManualView({ view: "explain", revision });
+    // Only a new request reveals; the revision is read at that moment.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealExplain]);
 
   /** A header button shows its view, or returns to the default view when that view is already showing. */
   function toggle(target: SideView) {

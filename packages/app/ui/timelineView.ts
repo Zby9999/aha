@@ -13,7 +13,7 @@ export type ConversationItem =
   | ViewItem
   | { type: "agent_turn"; key: string; parts: ViewItem[]; pending: boolean };
 
-const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "lesson_card", "answer_assessment", "explanation_flagged", "mode_change", "lesson_answer_recovered"]);
+const HIDDEN = new Set<TimelineEntry["kind"]>(["session_start", "session_end", "lesson_start", "answer_assessment", "explanation_flagged", "mode_change", "lesson_answer_recovered"]);
 
 export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
   const items: ViewItem[] = [];
@@ -121,7 +121,9 @@ export function conversationItems(entries: readonly TimelineEntry[], showPending
   return grouped;
 }
 
-const LESSON_ONLY = new Set<TimelineEntry["kind"]>(["card_answer", "lesson_question", "lesson_error"]);
+// Lesson cards show in the Learning panel; in a Lesson's own conversation, a card that replies to the learner shows as
+// a short reply (see replyCardIds).
+const LESSON_ONLY = new Set<TimelineEntry["kind"]>(["card_answer", "lesson_question", "lesson_error", "lesson_card"]);
 
 /** Where a Lesson ran: from entering learning mode to returning to work. */
 export function lessonSpan(entries: readonly TimelineEntry[], lessonId: string): { impasseId: string; from: number; to: number } | undefined {
@@ -133,11 +135,30 @@ export function lessonSpan(entries: readonly TimelineEntry[], lessonId: string):
 }
 
 /**
+ * The cards that reply to something the learner said in the conversation: a Lesson's first card (the Lesson answers
+ * the Why or Ask why that started it) and the first card after each follow-up question. The conversation shows a short
+ * reply for each, so what was asked on the left is answered on the left.
+ */
+export function replyCardIds(entries: readonly TimelineEntry[]): Set<string> {
+  const replies = new Set<string>();
+  const waiting = new Set<string>();
+  for (const entry of entries) {
+    if (entry.kind === "lesson_start" || entry.kind === "lesson_question") waiting.add(entry.lessonId);
+    else if (entry.kind === "card_answer") waiting.delete(entry.lessonId);
+    else if (entry.kind === "lesson_card" && waiting.delete(entry.lessonId)) replies.add(entry.id);
+  }
+  return replies;
+}
+
+/**
  * One Lesson's conversation: what started it, then what the learner and teaching said while it ran. Answers given on
- * a card stay on that card in the Learning panel, so they are not repeated here.
+ * a card stay on that card in the Learning panel, so they are not repeated here; cards that reply to the conversation
+ * appear as a short reply pointing at the card.
  */
 function lessonConversation(entries: readonly TimelineEntry[], impasseId: string, from: number, to: number): TimelineEntry[] {
+  const replies = replyCardIds(entries);
   return entries.filter((entry) => {
+    if (entry.kind === "lesson_card") return entry.seq > from && entry.seq < to && replies.has(entry.id);
     if (entry.seq > from) return entry.seq < to && entry.source !== "agent-host" && entry.source !== "decisions" && entry.kind !== "card_answer";
     // What started this Lesson: the Why or Ask why, or the Offer and its acceptance.
     if (entry.kind === "impasse") return entry.impasse.id === impasseId;
@@ -259,4 +280,29 @@ export function lessonProgress(entries: readonly TimelineEntry[]): string | unde
   if (!learner || learner.seq < card.seq) return undefined;
   if (learner.kind === "lesson_question") return "Answering your question";
   return learner.kind === "card_answer" && learner.step === "probe" ? "Preparing the explanation" : "Checking your answer";
+}
+
+/** What a reply in the conversation says about a card: its question or the gist of its explanation. */
+export type CardGist = { kind: "question" | "explanation"; title?: string; text?: string };
+
+const firstSentences = (text: string, count = 2) => {
+  const sentences = text.match(/[^.!?。！？]+[.!?。！？]+["')\]]*\s*|[^.!?。！？]+$/g) ?? [text];
+  const gist = sentences.slice(0, count).join("").trim();
+  return gist.length < text.trim().length ? `${gist} …` : gist;
+};
+
+export function cardGist(card: { root: string; elements: Record<string, { type: string; props?: Record<string, unknown> }> }): CardGist {
+  const elements = Object.values(card.elements ?? {});
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : undefined);
+  const probe = elements.find((element) => element.type === "ProbeCard");
+  if (probe) return { kind: "question", ...(text(probe.props?.question) ? { text: text(probe.props?.question)! } : {}) };
+  const articulation = elements.find((element) => element.type === "ArticulationCard");
+  if (articulation) return { kind: "question", ...(text(articulation.props?.prompt) ? { text: text(articulation.props?.prompt)! } : {}) };
+  const explanation = elements.find((element) => text(element.props?.title));
+  const body = elements.map((element) => text(element.props?.text)).find(Boolean);
+  return {
+    kind: "explanation",
+    ...(explanation ? { title: text(explanation.props?.title)! } : {}),
+    ...(body ? { text: firstSentences(body) } : {}),
+  };
 }

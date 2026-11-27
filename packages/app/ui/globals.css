@@ -555,3 +555,9 @@
 /* Cited code bleeds 0.5rem into the card's side padding; when it ends a card, it bleeds as far into the bottom padding. */
 [data-slot="card"]:not(:has(> [data-slot="card-footer"])) > [data-slot="card-content"]:last-child
   ul[aria-label="Code references"]:last-child > li:last-child [data-slot="collapsible-content"] { margin-bottom: -0.5rem; }
+
+/* A card opened from its reply in the conversation flashes once so the eye finds it. */
+@media (prefers-reduced-motion: no-preference) {
+  .lesson-card-slot[data-revealed] > * { animation: lesson-card-reveal 1.2s ease-out; }
+  @keyframes lesson-card-reveal { 0%, 40% { box-shadow: 0 0 0 3px color-mix(in oklch, var(--lesson-accent) 45%, transparent); } }
+}

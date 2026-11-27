@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyParts, sessionView, toViewItems } from "../ui/timelineView.ts";
+import { cardGist, chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyCardIds, replyParts, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -200,4 +200,31 @@ test("the Lesson shows teaching at work whenever the learner's last move is newe
   expect(lessonProgress(t.entries())).toBeUndefined();
   t.append({ kind: "card_answer", source: "app", lessonId: "l", cardEntryId: articulate.id, step: "articulate", answer: { type: "text", text: "Because." } });
   expect(lessonProgress(t.entries())).toBe("Checking your answer");
+});
+
+test("only cards that reply to the conversation appear there: the Lesson's first card and each follow-up's answer", () => {
+  const t = createTimeline({ sessionId: "s" });
+  const card = (type: string, props: Record<string, unknown>) => ({ root: "r", elements: { r: { type, props } } }) as never;
+  const impasse = { id: "i1", trigger: "ask_why" as const, title: "Why?", text: "Why do my projects disappear?", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "probe", card: card("ProbeCard", { question: "Same cause?" }) });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "Yes." } });
+  const explain = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "explain", card: card("TextExplanation", { title: "Two causes", text: "x" }) });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l1", text: "Which one should I fix first?" });
+  const answer = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "explain", card: card("TextExplanation", { title: "Storage first", text: "x" }) });
+
+  expect(replyCardIds(t.entries())).toEqual(new Set([probe.id, answer.id]));
+  const shown = chatEntries(t.entries()).filter((entry) => entry.kind === "lesson_card").map((entry) => entry.id);
+  expect(shown).toEqual([probe.id, answer.id]);
+  expect(shown).not.toContain(explain.id);
+});
+
+test("a reply sums up its card: a Probe's question, or an explanation's title and first two sentences", () => {
+  const card = (type: string, props: Record<string, unknown>) => ({ root: "r", elements: { r: { type, props } } });
+  expect(cardGist(card("ProbeCard", { question: "Same cause, or different causes?" }))).toEqual({ kind: "question", text: "Same cause, or different causes?" });
+  expect(cardGist(card("TextExplanation", { title: "Storage first", text: "Fix storage first. It loses projects on restart. The token is separate." })))
+    .toEqual({ kind: "explanation", title: "Storage first", text: "Fix storage first. It loses projects on restart. …" });
+  expect(cardGist(card("Flowchart", { title: "What decides the screen", steps: ["a"] }))).toEqual({ kind: "explanation", title: "What decides the screen" });
 });

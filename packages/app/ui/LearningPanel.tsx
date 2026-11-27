@@ -70,7 +70,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
             const submitted = answers.get(entry.id);
             const endedEarly = outcomes.get(entry.lessonId) === "abandoned";
             return (
-              <div key={entry.id}>
+              <div key={entry.id} data-card-entry-id={entry.id} className="lesson-card-slot">
                 <LessonCardView
                   card={entry.card}
                   entryId={entry.id}
