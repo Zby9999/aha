@@ -27,14 +27,15 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
   const references = (
       <ul aria-label="Code references" className="-mx-2 grid gap-0.5 text-xs text-muted-foreground">
         {[...files].map(([path, { labels, ranges }]) => (
-          <li key={path}>
+          <li key={path} className="group/citation">
             <Collapsible>
               <CollapsibleTrigger className="lesson-citation-trigger flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-start transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none">
                 <CodeFileIcon aria-hidden="true" className="size-3.5 shrink-0" />
                 <code className="min-w-0 flex-1 leading-snug wrap-anywhere">{path}{labels.size > 0 && `:${[...labels].join(", ")}`}</code>
                 <ChevronDownIcon aria-hidden="true" className="lesson-citation-chevron size-3.5 shrink-0 transition-transform" />
               </CollapsibleTrigger>
-              <CollapsibleContent className="pt-1.5 pb-1">
+              {/* Only a reference with another below it needs space under its code; the card pads the last one. */}
+              <CollapsibleContent className="px-2 pt-1.5 group-not-last/citation:pb-1">
                 <CitedCode path={path} ranges={ranges} />
               </CollapsibleContent>
             </Collapsible>
@@ -50,7 +51,7 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
           Code references
           <ChevronDownIcon data-icon="inline-end" className="ms-auto" aria-hidden="true" />
         </CollapsibleTrigger>
-        <CollapsibleContent className="px-2 pb-2 pt-1">{references}</CollapsibleContent>
+        <CollapsibleContent className="pt-1">{references}</CollapsibleContent>
       </Collapsible>
     );
   }
