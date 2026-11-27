@@ -134,6 +134,9 @@
   justify-content: space-between;
   gap: 0.65rem 1rem;
   padding: 0.65rem clamp(0.9rem, 2.2vw, 2rem);
+  /* The mascot's body sits ~0.23rem inside its box; this puts its visible
+     left edge as far from the window as its top is from the header's. */
+  padding-left: 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
@@ -150,7 +153,7 @@
   gap: 1rem;
 }
 
-.workspace-brand { gap: 0.65rem; }
+.workspace-brand { gap: 0.3rem; }
 .workspace-brand h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.025em; }
 
 .workspace-reply-mark {
