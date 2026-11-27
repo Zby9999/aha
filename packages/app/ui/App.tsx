@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HelpIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon, SparkleIcon } from "@/components/icons";
+import { AhaMascot } from "@/components/AhaMascot";
+import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HelpIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
 import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
@@ -14,7 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
+import { Message, MessageContent, MessageHeader } from "@/components/ui/message";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
 import {
@@ -220,7 +221,7 @@ export function App() {
             <InputGroupButton
               type="submit"
               size="icon-sm"
-              variant="default"
+              variant={canSend ? "default" : "secondary"}
               disabled={!canSend}
               aria-label={asking || learning ? "Ask" : "Send"}
             >
@@ -248,9 +249,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
     const pending = item.type === "agent_turn" && item.pending;
     return (
       <Message className="gap-3" data-agent-pending={pending || runningTool || undefined}>
-        <MessageAvatar className="workspace-reply-mark self-start">
-          <SparkleIcon className="size-4" aria-hidden="true" />
-        </MessageAvatar>
+        <AhaMascot mood={pending || runningTool ? "thinking" : "idle"} className="workspace-reply-mark self-start" />
         <MessageContent className="gap-1">
           <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
           {replyParts(parts).map((part) => part.type === "agent_message" ? (

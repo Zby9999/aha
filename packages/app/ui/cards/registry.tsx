@@ -73,7 +73,7 @@ function TextAnswer({ disabled, onSubmit }: { disabled: boolean; onSubmit: (text
       }}
     >
       <Input disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
-      <Button disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
+      <Button variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
     </form>
   );
 }
@@ -169,7 +169,7 @@ export const { registry } = defineRegistry(cardCatalog, {
             <CardMascot accessory="bulb" />
           </CardHeader>
           <CardFooter className="flex-wrap gap-2">
-            <Button disabled={done} onClick={() => respond("accept")}>Show me why</Button>
+            <Button variant={done ? "secondary" : "default"} disabled={done} onClick={() => respond("accept")}>Show me why</Button>
             <Button disabled={done} variant="ghost" onClick={() => respond("skip")}>Skip this time</Button>
           </CardFooter>
         </Card>

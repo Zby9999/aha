@@ -36,6 +36,8 @@ export function MemoryPanel({ visible }: { visible: boolean }) {
     setDraft(model?.files.find((file) => file.path === selected)?.markdown ?? "");
   }, [model, selected]);
 
+  const dirty = draft !== (model?.files.find((file) => file.path === selected)?.markdown ?? "");
+
   async function save() {
     if (!selected) return;
     setSaving(true);
@@ -97,7 +99,8 @@ export function MemoryPanel({ visible }: { visible: boolean }) {
           <Label htmlFor="memory-markdown">Markdown</Label>
           <Textarea id="memory-markdown" className="min-h-40 flex-1 resize-y font-mono text-xs" value={draft} onChange={(event) => setDraft(event.target.value)} />
         </div>
-        <Button disabled={!selected || saving} onClick={() => void save()}>{saving ? <><Spinner aria-hidden="true" />Saving…</> : "Save changes"}</Button>
+        {/* The theme colour only marks a save that would change something. */}
+        <Button variant={dirty ? "default" : "secondary"} disabled={!selected || saving} onClick={() => void save()}>{saving ? <><Spinner aria-hidden="true" />Saving…</> : "Save changes"}</Button>
       </div>
     </>
   );
