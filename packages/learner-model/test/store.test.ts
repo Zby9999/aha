@@ -237,3 +237,17 @@ it("two strong Articulations reach explains_independently", async () => {
   expect(await masteryAfter(model, [strong])).toMatchObject({ "password-hashing": "correct_with_hints" });
   expect(await masteryAfter(model, [strong])).toMatchObject({ "password-hashing": "explains_independently" });
 });
+
+it("one partial answer alone does not reach correct_with_hints (#95)", async () => {
+  // Live (W5), one Articulation that left out a cause raised two Concepts to correct_with_hints.
+  const model = createLearnerModel({ projectDir: await project(), background });
+  const answer = (conceptId: string, strength: Evidence["strength"]): Observation => ({ conceptId, type: "articulation", outcome: "positive", strength });
+  expect(await masteryAfter(model, [
+    answer("session-tokens", "weak"),
+    answer("cookies", "weak"), answer("cookies", "weak"),
+    answer("client-server", "moderate"),
+    { conceptId: "debugging", type: "independent_fix", outcome: "positive", strength: "weak" },
+  ])).toMatchObject({
+    "session-tokens": "seen_explanation", cookies: "correct_with_hints", "client-server": "correct_with_hints", debugging: "not_encountered",
+  });
+});
