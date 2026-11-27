@@ -74,10 +74,11 @@ function TextAnswer({ disabled, onSubmit }: { disabled: boolean; onSubmit: (text
         if (text.trim()) onSubmit(text);
       }}
     >
-      <InputGroup data-disabled={disabled || undefined}>
+      {/* 40px field, 12px radius; the 28px button is inset 6px with a 6px radius, so the corners nest. */}
+      <InputGroup data-disabled={disabled || undefined} className="h-10 rounded-[0.75rem]">
         <InputGroupInput disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
-        <InputGroupAddon align="inline-end">
-          <InputGroupButton type="submit" size="icon-xs" aria-label="Answer" variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()}>
+        <InputGroupAddon align="inline-end" className="pr-[5px] has-[>button]:mr-0">
+          <InputGroupButton type="submit" size="icon-xs" className="h-7 w-7 rounded-[6px]" aria-label="Answer" variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()}>
             <ArrowUpIcon />
           </InputGroupButton>
         </InputGroupAddon>
