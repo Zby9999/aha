@@ -50,7 +50,7 @@ const components = { code: MarkdownCode };
 
 export function Markdown({ children, streaming = false }: { children: string; streaming?: boolean }) {
   return (
-    <Streamdown controls={false} components={components} isAnimating={streaming} mode={streaming ? "streaming" : "static"}>
+    <Streamdown className="leading-relaxed" controls={false} components={components} isAnimating={streaming} mode={streaming ? "streaming" : "static"}>
       {children}
     </Streamdown>
   );

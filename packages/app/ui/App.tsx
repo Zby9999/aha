@@ -248,8 +248,9 @@ function ViewItemView({ item, dispatch, session, connected, onReview }: {
     return (
       <Message className="gap-3" data-agent-pending={pending || runningTool || undefined}>
         <AhaMascot mood={pending || runningTool ? "thinking" : "idle"} className="workspace-reply-mark self-start" />
-        <MessageContent className="gap-1">
-          <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
+        {/* Text and tool runs get room between them; the name stays close to the first one. */}
+        <MessageContent className="gap-3">
+          <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
           {replyParts(parts).map((part) => part.type === "agent_message" ? (
             <Markdown key={part.key} streaming={part.streaming}>{part.text}</Markdown>
           ) : part.type === "steps" ? <AgentSteps key={part.key} steps={part.steps} /> : (
