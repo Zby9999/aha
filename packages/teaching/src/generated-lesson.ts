@@ -38,7 +38,10 @@ type ExplanationContext =
   | { probe: string; answer: string; followUp?: never; hint?: never; brief?: true }
   | { probe: string; answer?: string; predictionPending?: true; articulation?: { answer: string; feedback: string }; followUp: string; hint?: never; brief?: never }
   | { hint: true; followUp?: never; brief?: never }
-  | { directQuestion: string; hint?: never; followUp?: never; brief?: never };
+  | { directQuestion: string; previousLesson?: PreviousLesson; hint?: never; followUp?: never; brief?: never };
+
+/** The Lesson that just ended, for a question that follows it up. */
+export type PreviousLesson = { question: string; explanations: string[] };
 
 const ASSESSMENT_DEADLINE_MS = 30_000;
 
@@ -155,7 +158,8 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
       const everyPart = input.impasse.trigger === "ask_why" && "probe" in discussion && !isFollowUp ? ` ${EVERY_PART}` : "";
       const goal = discussion.hint
         ? "Give one short hint pointing to where the user should check next. Leave the conclusion to the user."
-        : isQuestion ? "Answer the question the user actually asked, directly, in one or two sentences, even when it goes beyond what the code shows. Don't re-explain the Lesson or the change instead."
+        : isQuestion ? `Answer the question the user actually asked, directly, in one or two sentences, even when it goes beyond what the code shows. Don't re-explain the Lesson or the change instead.${
+          "previousLesson" in discussion && discussion.previousLesson ? " The question follows up the Lesson that just ended (discussion.previousLesson): read words like \"it\" or \"which one\" against it. When the question asks for an order or a choice, give it and the reason." : ""}`
           : discussion.brief ? `Correct or confirm the prediction in one or two sentences, explaining one immediate cause.${everyPart} ${noPrediction}`
             : `Respond to the prediction and explain the immediate cause.${everyPart} ${noPrediction}`;
       const textOnly = isQuestion || discussion.hint === true || discussion.brief === true;

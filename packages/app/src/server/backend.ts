@@ -303,7 +303,8 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         return;
       }
       case "ask_why": {
-        const impasse = { ...newImpasse(timeline.entries(), "ask_why", action.text, []), text: action.text };
+        const ended = justEndedLesson(timeline.entries());
+        const impasse = { ...newImpasse(timeline.entries(), "ask_why", action.text, ended ? [ended.id] : []), text: action.text };
         const entry = timeline.append({ kind: "impasse", source: "app", impasse });
         enterLearning(impasse.id, entry.id);
         return;
@@ -401,6 +402,19 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
 function findImpasse(entries: readonly TimelineEntry[], id: string): Impasse | undefined {
   for (const e of entries) if (e.kind === "impasse" && e.impasse.id === id) return e.impasse;
   return undefined;
+}
+
+const FOLLOW_UP_WINDOW_MS = 10 * 60_000;
+
+/**
+ * The end of a Lesson that an Ask why follows up: nothing else was asked since it ended, a short while ago. Teaching
+ * answers such a question directly instead of starting a new Probe (live, W5's "Which one should I fix first?").
+ */
+function justEndedLesson(entries: readonly TimelineEntry[], now = Date.now()): TimelineEntry | undefined {
+  const end = entries.findLast((entry) => entry.kind === "lesson_end");
+  if (!end || now - Date.parse(end.at) > FOLLOW_UP_WINDOW_MS) return undefined;
+  const later = entries.filter((entry) => entry.seq > end.seq);
+  return later.some((entry) => entry.kind === "user_message" || entry.kind === "impasse") ? undefined : end;
 }
 
 function newImpasse(entries: readonly TimelineEntry[], trigger: Impasse["trigger"], title: string, sourceEntryIds: string[]): Impasse {

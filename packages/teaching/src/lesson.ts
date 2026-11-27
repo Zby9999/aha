@@ -1,6 +1,6 @@
 import type { CardSpec, Citation, LessonInput, NewTimelineEntry, ProbeCardProps, Teaching, TeachingFactory, TimelineEntryOf } from "@aha/contracts";
 import { card, DEMO_CONCEPTS, portfolioSessionFlow } from "@aha/contracts/fixtures";
-import { createLessonGenerator } from "./generated-lesson.ts";
+import { createLessonGenerator, type PreviousLesson } from "./generated-lesson.ts";
 import { lessonFormat, relevantConcepts } from "./lesson-format.ts";
 import { captureLessonSources, citesLessonSources, relevantCitation, type LessonSources } from "./lesson-sources.ts";
 
@@ -56,6 +56,27 @@ function matchesPortfolio({ impasse, project, timeline }: LessonInput): boolean 
     (entry.kind === "error" && entry.message.includes("GET /api/me 401")) ||
     (entry.kind === "file_edit" && [tokenSource.path, sessionSource.path].includes(entry.path))
   ));
+}
+
+/**
+ * The Lesson an Ask why follows up: the App Shell links the question to that Lesson's end in `sourceEntryIds` when it
+ * comes right after it. Live (W5), "Which one should I fix first?" started a new Probe and was never answered.
+ */
+function previousLesson({ impasse, timeline }: LessonInput): PreviousLesson | undefined {
+  if (impasse.trigger !== "ask_why") return undefined;
+  const end = timeline.find((entry) => entry.kind === "lesson_end" && impasse.sourceEntryIds.includes(entry.id));
+  if (end?.kind !== "lesson_end") return undefined;
+  const start = timeline.find((entry) => entry.kind === "lesson_start" && entry.lessonId === end.lessonId);
+  const asked = start?.kind === "lesson_start"
+    ? timeline.find((entry) => entry.kind === "impasse" && entry.impasse.id === start.impasseId) : undefined;
+  const explanations = timeline.flatMap((entry) => {
+    if (entry.kind !== "lesson_card" || entry.lessonId !== end.lessonId || entry.step !== "explain") return [];
+    const props = entry.card.elements[entry.card.root]?.props as Record<string, unknown> | undefined;
+    const nodes = Array.isArray(props?.nodes) ? props.nodes.map((node) => (node as { label?: unknown }).label) : [];
+    return [[props?.title, props?.text, props?.summary, ...nodes].filter((part) => typeof part === "string").join(" ").slice(0, 1200)];
+  });
+  const question = asked?.kind === "impasse" ? asked.impasse.text ?? asked.impasse.title : "";
+  return { question: question.slice(0, 1200), explanations: explanations.slice(-3) };
 }
 
 function makeCard(lessonId: string, step: LessonCard["step"], spec: LessonCard["card"]): LessonCard {
@@ -146,6 +167,13 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       try {
         const shortcut = format === "hint" || format === "direct" || format === "review";
         const sources = generator || shortcut ? await captureLessonSources(input, { allowEmpty: !generator }) : undefined;
+        const followed = generator && sources ? previousLesson(input) : undefined;
+        if (generator && sources && followed) {
+          // A follow-up to the Lesson that just ended is answered directly, without a new Probe.
+          const question = input.impasse.text ?? input.impasse.title;
+          const explanation = await generator.explain(input, sources, { directQuestion: question, previousLesson: followed }, lesson.controller.signal);
+          return complete(lesson, [start, makeCard(id, "explain", explanation.card)]);
+        }
         if (shortcut && sources) {
           const anchor = relevantCitation(input, sources, true);
           if (format === "review" && anchor) {
