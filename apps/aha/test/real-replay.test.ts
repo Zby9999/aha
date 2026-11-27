@@ -99,7 +99,7 @@ const scriptedModel: FauxResponseFactory = (context) => {
   if (prompt.startsWith("Assess the actual Articulation answer")) {
     const answer = lesson.discussion!.answer!;
     const conceptId = lesson.discussion!.concepts!.find(({ id }) => id === SESSION_TOKENS)?.id ?? lesson.discussion!.concepts![0]!.id;
-    return reply("assess", { result: "partial", credits: [{ conceptId, answerQuote: answer.split(" ").slice(0, 4).join(" ") }], citations });
+    return reply("assess", { result: "correct", credits: [{ conceptId, answerQuote: answer.split(" ").slice(0, 4).join(" ") }], citations });
   }
   const task = prompt.startsWith("Give one short hint") ? "hint" : prompt.startsWith("Answer the user's question") ? "answer" : "explain";
   return reply(task, { component: "TextExplanation", props: { title: "Where the token comes from", text: "The page makes a new token each time it loads.", citations } });
@@ -180,7 +180,8 @@ describe.each(["session_end", "idle"] as const)("with every module real, Dreamin
       const offer = first.entries().findLast((e) => isKind(e, "offer"))!;
       expect(offer.impasseId).toBe((impasses[0] as Extract<TimelineEntry, { kind: "impasse" }>).impasse.id);
 
-      // A full generated Lesson: Probe, Explain, Articulate. The Articulation is assessed partial for session tokens.
+      // A full generated Lesson: Probe, Explain, Articulate. The Articulation is assessed correct for session tokens
+      // (a partial one alone would only reach seen_explanation, #95).
       await first.act({ type: "offer_response", impasseId: offer.impasseId, response: "accept" });
       const probe = first.entries().findLast((e) => isKind(e, "lesson_card"))!;
       expect(probe.step).toBe("probe");
@@ -193,13 +194,13 @@ describe.each(["session_end", "idle"] as const)("with every module real, Dreamin
       });
       expect(lessonSteps(first.entries(), probe.lessonId)).toEqual(["probe", "explain", "articulate"]);
       expect(first.entries().findLast((e) => isKind(e, "lesson_end"))).toMatchObject({ lessonId: probe.lessonId, outcome: "completed" });
-      expect(first.entries().findLast((e) => isKind(e, "answer_assessment"))).toMatchObject({ result: "partial", conceptIds: [SESSION_TOKENS] });
+      expect(first.entries().findLast((e) => isKind(e, "answer_assessment"))).toMatchObject({ result: "correct", conceptIds: [SESSION_TOKENS] });
       expect(currentMode(first.entries())).toBe("work");
 
       // Evidence is in the session file: Jev's repeated gap, and the assessed Articulation.
       const sessionFile = readFileSync(join(projectDir, ".aha/learner-model/sessions/replay-1.md"), "utf8");
       expect(sessionFile).toMatch(/concept: session-tokens\n- type: repeated_gap · outcome: negative · strength: moderate/);
-      expect(sessionFile).toMatch(/concept: session-tokens\n- type: articulation · outcome: positive · strength: weak/);
+      expect(sessionFile).toMatch(/concept: session-tokens\n- type: articulation · outcome: positive · strength: moderate/);
       const conceptFile = join(projectDir, ".aha/learner-model/concepts/session-tokens.md");
       const mastery = () => readFileSync(conceptFile, "utf8").match(/^mastery: (.*)$/m)?.[1];
     const changelog = () => { try { return readFileSync(join(projectDir, ".aha/learner-model/changelog.md"), "utf8"); } catch { return ""; } };

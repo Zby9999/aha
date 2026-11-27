@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createTimeline, type BackgroundRunRequest, type Concept, type LessonInput, type NewTimelineEntry } from "@aha/contracts";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createTeaching } from "../src/index.ts";
 
 // Seam: Teaching with a fake background model. These check what the model is asked, for cases found in the live
@@ -200,4 +200,57 @@ test("a Lesson sees the session's earlier diffs of its files and covers at most 
   expect(request.systemPrompt).toContain("use them as the before-state");
   expect(request.systemPrompt).toContain("Cover at most two causes");
   expect(request.systemPrompt).toContain("root cause first");
+});
+
+describe("an Ask why on several situations answers every part (#93)", () => {
+  const question = "My projects disappear when I refresh, when I log in again and when I restart the server. Is it the same problem?";
+  const diagram = (causes: number) => ({
+    causes,
+    component: "DataFlowDiagram",
+    props: {
+      title: "Refresh loses the session", summary: "Partly right.",
+      nodes: [{ id: "a", label: "Page loads" }, { id: "b", label: "Server" }], edges: [{ from: "a", to: "b", label: "New token" }], citations,
+    },
+  });
+  async function lessonWith(drafts: object[]) {
+    const timeline = createTimeline({ sessionId: "multi-cause" });
+    const run = vi.fn(async (request: BackgroundRunRequest) => ({
+      text: JSON.stringify(request.prompt.includes('"question":"..."') ? probe : drafts.shift()), filesWritten: [],
+    }));
+    const teaching = createTeaching({
+      background: { run },
+      decisions: { async checkGrounding() { return { grounded: true, missingFiles: [], reason: "ok" }; }, async chooseComponent() { return "TextExplanation"; } },
+    });
+    const append = (entries: NewTimelineEntry[]) => entries.map((entry) => timeline.append(entry));
+    const card = append(await teaching.startLesson({
+      impasse: { id: "m", trigger: "ask_why", title: question, text: question, sourceEntryIds: [], conceptIds: [] },
+      learner: { concepts: [] }, project: { projectDir, files: ["server.js"] }, timeline: timeline.entries(),
+    })).find((entry) => entry.kind === "lesson_card")!;
+    const submitted = { type: "text", text: "I think it is all one bug." } as const;
+    timeline.append({ kind: "card_answer", source: "app", lessonId: card.lessonId, cardEntryId: card.id, step: "probe", answer: submitted });
+    const entries = await teaching.answer({ lessonId: card.lessonId, cardEntryId: card.id, answer: submitted, timeline: timeline.entries() });
+    const explain = entries.find((entry) => entry.kind === "lesson_card" && entry.step === "explain");
+    return { run, explain: explain?.kind === "lesson_card" ? explain.card.elements.card : undefined };
+  }
+
+  test("the Probe asks about the relation and the Explain step is asked to answer the question itself", async () => {
+    const { run } = await lessonWith([text]);
+    expect(run.mock.calls[0]![0].prompt).toContain("ask whether they think the situations have the same cause");
+    const explainPrompt = run.mock.calls[1]![0].prompt;
+    expect(explainPrompt).toContain(question);
+    expect(explainPrompt).toContain("every part of it");
+    expect(explainPrompt).toContain("whether the situations share one cause");
+  });
+
+  test("a several-cause draft drawn as one diagram is redrafted as text", async () => {
+    const { run, explain } = await lessonWith([diagram(3), text]);
+    expect(run.mock.calls[2]![0].prompt).toContain("With several causes, use TextExplanation");
+    expect(explain?.type).toBe("TextExplanation");
+  });
+
+  test("a single-cause answer may still be a diagram", async () => {
+    const { run, explain } = await lessonWith([diagram(1)]);
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(explain?.type).toBe("DataFlowDiagram");
+  });
 });
