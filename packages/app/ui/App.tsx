@@ -66,7 +66,6 @@ export function App() {
   return (
     <Workspace
       projectName={projectName}
-      connected={connected}
       modeChange={modeChange}
       defaultTab={reviewing ? "explain" : session.defaultTab}
       viewKey={reviewing}
