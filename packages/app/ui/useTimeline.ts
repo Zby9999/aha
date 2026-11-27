@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ClientMessage, ServerMessage, TimelineEntry, UserAction } from "@aha/contracts";
+import type { AgentSettings, ClientMessage, ServerMessage, TimelineEntry, UserAction } from "@aha/contracts";
 
 /** The backend's Timeline over the /ws WebSocket, and a way to send user actions. */
 export function useTimeline() {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [agentSettings, setAgentSettings] = useState<AgentSettings | null>(null);
   const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export function useTimeline() {
         const message = JSON.parse(event.data) as ServerMessage;
         if (message.type === "snapshot") setEntries(message.entries);
         else if (message.type === "entry") setEntries((prev) => [...prev, message.entry]);
+        else if (message.type === "agent_settings") setAgentSettings(message.settings);
         else setError(message.message);
       };
       // The backend restarts during development: say so and reconnect; the snapshot restores the Timeline.
@@ -52,5 +54,5 @@ export function useTimeline() {
     return true;
   }, []);
 
-  return { entries, error, connected, dispatch };
+  return { entries, error, connected, dispatch, agentSettings };
 }
