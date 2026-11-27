@@ -1,13 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Geist and Geist Mono, self-hosted so the local app looks the same on every machine and offline. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 
 /* Tailwind must also scan the prebuilt json-render shadcn components. */
 @source "../node_modules/@json-render/shadcn/dist";
 @source "../node_modules/streamdown/dist/*.js";
 
 /*
- * Design tokens (ADR-0004): shadcn/ui neutral theme. Change colours, radius and fonts here only;
+ * Design tokens (ADR-0004): shadcn/ui neutral theme with Geist fonts. Change colours, radius and fonts here only;
  * every component, in the app shell and in lesson cards, reads these variables.
  */
 :root {
@@ -74,6 +77,9 @@
 }
 
 @theme inline {
+  /* Geist has no CJK glyphs: Chinese falls back to each system's own UI font. */
+  --font-sans: "Geist Variable", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
