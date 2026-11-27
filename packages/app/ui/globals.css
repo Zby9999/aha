@@ -82,8 +82,8 @@
 }
 
 @theme inline {
-  /* Allo has no CJK glyphs: Chinese falls back to each system's own UI font. */
-  --font-sans: "Allo", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif, system-ui, sans-serif;
+  /* Allo has no CJK glyphs: Chinese uses Resource Han Rounded (loaded in index.html), then the system's own UI font. */
+  --font-sans: "Allo", "Resource Han Rounded", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
