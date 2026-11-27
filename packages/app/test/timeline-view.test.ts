@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { cardGist, chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyCardIds, replyParts, sessionView, toViewItems } from "../ui/timelineView.ts";
+import { cardGist, chatEntries, composerPlaceholder, conversationItems, followUpAnswerIds, lessonProgress, replyCardIds, replyParts, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -216,6 +216,8 @@ test("only cards that reply to the conversation appear there: the Lesson's first
   const answer = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "explain", card: card("TextExplanation", { title: "Storage first", text: "x" }) });
 
   expect(replyCardIds(t.entries())).toEqual(new Set([probe.id, answer.id]));
+  // Only the follow-up's answer belongs to the conversation alone; the Probe is answered in the Learning panel.
+  expect(followUpAnswerIds(t.entries())).toEqual(new Set([answer.id]));
   const shown = chatEntries(t.entries()).filter((entry) => entry.kind === "lesson_card").map((entry) => entry.id);
   expect(shown).toEqual([probe.id, answer.id]);
   expect(shown).not.toContain(explain.id);

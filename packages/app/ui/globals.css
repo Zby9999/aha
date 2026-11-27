@@ -561,3 +561,6 @@
   .lesson-card-slot[data-revealed] > * { animation: lesson-card-reveal 1.2s ease-out; }
   @keyframes lesson-card-reveal { 0%, 40% { box-shadow: 0 0 0 3px color-mix(in oklch, var(--lesson-accent) 45%, transparent); } }
 }
+
+/* A follow-up's answer card in the conversation already sits beside Aha's avatar: no second mascot on the card. */
+.workspace-chat .lesson-card-mascot { display: none; }

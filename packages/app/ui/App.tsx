@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/message-scroller";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { cardGist, chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { cardGist, chatEntries, composerPlaceholder, conversationItems, followUpAnswerIds, lessonProgress, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -42,7 +42,9 @@ export function App() {
   const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
   const [reviewRequest, setReviewRequest] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
-  const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
+  // A follow-up question is answered where it was asked, in the conversation; the Learning panel keeps the Lesson's own cards.
+  const followUps = followUpAnswerIds(entries);
+  const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card")).filter((entry) => !followUps.has(entry.id));
   const lessonAnswers = new Map(entries.flatMap((entry) => entry.kind === "card_answer" ? [[entry.cardEntryId, entry.answer] as const] : []));
   const flaggedExplanations = new Set(entries.flatMap((entry) => entry.kind === "explanation_flagged" ? [entry.cardEntryId] : []));
   const lastLessonId = entries.findLast((entry) => isKind(entry, "lesson_start"))?.lessonId;
@@ -72,6 +74,25 @@ export function App() {
     return () => cancelAnimationFrame(frame);
   }, [revealed]);
   const showCard = (entryId: string) => setRevealed({ entryId, at: Date.now() });
+  const followUpAnswer = (entry: TimelineEntryOf<"lesson_card">) => followUps.has(entry.id) ? (
+    <Message className="gap-3">
+      <AhaMascot className="workspace-reply-mark self-start" />
+      <MessageContent className="min-w-0 gap-3">
+        <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
+        <LessonCardView
+          card={entry.card}
+          entryId={entry.id}
+          done={!connected || session.isDone(entry)}
+          endedEarly={lessonOutcomes.get(entry.lessonId) === "abandoned"}
+          {...(entry.step === "explain" ? { flag: {
+            lessonId: entry.lessonId, recorded: flaggedExplanations.has(entry.id),
+            enabled: connected && lessonOutcomes.get(entry.lessonId) !== "abandoned",
+          } } : {})}
+          dispatch={dispatch}
+        />
+      </MessageContent>
+    </Message>
+  ) : null;
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
   const canSend = connected && !reviewing && Boolean(text.trim()) && (!learning || session.lessonReady);
@@ -127,7 +148,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} onShowCard={showCard} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} onShowCard={showCard} followUpAnswer={followUpAnswer} />
                 </MessageScrollerItem>
               ))}
               {answering && (
@@ -266,8 +287,10 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected, onReview, onShowCard }: {
+function ViewItemView({ item, dispatch, session, connected, onReview, onShowCard, followUpAnswer }: {
   item: ConversationItem;
+  /** The full card answering a follow-up question, shown in the conversation; null for any other card. */
+  followUpAnswer?: ((entry: TimelineEntryOf<"lesson_card">) => React.ReactNode) | undefined;
   /** Opens the Learning panel at a card, from the reply that points to it. */
   onShowCard?: ((entryId: string) => void) | undefined;
   /** Opens a past Lesson's conversation; absent while a Lesson runs or is being reviewed. */
@@ -309,6 +332,7 @@ function ViewItemView({ item, dispatch, session, connected, onReview, onShowCard
     <Entry
       entry={entry}
       onShowCard={onShowCard}
+      followUpAnswer={followUpAnswer}
       dispatch={dispatch}
       done={!connected || session.isDone(entry)}
       canStartLesson={connected && session.canStartLesson}
@@ -368,8 +392,9 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview, onShowCard }: {
+function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview, onShowCard, followUpAnswer }: {
   entry: TimelineEntry;
+  followUpAnswer?: ((entry: TimelineEntryOf<"lesson_card">) => React.ReactNode) | undefined;
   onShowCard?: ((entryId: string) => void) | undefined;
   dispatch: Dispatch;
   done: boolean;
@@ -424,7 +449,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview, onSh
     case "lesson_question":
       return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_card":
-      return <LessonReply entry={entry} answered={done} onShowCard={onShowCard} />;
+      return followUpAnswer?.(entry) ?? <LessonReply entry={entry} answered={done} onShowCard={onShowCard} />;
     case "lesson_error":
       return (
         <Alert variant="destructive">

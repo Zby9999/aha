@@ -151,6 +151,20 @@ export function replyCardIds(entries: readonly TimelineEntry[]): Set<string> {
 }
 
 /**
+ * Answers to follow-up questions asked in the conversation: the first card after each `lesson_question`. They belong
+ * to the conversation where the question was asked, so they show there in full and not in the Learning panel.
+ */
+export function followUpAnswerIds(entries: readonly TimelineEntry[]): Set<string> {
+  const answers = new Set<string>();
+  const asked = new Set<string>();
+  for (const entry of entries) {
+    if (entry.kind === "lesson_question") asked.add(entry.lessonId);
+    else if (entry.kind === "lesson_card" && asked.delete(entry.lessonId)) answers.add(entry.id);
+  }
+  return answers;
+}
+
+/**
  * One Lesson's conversation: what started it, then what the learner and teaching said while it ran. Answers given on
  * a card stay on that card in the Learning panel, so they are not repeated here; cards that reply to the conversation
  * appear as a short reply pointing at the card.
