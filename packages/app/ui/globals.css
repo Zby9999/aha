@@ -233,43 +233,22 @@
 .workspace-preview { background: var(--workspace-canvas); }
 .workspace-preview-actions { display: flex; gap: 0.15rem; margin-inline-start: auto; }
 
-.workspace-preview-canvas {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding: clamp(0.65rem, 1.5vw, 1.2rem);
-}
+.workspace-preview-url { min-width: 0; overflow: hidden; color: var(--muted-foreground); font-size: 0.875rem; text-overflow: ellipsis; white-space: nowrap; }
 
-.workspace-browser {
+/* The project page fills the pane; the last edit sits in a thin bar under it. */
+.workspace-preview-canvas { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+.workspace-browser { display: flex; min-height: 0; flex: 1; flex-direction: column; background: var(--card); }
+.workspace-browser iframe { display: block; width: 100%; min-height: 0; flex: 1; border: 0; background: #fff; }
+.workspace-preview-footer {
   display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 0.3rem);
-  background: var(--card);
-  box-shadow: 0 8px 20px var(--workspace-shadow);
-}
-
-.workspace-browser iframe { display: block; width: 100%; min-height: 0; flex: 1; border: 0; }
-.workspace-address {
-  display: flex;
-  min-height: 2.4rem;
   flex: none;
-  align-items: center;
   gap: 0.5rem;
-  padding-inline: 0.8rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
   color: var(--muted-foreground);
   font-size: 0.75rem;
 }
-
-.workspace-address svg { width: 0.9rem; height: 0.9rem; flex: none; }
-.workspace-address span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-preview-footer { display: flex; gap: 0.5rem; color: var(--muted-foreground); font-size: 0.75rem; }
 .workspace-preview-footer > span { flex: none; }
 .workspace-preview-footer code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-learn { background: var(--background); }

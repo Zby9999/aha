@@ -91,7 +91,9 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
   return (
     <>
       <header className="workspace-pane-heading">
-        <MonitorIcon aria-hidden="true" /><h2>Live preview</h2>
+        <h2 className="sr-only">Live preview</h2>
+        <GlobeIcon aria-hidden="true" />
+        <span className="workspace-preview-url" title={url?.href}>{url ? `${url.host}${url.pathname}` : "No preview address"}</span>
         <div className="workspace-preview-actions">
           <IconAction label="Refresh preview" disabled={!url} onClick={() => setRefresh((count) => count + 1)}>
             <ReloadIcon />
@@ -103,10 +105,6 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
       </header>
       <div className="workspace-preview-canvas">
         <div className="workspace-browser">
-          <div className="workspace-address">
-            <GlobeIcon aria-hidden="true" />
-            <span title={url?.href}>{url ? `${url.host}${url.pathname}` : "Preview URL"}</span>
-          </div>
           {url && reachable ? (
             <iframe
               key={revision}
