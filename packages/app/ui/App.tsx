@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { activeLesson, isKind, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
 import { AhaMascot } from "@/components/AhaMascot";
-import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HelpIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
+import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
 import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
@@ -209,7 +209,7 @@ export function App() {
               aria-label="Ask why"
               className="data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
             >
-              <HelpIcon />
+              <AhaMascot accessory="question" className="size-5" />
               Ask why
             </Toggle>
             <ModelPicker
@@ -341,7 +341,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
         return (
           <UserMessage>
             <span className="inline-flex items-center gap-1.5">
-              <HelpIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              <AhaMascot accessory="question" className="size-4 shrink-0" />
               {entry.impasse.text ?? entry.impasse.title}
             </span>
           </UserMessage>
