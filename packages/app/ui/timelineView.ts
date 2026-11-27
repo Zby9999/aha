@@ -92,6 +92,25 @@ export function conversationItems(entries: readonly TimelineEntry[], showPending
   return grouped;
 }
 
+const LESSON_ONLY = new Set<TimelineEntry["kind"]>(["card_answer", "lesson_question", "lesson_error"]);
+
+/**
+ * The entries the conversation pane shows. Work and the running Lesson are two separate conversations:
+ * in learning mode the pane shows only the Lesson (what started it and what happened since), and in work mode
+ * it shows the work, where a past Lesson leaves only its trigger and its one-line ending.
+ */
+export function chatEntries(entries: readonly TimelineEntry[]): TimelineEntry[] {
+  const change = entries.findLast((entry) => isKind(entry, "mode_change"));
+  if (change?.mode !== "learning") return entries.filter((entry) => !LESSON_ONLY.has(entry.kind));
+  const { impasseId } = change;
+  return entries.filter((entry) => {
+    if (entry.seq > change.seq) return entry.source !== "agent-host" && entry.source !== "decisions";
+    // What started this Lesson: the Why or Ask why, or the Offer and its acceptance.
+    if (entry.kind === "impasse") return entry.impasse.id === impasseId;
+    return (entry.kind === "offer" || entry.kind === "offer_response") && entry.impasseId === impasseId;
+  });
+}
+
 /** What the session's Mode allows on screen. The backend enforces the same rules; this keeps the buttons honest. */
 export interface SessionView {
   mode: Mode;

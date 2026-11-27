@@ -165,15 +165,22 @@
 
 .workspace-project {
   min-width: 0;
-  gap: 0.45rem;
   padding-left: 1rem;
   border-left: 1px solid var(--border);
-  color: var(--muted-foreground);
   font-size: 0.875rem;
 }
 
-.workspace-project svg { width: 1rem; height: 1rem; flex: none; }
-.workspace-project span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-project ol { flex-wrap: nowrap; gap: 0.4rem; }
+.workspace-project li { min-width: 0; }
+.workspace-project-name { display: inline-flex; min-width: 0; align-items: center; gap: 0.45rem; color: var(--muted-foreground); }
+.workspace-project-name svg { width: 1rem; height: 1rem; flex: none; }
+.workspace-project-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-project [aria-current="page"].workspace-project-name { color: var(--foreground); }
+.workspace-project button.workspace-project-name { border-radius: calc(var(--radius) - 4px); cursor: pointer; }
+.workspace-project button.workspace-project-name:hover:not(:disabled) { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+.workspace-project button.workspace-project-name:disabled { cursor: default; opacity: 0.6; }
+.workspace-project [data-slot="breadcrumb-separator"] { color: var(--muted-foreground); opacity: 0.6; font-size: 1rem; }
+.workspace-learning-crumb { color: var(--lesson-accent); font-weight: 600; white-space: nowrap; }
 .workspace-header-tools { flex: none; gap: 1rem; }
 .workspace-connection { gap: 0.4rem; color: var(--muted-foreground); font-size: 0.8125rem; }
 .workspace-connection > span { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; }

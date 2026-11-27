@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { composerPlaceholder, conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -124,4 +124,23 @@ test("the composer says what a message will do in each Mode", () => {
   t.append({ kind: "lesson_start", source: "teaching", lessonId: "lesson-1", impasseId: "impasse-1" });
   // A work request typed here becomes a Lesson question; say that the agent does not get it.
   expect(composerPlaceholder(sessionView(t.entries()), false)).toMatch(/Back to work/);
+});
+
+test("work and the running Lesson are separate conversations", () => {
+  const t = createTimeline({ sessionId: "s" });
+  t.append({ kind: "user_message", source: "agent-host", text: "Fix the login." });
+  const impasse = { id: "i1", trigger: "ask_why" as const, title: "Why tokens?", text: "Why tokens?", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  t.append({ kind: "agent_message", source: "agent-host", messageId: "m1", text: "Still working." });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l1", text: "What is a token?" });
+  const kinds = (entries: ReturnType<typeof chatEntries>) => entries.map((entry) => entry.kind);
+  expect(kinds(chatEntries(t.entries()))).toEqual(["impasse", "lesson_start", "lesson_question"]);
+
+  t.append({ kind: "lesson_end", source: "teaching", lessonId: "l1", outcome: "completed" });
+  t.append({ kind: "mode_change", source: "app", mode: "work", impasseId: "i1" });
+  expect(kinds(chatEntries(t.entries()))).toEqual([
+    "user_message", "impasse", "mode_change", "lesson_start", "agent_message", "lesson_end", "mode_change",
+  ]);
 });

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { composerPlaceholder, conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -49,7 +49,7 @@ export function App() {
   const session = sessionView(entries);
   const { modeChange } = session;
   const learning = session.mode === "learning";
-  const items = conversationItems(entries, connected && !learning);
+  const items = conversationItems(chatEntries(entries), connected && !learning);
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
   const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
@@ -63,6 +63,7 @@ export function App() {
       connected={connected}
       modeChange={modeChange}
       defaultTab={session.defaultTab}
+      onBackToWork={() => dispatch({ type: "back_to_work" })}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
         <LearningPanel

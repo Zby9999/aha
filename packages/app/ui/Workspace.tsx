@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
-import { BookOpen, Columns2, Columns3, FolderCode, MessageSquare, Monitor, Sparkles } from "lucide-react";
+import { BookOpen, Columns2, Columns3, FolderCode, Monitor, Sparkles } from "lucide-react";
 import { MemoryPanel } from "./MemoryPanel.tsx";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -26,9 +27,11 @@ interface WorkspaceProps {
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
+  /** Leaves the Lesson; the project name in the breadcrumb is the way back to work. */
+  onBackToWork: () => void;
 }
 
-export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain }: WorkspaceProps) {
+export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain, onBackToWork }: WorkspaceProps) {
   const [layout, setLayout] = useState(savedLayout);
   const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
   const mode = modeChange?.mode ?? "work";
@@ -54,10 +57,36 @@ export function Workspace({ projectName, connected, modeChange, defaultTab, chil
             <span className="workspace-brand-mark"><Sparkles aria-hidden="true" /></span>
             <h1>Aha</h1>
           </div>
-          <div className="workspace-project">
-            <FolderCode aria-hidden="true" />
-            <span title={projectName}>{projectName}</span>
-          </div>
+          <Breadcrumb className="workspace-project">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                {mode === "learning" ? (
+                  <BreadcrumbLink
+                    render={<button type="button" disabled={!connected} />}
+                    title="Back to work"
+                    onClick={onBackToWork}
+                    className="workspace-project-name"
+                  >
+                    <FolderCode aria-hidden="true" />
+                    <span>{projectName}</span>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage className="workspace-project-name" title={projectName}>
+                    <FolderCode aria-hidden="true" />
+                    <span>{projectName}</span>
+                  </BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+              {mode === "learning" && (
+                <>
+                  <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="workspace-learning-crumb">Learning session</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
         <div className="workspace-header-tools">
           <span className="workspace-connection" role="status" data-connected={connected}>
@@ -88,11 +117,7 @@ export function Workspace({ projectName, connected, modeChange, defaultTab, chil
       </header>
 
       <main className="workspace-main" data-mode={mode}>
-        <section aria-labelledby="conversation-heading" className="workspace-chat">
-          <header className="workspace-pane-heading">
-            <MessageSquare aria-hidden="true" />
-            <h2 id="conversation-heading">Conversation</h2>
-          </header>
+        <section aria-label="Conversation" className="workspace-chat">
           {children}
         </section>
 

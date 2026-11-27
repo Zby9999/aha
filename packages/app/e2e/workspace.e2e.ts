@@ -195,7 +195,9 @@ test("tabbed layout follows the Lesson and records Probe and Articulation answer
   await tab(page, "Memory").click();
   await page.getByRole("button", { name: "Show me why" }).click();
   await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
-  await expect(why(page).first()).toBeDisabled();
+  // The conversation pane shows only the Lesson, so the work's Why buttons are out of sight.
+  await expect(page.getByRole("navigation", { name: "breadcrumb" })).toContainText("Learning session");
+  await expect(why(page)).toHaveCount(0);
   await expect(askWhy(page)).toBeDisabled();
   await expect(page.getByRole("button", { name: "Skip this time", exact: true })).toBeDisabled();
   await expect(card(page, "Probe").getByRole("textbox", { name: "Answer" })).toBeEnabled();
@@ -240,7 +242,8 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
   const edit = workspace.timeline.entries().find((entry) => entry.kind === "file_edit")!;
   await why(page).first().click();
   await expect(card(page, "Probe").getByRole("textbox", { name: "Answer" })).toBeEnabled();
-  await expect(page.getByRole("button", { name: "Show me why" })).toBeDisabled();
+  // A Lesson started from Why is its own conversation: the work's Offer is out of sight until Back to work.
+  await expect(page.getByRole("button", { name: "Show me why" })).toHaveCount(0);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "impasse")).toMatchObject({
     impasse: { trigger: "why", sourceEntryIds: [edit.id] },
   });
@@ -267,9 +270,13 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
 
   await page.getByRole("button", { name: "Tabbed layout" }).click();
   await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  // The project name in the breadcrumb leads back to work.
+  const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
+  await breadcrumb.getByRole("button").click();
   await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
   await expect(askWhy(page)).toBeEnabled();
+  await expect(breadcrumb).not.toContainText("Learning session");
+  await expect(why(page).first()).toBeEnabled();
 });
 
 test.describe("fixture teaching", () => {
