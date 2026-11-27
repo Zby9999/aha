@@ -474,3 +474,38 @@ test("Skip is recorded without Evidence and leaves the composer in work mode", a
   expect(entries.some((e) => e.kind === "lesson_start")).toBe(false);
   expect(workspace.evidence).toHaveLength(0);
 });
+
+test("the composer switches the agent's model and runs a / command, and hides both during a Lesson", async ({ page, workspace }) => {
+  const input = page.getByRole("textbox", { name: "Message" });
+  const commands = page.getByRole("listbox", { name: "Commands" });
+
+  // Model picker: lists the stub's models and switches for the session.
+  await page.getByRole("button", { name: "Model: Stub Fast", exact: true }).click();
+  await expect(page.getByRole("menuitemradio")).toHaveText(["Stub Fast", "Stub Smart"]);
+  await page.getByRole("menuitemradio", { name: "Stub Smart" }).click();
+  await expect(page.getByRole("button", { name: "Model: Stub Smart", exact: true })).toBeVisible();
+
+  // `/` opens the agent's commands; typing filters, Escape closes, arrows and Enter pick.
+  await input.fill("/");
+  await expect(commands.getByRole("option")).toHaveCount(3);
+  await input.press("Escape");
+  await expect(commands).toBeHidden();
+  await input.fill("/re");
+  await expect(commands.getByRole("option")).toHaveCount(1);
+  await input.fill("/");
+  await input.press("ArrowDown");
+  await input.press("ArrowUp");
+  await expect(commands.getByRole("option", { selected: true })).toContainText("/fix-tests");
+  await input.press("Enter");
+  await expect(input).toHaveValue("/fix-tests ");
+  await expect(commands).toBeHidden();
+  await input.press("Enter");
+  await expect(page.getByText("(stub agent) You said: /fix-tests", { exact: true })).toBeVisible();
+  expect(workspace.timeline.entries()).toContainEqual(expect.objectContaining({ kind: "user_message", source: "agent-host", text: "/fix-tests" }));
+
+  // In a Lesson messages never reach the agent: no model switch, no `/` menu.
+  await page.getByRole("button", { name: "Show me why" }).click();
+  await expect(page.getByRole("button", { name: "Model: Stub Smart", exact: true })).toBeDisabled();
+  await input.fill("/");
+  await expect(commands).toBeHidden();
+});

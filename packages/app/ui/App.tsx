@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
 import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, History, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
+import { insertCommand, matchCommands, slashQuery } from "./slashCommands.ts";
 import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
 import { Workspace } from "./Workspace.tsx";
@@ -37,8 +39,11 @@ import { useTimeline } from "./useTimeline.ts";
 type Dispatch = (action: UserAction) => void;
 
 export function App() {
-  const { entries, error, connected, dispatch } = useTimeline();
+  const { entries, error, connected, dispatch, agentSettings } = useTimeline();
   const [text, setText] = useState("");
+  const [slashActive, setSlashActive] = useState(0);
+  /** Set when Escape closes the `/` menu; the next edit reopens it. */
+  const [slashDismissed, setSlashDismissed] = useState(false);
   const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
   const [reviewRequest, setReviewRequest] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
@@ -62,6 +67,17 @@ export function App() {
   const canSend = connected && !reviewing && Boolean(text.trim()) && (!learning || session.lessonReady);
   const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
   const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
+  // Learning-mode messages never reach the agent, so its model and commands are only offered at work.
+  const agentControls = connected && !learning && !reviewing;
+  // With Ask why on, the message starts a Lesson instead of going to the agent: no `/` commands either.
+  const query = agentControls && !asking && !slashDismissed ? slashQuery(text) : null;
+  const slashCommands = query === null ? [] : matchCommands(agentSettings?.commands ?? [], query);
+  const slashOpen = slashCommands.length > 0;
+  const slashIndex = Math.min(slashActive, slashCommands.length - 1);
+  const pickCommand = (command: (typeof slashCommands)[number]) => {
+    setText(insertCommand(command));
+    setSlashActive(0);
+  };
   const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
 
   return (
@@ -111,12 +127,14 @@ export function App() {
       {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
       <form
         ref={formRef}
-        className="workspace-composer"
+        className="workspace-composer relative"
         onSubmit={(e) => {
           e.preventDefault();
           if (!canSend) return;
           // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
-          if (!dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text })) return;
+          // A picked command ends with a space for its arguments; Pi gets the command without it.
+          const message = text.startsWith("/") ? text.trimEnd() : text;
+          if (!dispatch(asking ? { type: "ask_why", text: message } : { type: "send_message", text: message })) return;
           setText("");
           setAskWhyRevision(null);
         }}
@@ -140,11 +158,39 @@ export function App() {
           </div>
         )}
         <InputGroup className={asking || learning ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
+          {slashOpen && (
+            <SlashCommandMenu commands={slashCommands} active={slashIndex} onPick={pickCommand} onHover={setSlashActive} />
+          )}
           <InputGroupTextarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setSlashActive(0);
+              setSlashDismissed(false);
+            }}
             disabled={Boolean(reviewing)}
+            aria-controls={slashOpen ? SLASH_MENU_ID : undefined}
+            aria-activedescendant={slashOpen ? slashOptionId(slashIndex) : undefined}
+            aria-autocomplete="list"
             onKeyDown={(e) => {
+              if (slashOpen && !e.nativeEvent.isComposing) {
+                const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+                if (step) {
+                  e.preventDefault();
+                  setSlashActive((slashIndex + step + slashCommands.length) % slashCommands.length);
+                  return;
+                }
+                if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
+                  e.preventDefault();
+                  pickCommand(slashCommands[slashIndex]!);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setSlashDismissed(true);
+                  return;
+                }
+              }
               if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 formRef.current?.requestSubmit();
@@ -167,11 +213,16 @@ export function App() {
               <HelpCircle />
               Ask why
             </Toggle>
+            <ModelPicker
+              settings={agentSettings}
+              disabled={!agentControls}
+              onSelect={(model) => dispatch({ type: "set_model", provider: model.provider, modelId: model.id })}
+            />
             <InputGroupButton
               type="submit"
               size="icon-sm"
               variant="default"
-              className="ml-auto rounded-full"
+              className="rounded-full"
               disabled={!canSend}
               aria-label={asking || learning ? "Ask" : "Send"}
             >

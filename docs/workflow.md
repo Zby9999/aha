@@ -43,6 +43,8 @@
   | 代理回复、用户气泡 | Message | `App.tsx` 的 `Message`、`Bubble`，`components/markdown.tsx` |
   | 工具调用 | Tool（基于 Trace） | `App.tsx` 的 `ToolLine` |
   | 底部输入框 | Prompt Input（基于 Input Group） | `App.tsx` 的 `<form>` |
+  | 输入框里的模型选择 | Model Selector（基于 Dropdown Menu） | `ComposerControls.tsx` 的 `ModelPicker` |
+  | 输入 `/` 弹出的命令列表 | 无现成写法，自建 listbox（焦点留在输入框，`aria-activedescendant`） | `ComposerControls.tsx` 的 `SlashCommandMenu` |
 
   新增这类界面（比如工具审批用 Confirmation）时，先在索引里找有没有现成写法，并把它补进这张表。
 

@@ -49,8 +49,40 @@ export interface AgentSession {
   sendUserMessage(text: string): Promise<void>;
   /** Learner context the bridge extension adds to each following Pi request; null sends requests unchanged. */
   setLearnerContext(context: LearnerContext | null): void;
+  /** The models the agent can use, the current one, and the commands a message can start with `/`. Asks the agent each time. */
+  getSettings(): Promise<AgentSettings>;
+  /** Switches the agent's model for this session. Rejects when the agent refuses (e.g. an unknown model). */
+  setModel(model: AgentModelRef): Promise<AgentModel>;
   /** Stops the agent. Safe to call twice. */
   stop(): Promise<void>;
+}
+
+/** Identifies a model the agent can use. */
+export interface AgentModelRef {
+  provider: string;
+  id: string;
+}
+
+export interface AgentModel extends AgentModelRef {
+  /** Display name, e.g. "Claude Sonnet 4". */
+  name: string;
+}
+
+/**
+ * A command the agent runs when a message starts with `/name`: an extension command, a prompt template or a skill
+ * (Pi names skills `skill:<name>`). Pi's built-in interactive commands (`/settings`, ...) do not run over RPC, so they are not listed.
+ */
+export interface AgentCommand {
+  name: string;
+  description?: string;
+  source: "extension" | "prompt" | "skill";
+}
+
+export interface AgentSettings {
+  models: AgentModel[];
+  /** Null when the agent has no model selected. */
+  currentModel: AgentModel | null;
+  commands: AgentCommand[];
 }
 
 export interface AgentHost {

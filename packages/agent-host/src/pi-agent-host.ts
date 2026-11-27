@@ -1,7 +1,7 @@
 import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { AgentHostError, type AgentHost, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
+import { AgentHostError, type AgentCommand, type AgentHost, type AgentModel, type AgentSession, type AgentSessionOptions } from "@aha/contracts";
 import { LEARNER_CONTEXT_FILE_ENV } from "./bridge-extension.ts";
 import { renderLearnerContext } from "./learner-context.ts";
 import { createPiEventMapper, LOGIN_HINT } from "./pi-events.ts";
@@ -93,6 +93,26 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
           writeFileSync(`${contextFile}.tmp`, `${text}\n`);
           renameSync(`${contextFile}.tmp`, contextFile);
         },
+        async getSettings() {
+          if (stopping || pi.exited) throw new AgentHostError("crashed", "Pi is not running any more. Start Aha again to continue.");
+          const [models, state, commands] = await Promise.all([
+            pi.request({ type: "get_available_models" }),
+            pi.request({ type: "get_state" }),
+            pi.request({ type: "get_commands" }),
+          ]);
+          const current = toModel((state as { model?: unknown } | undefined)?.model);
+          return {
+            models: listOf(models, "models").flatMap((model) => toModel(model) ?? []),
+            currentModel: current?.id === "unknown" ? null : current,
+            commands: listOf(commands, "commands").flatMap((command) => toCommand(command) ?? []),
+          };
+        },
+        async setModel({ provider, id }) {
+          if (stopping || pi.exited) throw new AgentHostError("crashed", "Pi is not running any more. Start Aha again to continue.");
+          const model = toModel(await pi.request({ type: "set_model", provider, modelId: id }));
+          if (!model) throw new Error("Pi did not say which model it switched to.");
+          return model;
+        },
         async stop() {
           stopping = true;
           await pi.close();
@@ -100,6 +120,30 @@ export function createPiAgentHost(options: PiAgentHostOptions = {}): AgentHost {
         },
       };
     },
+  };
+}
+
+function listOf(data: unknown, key: string): unknown[] {
+  const list = (data as Record<string, unknown> | undefined)?.[key];
+  return Array.isArray(list) ? list : [];
+}
+
+/** Pi's full Model object, reduced to what the UI shows. */
+function toModel(value: unknown): AgentModel | null {
+  const model = value as { id?: unknown; name?: unknown; provider?: unknown } | null | undefined;
+  if (typeof model?.id !== "string" || typeof model.provider !== "string") return null;
+  return { provider: model.provider, id: model.id, name: typeof model.name === "string" && model.name ? model.name : model.id };
+}
+
+const COMMAND_SOURCES = new Set(["extension", "prompt", "skill"]);
+
+function toCommand(value: unknown): AgentCommand | null {
+  const command = value as { name?: unknown; description?: unknown; source?: unknown } | null | undefined;
+  if (typeof command?.name !== "string" || !command.name || !COMMAND_SOURCES.has(String(command.source))) return null;
+  return {
+    name: command.name,
+    source: command.source as AgentCommand["source"],
+    ...(typeof command.description === "string" && command.description ? { description: command.description } : {}),
   };
 }
 

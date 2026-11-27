@@ -98,8 +98,16 @@ export function startServer({ backend, port, uiDir, host = "127.0.0.1", previewU
   backend.timeline.subscribe((entry) => {
     for (const socket of sockets.clients) send(socket, { type: "entry", entry });
   });
+  backend.onAgentSettings((settings) => {
+    for (const socket of sockets.clients) send(socket, { type: "agent_settings", settings });
+  });
   sockets.on("connection", (socket) => {
     send(socket, { type: "snapshot", entries: [...backend.timeline.entries()] });
+    // The model picker and `/` menu stay empty if the agent cannot say; the work itself is unaffected.
+    backend.agentSettings().then(
+      (settings) => { if (socket.readyState === socket.OPEN) send(socket, { type: "agent_settings", settings }); },
+      (error) => console.warn(`[aha] Could not read the agent's models and commands: ${(error as Error).message}`),
+    );
     socket.on("message", async (data) => {
       try {
         const message = JSON.parse(String(data)) as ClientMessage;
