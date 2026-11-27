@@ -147,6 +147,26 @@ test("work and the running Lesson are separate conversations", () => {
   expect(kinds(chatEntries(t.entries(), "l1"))).toEqual(["impasse", "lesson_start", "lesson_question", "lesson_end"]);
 });
 
+test("answers given on a Lesson card stay on the card, not in the Lesson conversation", () => {
+  const t = createTimeline({ sessionId: "s" });
+  const card = { root: "r", elements: { r: { type: "ProbeCard", props: {} } } } as never;
+  const impasse = { id: "i1", trigger: "ask_why" as const, title: "Why tokens?", text: "Why tokens?", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "probe", card });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "It changes." } });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l1", text: "Why does the server need it?" });
+  const articulate = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "articulate", card });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: articulate.id, step: "articulate", answer: { type: "text", text: "Because." } });
+  const kinds = (entries: ReturnType<typeof chatEntries>) => entries.map((entry) => entry.kind);
+  expect(kinds(chatEntries(t.entries()))).toEqual(["impasse", "lesson_start", "lesson_card", "lesson_question", "lesson_card"]);
+
+  t.append({ kind: "lesson_end", source: "teaching", lessonId: "l1", outcome: "completed" });
+  t.append({ kind: "mode_change", source: "app", mode: "work", impasseId: "i1" });
+  expect(kinds(chatEntries(t.entries(), "l1"))).toEqual(["impasse", "lesson_start", "lesson_card", "lesson_question", "lesson_card", "lesson_end"]);
+});
+
 test("a reply gathers each run of tool calls into one group of steps, with each tool's error on its step", () => {
   const t = createTimeline({ sessionId: "s" });
   t.append({ kind: "tool_call", source: "agent-host", toolCallId: "a", toolName: "read", args: { path: "server.js" } });

@@ -226,6 +226,10 @@ test("the workspace tabs follow the Lesson and records Probe and Articulation an
   await answer(page, "Probe").click();
   await expect(card(page, "Probe")).toContainText(probeAnswer);
   await expect(answer(page, "Probe")).toHaveCount(0);
+  // The answer stays on its card; the Lesson conversation keeps only what was asked in the composer.
+  const lessonChat = page.getByLabel("Timeline", { exact: true });
+  await expect(lessonChat.getByText(question, { exact: true })).toBeVisible();
+  await expect(lessonChat.getByText(probeAnswer, { exact: true })).toHaveCount(0);
   const articulation = "Persist the current session token across refreshes.";
   await card(page, "Articulation").getByRole("textbox", { name: "Answer" }).fill(articulation);
   await answer(page, "Articulation").click();

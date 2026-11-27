@@ -132,10 +132,13 @@ export function lessonSpan(entries: readonly TimelineEntry[], lessonId: string):
   return { impasseId: start.impasseId, from: enter?.seq ?? start.seq - 1, to: exit?.seq ?? Infinity };
 }
 
-/** One Lesson's conversation: what started it, then what the learner and teaching said while it ran. */
+/**
+ * One Lesson's conversation: what started it, then what the learner and teaching said while it ran. Answers given on
+ * a card stay on that card in the Learning panel, so they are not repeated here.
+ */
 function lessonConversation(entries: readonly TimelineEntry[], impasseId: string, from: number, to: number): TimelineEntry[] {
   return entries.filter((entry) => {
-    if (entry.seq > from) return entry.seq < to && entry.source !== "agent-host" && entry.source !== "decisions";
+    if (entry.seq > from) return entry.seq < to && entry.source !== "agent-host" && entry.source !== "decisions" && entry.kind !== "card_answer";
     // What started this Lesson: the Why or Ask why, or the Offer and its acceptance.
     if (entry.kind === "impasse") return entry.impasse.id === impasseId;
     return (entry.kind === "offer" || entry.kind === "offer_response") && entry.impasseId === impasseId;
