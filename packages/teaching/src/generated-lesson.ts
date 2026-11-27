@@ -28,6 +28,9 @@ const QUESTION_SHAPE = `{"component":"TextExplanation","props":{"title":"...","t
 // Live, "why a salt?" and "could another website read my token?" had answers the project code cannot show.
 const BACKGROUND = "If part of the answer is general knowledge the code cannot show, put at most two sentences of it in background, and make text say how it applies to the cited lines. Otherwise leave background out.";
 const DIAGRAM_SHAPE = `{"component":"DataFlowDiagram","props":{"title":"...","summary":"one short response to the prediction","nodes":[{"id":"a","label":"..."},{"id":"b","label":"..."}],"edges":[{"from":"a","to":"b","label":"..."}],${REFERENCES}}}`;
+// Live (W5), "my projects disappear on refresh, on log in and on restart: why each?" got a Probe and a diagram about refresh only.
+const EVERY_PART = "Answer the user's question (impasse) itself, every part of it: for each situation it names, say what causes it, and say whether the situations share one cause or have separate causes.";
+const MULTI_CAUSE = `Set "causes" to the number of separate causes in your answer. One diagram shows one causal chain, so with more than one cause use TextExplanation with one short sentence per cause.`;
 
 class InvalidLessonDraft extends Error {}
 
@@ -101,6 +104,9 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
     }
     if (component !== "DataFlowDiagram" && component !== "TextExplanation") throw new InvalidLessonDraft("Choose a supported explanation component.");
     if (textOnly && component !== "TextExplanation") throw new InvalidLessonDraft("Return only a TextExplanation card.");
+    if (component === "DataFlowDiagram" && typeof raw.causes === "number" && raw.causes > 1) {
+      throw new InvalidLessonDraft("A diagram shows one causal chain. With several causes, use TextExplanation with one short sentence per cause.");
+    }
     const parsed = component === "DataFlowDiagram" ? dataFlowDiagramSchema.safeParse(raw.props) : textExplanationSchema.safeParse(raw.props);
     if (!parsed.success) {
       throw new InvalidLessonDraft(parsed.error.issues.some(({ path }) => path[0] === "background")
@@ -130,7 +136,10 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
   return {
     async probe(input: LessonInput, sources: LessonSources, lessonId: string, signal?: AbortSignal) {
       // Live, "store the password hashed" got "what happens when you log in?", whose answer "it works" tests nothing.
-      const raw = await generate(input, sources, `Write one short open-ended prediction about the reported action and its immediate outcome. Ask about one outcome, without revealing why. If the change keeps the visible behaviour the same (for example a refactor or storing data differently), ask about what the code now does differently, the mechanism, not about an outcome the user already knows. Cite a focus file when supplied. Shape: {"question":"...",${REFERENCES}}.`, { signal: deadline(signal, 30_000) });
+      const severalSituations = input.impasse.trigger === "ask_why"
+        ? " If the user's question names several situations, ask whether they think the situations have the same cause instead of asking about one of them."
+        : "";
+      const raw = await generate(input, sources, `Write one short open-ended prediction about the reported action and its immediate outcome. Ask about one outcome, without revealing why.${severalSituations} If the change keeps the visible behaviour the same (for example a refactor or storing data differently), ask about what the code now does differently, the mechanism, not about an outcome the user already knows. Cite a focus file when supplied. Shape: {"question":"...",${REFERENCES}}.`, { signal: deadline(signal, 30_000) });
       const props = probeCardSchema.parse({ lessonId, question: raw.question, citations: raw.citations });
       if (!props.question.trim() || !citesImpasseSources(props.citations, sources)) throw new Error("Pi's Probe lacks a valid question or relevant source citation.");
       return props;
@@ -142,11 +151,13 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
       const shape = allowBackground ? `${BACKGROUND} Use this shape: ${QUESTION_SHAPE}` : `Use this shape: ${TEXT_SHAPE}`;
       // Live, "I don't know" got "Your prediction is not quite right".
       const noPrediction = "If the user did not make a prediction (for example they said they don't know), don't call it right or wrong; just explain.";
+      // An Ask why Lesson answers the learner's question, not only the Probe's prediction.
+      const everyPart = input.impasse.trigger === "ask_why" && "probe" in discussion && !isFollowUp ? ` ${EVERY_PART}` : "";
       const goal = discussion.hint
         ? "Give one short hint pointing to where the user should check next. Leave the conclusion to the user."
         : isQuestion ? "Answer the question the user actually asked, directly, in one or two sentences, even when it goes beyond what the code shows. Don't re-explain the Lesson or the change instead."
-          : discussion.brief ? `Correct or confirm the prediction in one or two sentences, explaining one immediate cause. ${noPrediction}`
-            : `Respond to the prediction and explain the immediate cause. ${noPrediction}`;
+          : discussion.brief ? `Correct or confirm the prediction in one or two sentences, explaining one immediate cause.${everyPart} ${noPrediction}`
+            : `Respond to the prediction and explain the immediate cause.${everyPart} ${noPrediction}`;
       const textOnly = isQuestion || discussion.hint === true || discussion.brief === true;
       // Live, a question asked before the prediction got an answer that gave the Probe away.
       const beforePrediction = "predictionPending" in discussion && discussion.predictionPending
@@ -154,12 +165,13 @@ export function createLessonGenerator({ background, decisions }: TeachingOptions
         : "";
       const task = textOnly
         ? `${goal}${beforePrediction} Use the cited code. ${shape}`
-        : `Correct or confirm the user's prediction, then explain the immediate cause. ${noPrediction}
+        : `Correct or confirm the user's prediction, then explain the immediate cause.${everyPart} ${noPrediction}
+${MULTI_CAUSE}
 Use TextExplanation for a local assignment, return value, or other short cause within one part of the project. Use DataFlowDiagram when a value crosses distinct parts of the project shown in the excerpts, for example browser code sending a token to a server.
-Every arrow must be supported by the excerpts. Do not infer UI updates, extra actions, or cycles that the code does not show. Use one path with 2–5 nodes in causal order, ending at the observed outcome. Keep diagram feedback to one sentence that adds something the diagram doesn't show. For text, use one short paragraph.
+Every arrow must be supported by the excerpts. Do not infer UI updates, extra actions, or cycles that the code does not show. Use one path with 2–5 nodes in causal order, ending at the observed outcome. Keep diagram feedback to one sentence that adds something the diagram doesn't show. For text, use one short paragraph, or one short sentence per cause.
 Supported shapes:
-${TEXT_SHAPE}
-${DIAGRAM_SHAPE}`;
+${TEXT_SHAPE.replace("{", '{"causes":1,')}
+${DIAGRAM_SHAPE.replace("{", '{"causes":1,')}`;
       const tryDraft = async (instructions: string, textOnly: boolean, signal: AbortSignal) => {
         signal.throwIfAborted();
         const raw = await generate(input, sources, instructions, { discussion, signal });
