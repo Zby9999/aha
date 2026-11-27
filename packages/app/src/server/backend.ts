@@ -134,12 +134,40 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     }
   }
 
+  /**
+   * The Concepts a Lesson taught: the read gate judges its question together with what its Explain cards said, so an
+   * Articulation is credited to the topic of the explanation rather than only to the Concepts the question suggested.
+   */
+  async function taughtConcepts(lessonId: string): Promise<Concept[] | undefined> {
+    const entries = timeline.entries();
+    const start = entries.find((entry) => entry.kind === "lesson_start" && entry.lessonId === lessonId);
+    const impasse = start?.kind === "lesson_start" ? findImpasse(entries, start.impasseId) : undefined;
+    if (!impasse) return undefined;
+    const explained = entries.flatMap((entry) => {
+      if (entry.kind !== "lesson_card" || entry.lessonId !== lessonId || entry.step !== "explain") return [];
+      const props = entry.card.elements[entry.card.root]?.props ?? {};
+      return [props.title, props.text, props.summary].filter((part): part is string => typeof part === "string");
+    }).join(" ");
+    if (!explained) return undefined;
+    const question = forReadGate(entries, impasse);
+    const ids = await decisions.selectConcepts({
+      // The read gate reads 600 characters of text; what the Lesson explained matters more than the rest of the question.
+      impasse: { ...question, text: `${(question.text ?? question.title).slice(0, 200)}\nThe Lesson explained: ${explained}`.slice(0, 600) },
+      concepts: await learner.listConcepts(),
+    }).catch((error: unknown) => { onLearningError(error); return null; });
+    return ids?.length ? learner.readConcepts(ids) : undefined;
+  }
+
   /** Teaching takes the Lesson on after an answer; on failure the card gets a `lesson_error` the user can retry. */
   async function takeAnswer(answer: TimelineEntryOf<"card_answer">, retry = false) {
     const request = requestForLessonEntry(answer);
     if (!request) return;
     try {
-      const entries = await teaching.answer({ lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, answer: answer.answer, timeline: timeline.entries() });
+      const concepts = answer.step === "articulate" && answer.answer.type === "text" ? await taughtConcepts(answer.lessonId) : undefined;
+      if (activeRequest !== request) return;
+      const entries = await teaching.answer({
+        lessonId: answer.lessonId, cardEntryId: answer.cardEntryId, answer: answer.answer, timeline: timeline.entries(), ...(concepts?.length ? { concepts } : {}),
+      });
       if (activeRequest !== request) return;
       if (retry && entries.length) {
         timeline.append({ kind: "lesson_answer_recovered", source: "app", lessonId: answer.lessonId, cardEntryId: answer.cardEntryId });

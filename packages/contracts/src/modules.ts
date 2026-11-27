@@ -221,7 +221,11 @@ export interface Teaching {
   /** The Offer card for a detected Impasse, or null when the Mastery Level says not to interrupt. */
   offer(input: { impasse: Impasse; learner: LearnerContext }): Promise<CardSpec | null>;
   startLesson(input: LessonInput): Promise<NewTimelineEntry[]>;
-  answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
+  /**
+   * `concepts`, when given, are the Concepts this Lesson taught, which the read gate picked from its question and
+   * explanation. An Articulation is credited only to them; without them, to the Lesson's Learner Context.
+   */
+  answer(input: { lessonId: string; cardEntryId: string; answer: CardAnswer; timeline: readonly TimelineEntry[]; concepts?: readonly Concept[] }): Promise<NewTimelineEntry[]>;
   /** Answer a follow-up question asked in learning mode, inside the same Lesson (e.g. an `explain` lesson_card). */
   followUp(input: { lessonId: string; question: string; timeline: readonly TimelineEntry[] }): Promise<NewTimelineEntry[]>;
   /**

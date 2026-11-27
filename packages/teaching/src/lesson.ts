@@ -213,7 +213,7 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       if (active !== lesson) return [];
       return [start, makeCard(id, "probe", card("ProbeCard", probe))];
     },
-    async answer({ lessonId, cardEntryId, timeline }) {
+    async answer({ lessonId, cardEntryId, timeline, concepts: taught }) {
       const lesson = active;
       if (!lesson || lesson.id !== lessonId) return [];
       const current = timeline.findLast((entry) => entry.kind === "lesson_card" && entry.lessonId === lessonId && entry.step === lesson.step);
@@ -285,7 +285,8 @@ function lessonTeaching(generator?: ReturnType<typeof createLessonGenerator>): T
       if (generator && lesson.generated?.articulation && submitted.answer.type === "text") {
         const { input, sources, articulation } = lesson.generated;
         const graded = await generator.assess(input, sources, {
-          ...articulation, answer: submitted.answer.text, concepts: relevantConcepts(input.impasse, input.learner),
+          // Live (W5), with only the question's Concepts on offer, an answer about session tokens was credited to two others.
+          ...articulation, answer: submitted.answer.text, concepts: taught?.length ? [...taught] : relevantConcepts(input.impasse, input.learner),
         }, lesson.controller.signal);
         if (active !== lesson) return [];
         const assessment = graded && graded.result !== "unclear" ? [assess(lesson, submitted, graded.result, graded.conceptIds)] : [];
