@@ -92,7 +92,8 @@ function StepLabel({ children }: { children: string }) {
 }
 
 function SubmittedAnswer({ children, label = "Your answer" }: { children: string; label?: string }) {
-  return <p className="wrap-anywhere text-sm leading-relaxed text-muted-foreground">{label} · {children}</p>;
+  // The learner recognises their own words; the label is only for screen readers.
+  return <p className="wrap-anywhere text-sm leading-relaxed text-foreground"><span className="sr-only">{label}: </span>{children}</p>;
 }
 
 function ChoiceButton({ children, disabled, onClick }: { children: string; disabled: boolean; onClick: () => void }) {
