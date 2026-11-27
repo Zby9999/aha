@@ -79,6 +79,7 @@ export function App() {
       <AhaMascot className="workspace-reply-mark self-start" />
       <MessageContent className="min-w-0 gap-3">
         <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
+        <div className="lesson-follow-up">
         <LessonCardView
           card={entry.card}
           entryId={entry.id}
@@ -90,6 +91,7 @@ export function App() {
           } } : {})}
           dispatch={dispatch}
         />
+        </div>
       </MessageContent>
     </Message>
   ) : null;
