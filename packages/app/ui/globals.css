@@ -555,3 +555,16 @@
 /* Cited code bleeds 0.5rem into the card's side padding; when it ends a card, it bleeds as far into the bottom padding. */
 [data-slot="card"]:not(:has(> [data-slot="card-footer"])) > [data-slot="card-content"]:last-child
   ul[aria-label="Code references"]:last-child > li:last-child [data-slot="collapsible-content"] { margin-bottom: -0.5rem; }
+
+/* A card opened from its reply in the conversation flashes once so the eye finds it. */
+@media (prefers-reduced-motion: no-preference) {
+  .lesson-card-slot[data-revealed] > * { animation: lesson-card-reveal 1.2s ease-out; }
+  @keyframes lesson-card-reveal { 0%, 40% { box-shadow: 0 0 0 3px color-mix(in oklch, var(--lesson-accent) 45%, transparent); } }
+}
+
+/* A follow-up's answer in the conversation reads as Aha's reply: no card frame or padding, so it lines up with the
+   other replies' text, and no second mascot beside Aha's avatar. */
+.lesson-follow-up > [data-slot="card"] { gap: 0.75rem; padding-block: 0; background: transparent; box-shadow: none; overflow: visible; }
+.lesson-follow-up > [data-slot="card"] > * { padding-inline: 0; }
+.lesson-follow-up .lesson-card-mascot { display: none; }
+.lesson-follow-up [data-slot="card-footer"] > button { margin-inline-start: -0.625rem; }

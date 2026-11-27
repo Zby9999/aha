@@ -215,7 +215,9 @@ test("the workspace tabs follow the Lesson and records Probe and Articulation an
   const question = "Why does the token change on refresh?";
   await page.getByRole("textbox", { name: "Message" }).fill(question);
   await page.getByRole("button", { name: "Ask", exact: true }).click();
-  await expect(page.getByText("Good question (stub)", { exact: true })).toBeVisible();
+  // A question asked in the conversation is answered there, in full, and not in the Learning panel.
+  await expect(page.getByRole("region", { name: "Conversation" }).getByText("Good question (stub)", { exact: true })).toBeVisible();
+  await expect(view(page, "Learning panel").getByText("Good question (stub)", { exact: true })).toHaveCount(0);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "lesson_question")).toMatchObject({ text: question });
   expect(workspace.timeline.entries().filter((e) => e.kind === "user_message")).toHaveLength(userTurns);
 

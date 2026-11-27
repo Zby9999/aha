@@ -32,7 +32,9 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
   // Each Lesson stands alone: earlier Lessons are reached with Review in the work conversation.
   const shown = lessonId === undefined ? [] : cards.filter((card) => card.lessonId === lessonId &&
     (lesson?.lessonId !== lessonId || card.seq > (lesson.startSeq ?? Infinity)));
-  const waiting = lessonProgress(entries);
+  // An answer to a question asked in the conversation is awaited there, not here.
+  const progress = lessonProgress(entries);
+  const waiting = progress === "Answering your question" ? undefined : progress;
 
   useEffect(() => {
     const latestCard = shown.at(-1);
@@ -70,7 +72,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
             const submitted = answers.get(entry.id);
             const endedEarly = outcomes.get(entry.lessonId) === "abandoned";
             return (
-              <div key={entry.id}>
+              <div key={entry.id} data-card-entry-id={entry.id} className="lesson-card-slot">
                 <LessonCardView
                   card={entry.card}
                   entryId={entry.id}
