@@ -1,4 +1,4 @@
-import type { AgentHost, AgentSession, BackgroundAgent, TimelineEntry } from "@aha/contracts";
+import type { AgentCommand, AgentHost, AgentModel, AgentSession, BackgroundAgent, TimelineEntry } from "@aha/contracts";
 import { asNewEntry } from "@aha/contracts/fixtures";
 
 export interface StubAgentHostOptions {
@@ -8,6 +8,19 @@ export interface StubAgentHostOptions {
   streamDelayMs?: number;
 }
 
+/** The stub's fixed models; the first is selected when a session starts. */
+export const STUB_MODELS: readonly AgentModel[] = [
+  { provider: "stub", id: "stub-fast", name: "Stub Fast" },
+  { provider: "stub", id: "stub-smart", name: "Stub Smart" },
+];
+
+/** The stub's fixed `/` commands, one of each kind Pi lists. */
+export const STUB_COMMANDS: readonly AgentCommand[] = [
+  { name: "fix-tests", description: "Fix failing tests", source: "prompt" },
+  { name: "review", description: "Review the latest change", source: "extension" },
+  { name: "skill:explain-code", description: "Explain a piece of code", source: "skill" },
+];
+
 /** Agent host stub: no Pi. Replays scripted agent events, or echoes when the message is not in the script. */
 export function createStubAgentHost({ script = [], streamDelayMs = 0 }: StubAgentHostOptions = {}): AgentHost {
   return {
@@ -15,6 +28,7 @@ export function createStubAgentHost({ script = [], streamDelayMs = 0 }: StubAgen
       const turns = splitIntoTurns(script);
       let stopped = false;
       let replies = 0;
+      let currentModel = STUB_MODELS[0]!;
       return {
         async sendUserMessage(text) {
           if (stopped) throw new Error("The agent session has stopped.");
@@ -38,6 +52,15 @@ export function createStubAgentHost({ script = [], streamDelayMs = 0 }: StubAgen
           }
         },
         setLearnerContext() {},
+        async getSettings() {
+          return { models: [...STUB_MODELS], currentModel, commands: [...STUB_COMMANDS] };
+        },
+        async setModel({ provider, id }) {
+          const model = STUB_MODELS.find((m) => m.provider === provider && m.id === id);
+          if (!model) throw new Error(`Model not found: ${provider}/${id}`);
+          currentModel = model;
+          return model;
+        },
         async stop() {
           stopped = true;
         },

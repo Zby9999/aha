@@ -1,135 +1,145 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
-import { BookOpen, Columns2, Columns3, FolderCode, MessageSquare, Monitor, Sparkles } from "lucide-react";
+import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
+import { AhaMascot } from "@/components/AhaMascot";
+import { BookIcon, FolderIcon, MonitorIcon, SidebarCloseIcon, SidebarOpenIcon } from "@/components/icons";
 import { MemoryPanel } from "./MemoryPanel.tsx";
+import { useMediaQuery } from "./hooks/use-media-query.ts";
+import { IconAction } from "@/components/icon-action";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
-type Layout = "three-pane" | "tabbed";
-type WorkspaceTab = "preview" | "explain" | "memory";
+type SideView = "preview" | "explain" | "memory";
 
-const LAYOUT_KEY = "aha.workspace.layout";
+/** Wide enough for the side panel to sit beside the conversation; narrower screens stack them. */
+const WIDE = "(min-width: 53rem)";
 
-function savedLayout(): Layout {
+function layoutStorage(): Storage | undefined {
   try {
-    return localStorage.getItem(LAYOUT_KEY) === "tabbed" ? "tabbed" : "three-pane";
+    return localStorage;
   } catch {
-    return "three-pane";
+    return undefined;
   }
 }
 
 interface WorkspaceProps {
   projectName: string;
-  connected: boolean;
   modeChange?: TimelineEntryOf<"mode_change">;
   defaultTab: "explain" | "preview";
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
+  /** The Lesson view exists only while a Lesson is open: running, being reviewed, or just finished on its explanation. */
+  showExplain: boolean;
+  /** A view within the Mode, such as a reviewed Lesson; changing it resets a manual view choice like a Mode change does. */
+  viewKey?: string | undefined;
 }
 
-export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain }: WorkspaceProps) {
-  const [layout, setLayout] = useState(savedLayout);
-  const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
+export function Workspace({ projectName, modeChange, defaultTab, children, preview, explain, showExplain, viewKey }: WorkspaceProps) {
+  const [manualView, setManualView] = useState<{ view: SideView; revision: string }>();
+  const [collapsed, setCollapsed] = useState(false);
+  const wide = useMediaQuery(WIDE);
+  const panel = usePanelRef();
+  const storage = layoutStorage();
+  const layout = useDefaultLayout({ id: "aha.workspace", panelIds: ["chat", "side"], ...(storage ? { storage } : {}) });
   const mode = modeChange?.mode ?? "work";
   // A manual choice lasts until the next Timeline transition, including after a reconnect.
-  const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
-  const tab = manualTab?.revision === revision ? manualTab.tab : defaultTab;
-  const tabbed = layout === "tabbed";
+  const revision = `${modeChange ? `${modeChange.id}:${modeChange.at}` : ""}|${viewKey ?? ""}`;
+  const base: SideView = defaultTab === "explain" && showExplain ? "explain" : "preview";
+  const chosen = manualView?.revision === revision ? manualView.view : base;
+  const view = chosen === "explain" && !showExplain ? "preview" : chosen;
+  const hidden = wide && collapsed;
 
-  function changeLayout(next: Layout) {
-    setLayout(next);
-    try {
-      localStorage.setItem(LAYOUT_KEY, next);
-    } catch {
-      // The layout remains usable when browser storage is unavailable.
+  // A Lesson's cards live in the side panel, so opening a Lesson opens the panel.
+  useEffect(() => {
+    if (base === "explain") panel.current?.expand();
+  }, [revision, base, panel]);
+
+  /** A header button shows its view, or returns to the default view when that view is already showing. */
+  function toggle(target: SideView) {
+    if (wide && panel.current?.isCollapsed()) {
+      panel.current?.expand();
+      setManualView({ view: target, revision });
+      return;
     }
+    setManualView({ view: view === target ? base : target, revision });
   }
+
+  const conversation = (
+    <section aria-label="Conversation" className="workspace-chat">
+      {children}
+    </section>
+  );
+  const side = (
+    <div className="workspace-detail">
+      <section hidden={view !== "preview"} inert={view !== "preview"} aria-label="Live preview" className="workspace-preview">
+        {preview}
+      </section>
+      <section hidden={view !== "explain"} inert={view !== "explain"} aria-label="Learning panel" className="workspace-learn workspace-explain">
+        {explain(view === "explain" && !hidden)}
+      </section>
+      <section hidden={view !== "memory"} aria-label="Learner model" className="workspace-learn">
+        <MemoryPanel visible={view === "memory" && !hidden} />
+      </section>
+    </div>
+  );
 
   return (
     <div className="workspace-shell">
       <header className="workspace-header">
         <div className="workspace-identity">
           <div className="workspace-brand">
-            <span className="workspace-brand-mark"><Sparkles aria-hidden="true" /></span>
+            <AhaMascot className="workspace-brand-mark" />
             <h1>Aha</h1>
           </div>
           <div className="workspace-project">
-            <FolderCode aria-hidden="true" />
+            <FolderIcon aria-hidden="true" />
             <span title={projectName}>{projectName}</span>
           </div>
         </div>
         <div className="workspace-header-tools">
-          <span className="workspace-connection" role="status" data-connected={connected}>
-            <span aria-hidden="true" />
-            {connected ? "Connected" : "Connecting"}
-          </span>
-          <div className="workspace-layout-picker" role="group" aria-label="Workspace layout">
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label="Three-pane layout"
-              aria-pressed={!tabbed}
-              onClick={() => changeLayout("three-pane")}
-            >
-              <Columns3 data-icon="inline-start" /><span>Three panes</span>
+          {showExplain && (
+            <Button size="sm" variant="ghost" aria-pressed={view === "preview" && !hidden} onClick={() => toggle("preview")}>
+              <MonitorIcon data-icon="inline-start" />Preview
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label="Tabbed layout"
-              aria-pressed={tabbed}
-              onClick={() => changeLayout("tabbed")}
+          )}
+          <Button size="sm" variant="ghost" aria-pressed={view === "memory" && !hidden} onClick={() => toggle("memory")}>
+            <BookIcon data-icon="inline-start" />Memory
+          </Button>
+          {wide && (
+            <IconAction
+              label={collapsed ? "Show side panel" : "Hide side panel"}
+              onClick={() => (collapsed ? panel.current?.expand() : panel.current?.collapse())}
             >
-              <Columns2 data-icon="inline-start" /><span>Tabbed</span>
-            </Button>
-          </div>
+              {collapsed ? <SidebarOpenIcon /> : <SidebarCloseIcon />}
+            </IconAction>
+          )}
         </div>
       </header>
 
       <main className="workspace-main" data-mode={mode}>
-        <section aria-labelledby="conversation-heading" className="workspace-chat">
-          <header className="workspace-pane-heading">
-            <MessageSquare aria-hidden="true" />
-            <h2 id="conversation-heading">Conversation</h2>
-          </header>
-          {children}
-        </section>
-
-        <Tabs value={tab} onValueChange={(next) => setManualTab({ tab: next, revision })} className="workspace-detail" data-layout={layout}>
-          <div className="workspace-tabbar" hidden={!tabbed}>
-            <TabsList aria-label="Workspace views">
-              <TabsTrigger value="preview"><Monitor />Preview</TabsTrigger>
-              <TabsTrigger value="explain"><Sparkles />Explain</TabsTrigger>
-              <TabsTrigger value="memory"><BookOpen />Memory</TabsTrigger>
-            </TabsList>
-          </div>
-          <TabsContent
-            value="preview"
-            keepMounted
-            hidden={tabbed && tab !== "preview"}
-            inert={tabbed && tab !== "preview"}
-            role={tabbed ? "tabpanel" : "region"}
-            aria-label="Live preview"
-            className="workspace-preview"
-          >
-            {preview}
-          </TabsContent>
-          <TabsContent
-            value="explain"
-            keepMounted
-            hidden={tabbed && tab !== "explain"}
-            inert={tabbed && tab !== "explain"}
-            role={tabbed ? "tabpanel" : "region"}
-            aria-label="Learning panel"
-            className="workspace-learn workspace-explain"
-          >
-            {explain(!tabbed || tab === "explain")}
-          </TabsContent>
-          <TabsContent value="memory" className="workspace-learn" hidden={!tabbed || tab !== "memory"}>
-            <MemoryPanel visible={tabbed && tab === "memory"} />
-          </TabsContent>
-        </Tabs>
+        {wide ? (
+          <ResizablePanelGroup orientation="horizontal" defaultLayout={layout.defaultLayout} onLayoutChanged={layout.onLayoutChanged}>
+            <ResizablePanel id="chat" minSize={320}>{conversation}</ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize side panel" />
+            <ResizablePanel
+              id="side"
+              panelRef={panel}
+              defaultSize="58%"
+              minSize={320}
+              collapsible
+              collapsedSize={0}
+              onResize={(size) => setCollapsed(size.inPixels === 0)}
+            >
+              {side}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          <>
+            {conversation}
+            {side}
+          </>
+        )}
       </main>
     </div>
   );

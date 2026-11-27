@@ -1,5 +1,6 @@
 import type { CardAnswer } from "./cards.ts";
 import type { OfferResponse } from "./learning.ts";
+import type { AgentSettings } from "./modules.ts";
 import type { Timeline, TimelineEntry } from "./timeline.ts";
 
 /**
@@ -17,6 +18,8 @@ export type UserAction =
   /** Run teaching again on a card answer that failed (a `lesson_error`). */
   | { type: "retry_answer"; lessonId: string; cardEntryId: string }
   | { type: "flag_explanation"; lessonId: string; cardEntryId: string; reason?: string }
+  /** Switch the agent's model. Rejected in learning mode, where messages never reach the agent. */
+  | { type: "set_model"; provider: string; modelId: string }
   /** Leave the current Lesson early and return to work mode. Leaving early is never Evidence. */
   | { type: "back_to_work" }
   | { type: "end_session" };
@@ -33,7 +36,9 @@ export function startsLesson(action: UserAction): boolean {
 export type ServerMessage =
   | { type: "snapshot"; entries: TimelineEntry[] }
   | { type: "entry"; entry: TimelineEntry }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string }
+  /** The agent's models and `/` commands: sent on connect and after the model changes. Not part of the Timeline. */
+  | { type: "agent_settings"; settings: AgentSettings };
 
 /** WebSocket messages, client → server. */
 export type ClientMessage = { type: "action"; action: UserAction };

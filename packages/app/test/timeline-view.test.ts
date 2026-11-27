@@ -1,6 +1,6 @@
 import { createTimeline } from "@aha/contracts";
 import { expect, test } from "vitest";
-import { composerPlaceholder, conversationItems, sessionView, toViewItems } from "../ui/timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, lessonProgress, replyParts, sessionView, toViewItems } from "../ui/timelineView.ts";
 
 test("agent message deltas stream into one message that the final message replaces", () => {
   const t = createTimeline({ sessionId: "s" });
@@ -18,7 +18,7 @@ test("a tool call shows as running until its result arrives", () => {
   expect(toViewItems(t.entries())[0]).toMatchObject({ type: "tool", state: "running" });
   t.append({ kind: "tool_result", source: "agent-host", toolCallId: "c1", toolName: "read", output: "const x = 1;", isError: true });
   expect(toViewItems(t.entries())).toEqual([
-    { type: "tool", key: "s:0", toolName: "read", args: { path: "server.js" }, state: "error", output: "const x = 1;" },
+    { type: "tool", key: "s:0", toolCallId: "c1", toolName: "read", args: { path: "server.js" }, state: "error", output: "const x = 1;" },
   ]);
 });
 
@@ -124,4 +124,80 @@ test("the composer says what a message will do in each Mode", () => {
   t.append({ kind: "lesson_start", source: "teaching", lessonId: "lesson-1", impasseId: "impasse-1" });
   // A work request typed here becomes a Lesson question; say that the agent does not get it.
   expect(composerPlaceholder(sessionView(t.entries()), false)).toMatch(/Back to work/);
+});
+
+test("work and the running Lesson are separate conversations", () => {
+  const t = createTimeline({ sessionId: "s" });
+  t.append({ kind: "user_message", source: "agent-host", text: "Fix the login." });
+  const impasse = { id: "i1", trigger: "ask_why" as const, title: "Why tokens?", text: "Why tokens?", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  t.append({ kind: "agent_message", source: "agent-host", messageId: "m1", text: "Still working." });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l1", text: "What is a token?" });
+  const kinds = (entries: ReturnType<typeof chatEntries>) => entries.map((entry) => entry.kind);
+  expect(kinds(chatEntries(t.entries()))).toEqual(["impasse", "lesson_start", "lesson_question"]);
+
+  t.append({ kind: "lesson_end", source: "teaching", lessonId: "l1", outcome: "completed" });
+  t.append({ kind: "mode_change", source: "app", mode: "work", impasseId: "i1" });
+  expect(kinds(chatEntries(t.entries()))).toEqual([
+    "user_message", "impasse", "mode_change", "lesson_start", "agent_message", "lesson_end", "mode_change",
+  ]);
+  // Review shows the past Lesson's own conversation again, without the agent's work.
+  expect(kinds(chatEntries(t.entries(), "l1"))).toEqual(["impasse", "lesson_start", "lesson_question", "lesson_end"]);
+});
+
+test("answers given on a Lesson card stay on the card, not in the Lesson conversation", () => {
+  const t = createTimeline({ sessionId: "s" });
+  const card = { root: "r", elements: { r: { type: "ProbeCard", props: {} } } } as never;
+  const impasse = { id: "i1", trigger: "ask_why" as const, title: "Why tokens?", text: "Why tokens?", conceptIds: [], sourceEntryIds: [] };
+  t.append({ kind: "impasse", source: "app", impasse });
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i1" });
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l1", impasseId: "i1" });
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "probe", card });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "It changes." } });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l1", text: "Why does the server need it?" });
+  const articulate = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l1", step: "articulate", card });
+  t.append({ kind: "card_answer", source: "app", lessonId: "l1", cardEntryId: articulate.id, step: "articulate", answer: { type: "text", text: "Because." } });
+  const kinds = (entries: ReturnType<typeof chatEntries>) => entries.map((entry) => entry.kind);
+  expect(kinds(chatEntries(t.entries()))).toEqual(["impasse", "lesson_start", "lesson_card", "lesson_question", "lesson_card"]);
+
+  t.append({ kind: "lesson_end", source: "teaching", lessonId: "l1", outcome: "completed" });
+  t.append({ kind: "mode_change", source: "app", mode: "work", impasseId: "i1" });
+  expect(kinds(chatEntries(t.entries(), "l1"))).toEqual(["impasse", "lesson_start", "lesson_card", "lesson_question", "lesson_card", "lesson_end"]);
+});
+
+test("a reply gathers each run of tool calls into one group of steps, with each tool's error on its step", () => {
+  const t = createTimeline({ sessionId: "s" });
+  t.append({ kind: "tool_call", source: "agent-host", toolCallId: "a", toolName: "read", args: { path: "server.js" } });
+  t.append({ kind: "tool_result", source: "agent-host", toolCallId: "a", toolName: "read", output: "ok", isError: false });
+  t.append({ kind: "tool_call", source: "agent-host", toolCallId: "b", toolName: "bash", args: { command: "npm test" } });
+  t.append({ kind: "tool_result", source: "agent-host", toolCallId: "b", toolName: "bash", output: "", isError: true });
+  t.append({ kind: "error", source: "agent-host", origin: "tool", message: "npm test failed", toolCallId: "b" });
+  t.append({ kind: "agent_message", source: "agent-host", messageId: "m", text: "Fixed." });
+  t.append({ kind: "tool_call", source: "agent-host", toolCallId: "c", toolName: "read", args: { path: "app.js" } });
+  const parts = replyParts(toViewItems(t.entries()));
+  expect(parts.map((part) => part.type)).toEqual(["steps", "agent_message", "steps"]);
+  expect(parts[0]).toMatchObject({ steps: [{ toolCallId: "a" }, { toolCallId: "b", state: "error", error: "npm test failed" }] });
+});
+
+test("the Lesson shows teaching at work whenever the learner's last move is newer than teaching's last card", () => {
+  const t = createTimeline({ sessionId: "s" });
+  const card = { root: "r", elements: { r: { type: "ProbeCard", props: {} } } } as never;
+  t.append({ kind: "mode_change", source: "app", mode: "learning", impasseId: "i" });
+  expect(lessonProgress(t.entries())).toBe("Preparing the lesson");
+  t.append({ kind: "lesson_start", source: "teaching", lessonId: "l", impasseId: "i" });
+  expect(lessonProgress(t.entries())).toBe("Preparing the lesson");
+  const probe = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l", step: "probe", card });
+  expect(lessonProgress(t.entries())).toBeUndefined();
+  t.append({ kind: "card_answer", source: "app", lessonId: "l", cardEntryId: probe.id, step: "probe", answer: { type: "text", text: "?" } });
+  expect(lessonProgress(t.entries())).toBe("Preparing the explanation");
+  t.append({ kind: "lesson_card", source: "teaching", lessonId: "l", step: "explain", card });
+  const articulate = t.append({ kind: "lesson_card", source: "teaching", lessonId: "l", step: "articulate", card });
+  t.append({ kind: "lesson_question", source: "app", lessonId: "l", text: "Why?" });
+  expect(lessonProgress(t.entries())).toBe("Answering your question");
+  t.append({ kind: "lesson_card", source: "teaching", lessonId: "l", step: "explain", card });
+  expect(lessonProgress(t.entries())).toBeUndefined();
+  t.append({ kind: "card_answer", source: "app", lessonId: "l", cardEntryId: articulate.id, step: "articulate", answer: { type: "text", text: "Because." } });
+  expect(lessonProgress(t.entries())).toBe("Checking your answer");
 });

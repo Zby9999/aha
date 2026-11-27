@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import * as nodePath from "node:path";
 import { join } from "node:path";
 import {
@@ -8,6 +8,7 @@ import {
   pendingLessonError,
   startsLesson,
   type AgentSession,
+  type AgentSettings,
   type AhaModules,
   type Concept,
   type AppBackend,
@@ -33,7 +34,13 @@ export interface BackendOptions {
 
 export interface Backend extends AppBackend {
   readLearnerModel(): Promise<{ concepts: Concept[]; files: LearnerModelFile[] }>;
+  /** A project file's text, so a cited file can be shown. Only files a Lesson may cite: not dependencies, Aha's folder or `.env*`. */
+  readProjectFile(path: string): Promise<string>;
   writeLearnerModelFile(file: LearnerModelFile): Promise<void>;
+  /** The agent's models, current model and `/` commands, asked fresh from the agent. */
+  agentSettings(): Promise<AgentSettings>;
+  /** Called with the new settings after the model changes. Returns an unsubscribe function. */
+  onAgentSettings(listener: (settings: AgentSettings) => void): () => void;
   /** Resolves once every reaction to the entries so far (decisions, teaching, evidence) has finished. */
   settled(): Promise<void>;
   stop(): Promise<void>;
@@ -265,6 +272,7 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
 
   let agent: AgentSession | undefined;
   let retrying = false;
+  const settingsListeners = new Set<(settings: AgentSettings) => void>();
   timeline.append({ kind: "session_start", source: "app", projectDir });
   timeline.subscribe((entry) => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -318,6 +326,14 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
         }
         const entry = timeline.append({ kind: "offer_response", source: "app", impasseId: action.impasseId, response: action.response });
         if (action.response === "accept") enterLearning(action.impasseId, entry.id);
+        return;
+      }
+      case "set_model": {
+        // Learning-mode messages never reach the agent, so its model is not for the Lesson to change.
+        if (currentMode(timeline.entries()) === "learning") throw new Error("Switch the model after the Lesson, back at work.");
+        await session.setModel({ provider: action.provider, id: action.modelId });
+        const settings = await session.getSettings();
+        for (const listener of settingsListeners) listener(settings);
         return;
       }
       case "back_to_work": {
@@ -387,6 +403,18 @@ export async function createBackend({ modules, projectDir, sessionId, onLearning
     dispatch,
     readLearnerModel: async () => ({ concepts: await learner.readConcepts((await learner.listConcepts()).map((concept) => concept.id)), files: await learner.readFiles() }),
     writeLearnerModelFile: (file) => learner.writeFile(file),
+    readProjectFile: async (path) => {
+      // Only a path from the project's own file list: no `..`, absolute paths or ignored folders get through.
+      if (!readableProjectFile(projectDir, path)) throw new Error(`Not a project file: ${path}`);
+      const file = join(projectDir, ...path.split("/"));
+      if (statSync(file).size > MAX_PROJECT_FILE_BYTES) throw new Error(`Too large to show: ${path}`);
+      return readFileSync(file, "utf8");
+    },
+    agentSettings: () => session.getSettings(),
+    onAgentSettings: (listener) => {
+      settingsListeners.add(listener);
+      return () => void settingsListeners.delete(listener);
+    },
     settled: async () => {
       // Reactions can enqueue more reactions; wait until the queue stops growing.
       for (let seen: Promise<void> | undefined; seen !== queue; ) {
@@ -425,6 +453,14 @@ function describe(entry: TimelineEntry): string {
   if (entry.kind === "file_edit") return `the change to ${entry.path}`;
   if (entry.kind === "agent_message") return entry.text.slice(0, 80);
   return entry.kind;
+}
+
+const MAX_PROJECT_FILE_BYTES = 512 * 1024;
+
+/** True for a project-relative path a Lesson may cite and the UI may show; secrets in `.env*` files stay hidden. */
+export function readableProjectFile(projectDir: string, path: string): boolean {
+  const name = path.split("/").at(-1) ?? "";
+  return !name.startsWith(".env") && snapshot(projectDir).files.includes(path);
 }
 
 /** Project-relative paths of the project's files, skipping dependencies and Aha's own folder. */

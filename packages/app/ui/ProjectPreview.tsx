@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
-import { ExternalLink, Globe2, Monitor, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ExternalLinkIcon, GlobeIcon, MonitorIcon, ReloadIcon } from "@/components/icons";
+import { IconAction } from "@/components/icon-action";
+import { CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton } from "@/components/ui/code-block";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
+
+const START_EXAMPLE = "cd examples/portfolio\nnpm install\nnpm start";
 
 /** Time for `node --watch` to restart the project after a server edit before the frame reloads. */
 const RELOAD_DELAY_MS = 1200;
@@ -15,6 +21,19 @@ function safePreviewUrl(href: string): URL | null {
   } catch {
     return null;
   }
+}
+
+/** What the address bar shows for a URL: no scheme, like a browser's bar. */
+function displayAddress(url: URL): string {
+  return `${url.host}${url.pathname}${url.search}${url.hash}`;
+}
+
+/** An address typed into the bar: a path opens on the current preview host, a bare host gets http://. */
+function typedPreviewUrl(input: string, base: URL | null): URL | null {
+  const text = input.trim();
+  if (!text) return null;
+  if (text.startsWith("/")) return base ? safePreviewUrl(new URL(text, base).href) : null;
+  return safePreviewUrl(/^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : `http://${text}`);
 }
 
 /** Without a backend-run preview: VITE_AHA_PREVIEW_URL, or port 3000 on this host (the portfolio's `npm start`). */
@@ -47,8 +66,32 @@ function usePreviewUrl(): { url: URL | null; managed: boolean } | undefined {
 
 export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_edit"> }) {
   const preview = usePreviewUrl();
-  const url = preview?.url ?? null;
+  // An address the user typed replaces the project's own until the page reloads.
+  const [typed, setTyped] = useState<URL | null>(null);
+  const url = typed ?? preview?.url ?? null;
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
   const [refresh, setRefresh] = useState(0);
+
+  const editAddress = (value: string) => {
+    setDraft(value);
+    setInvalid(false);
+  };
+  const resetAddress = () => {
+    setDraft(null);
+    setInvalid(false);
+  };
+  const goTo = (input: string) => {
+    const next = typedPreviewUrl(input, url);
+    if (!next) {
+      setInvalid(true);
+      return false;
+    }
+    setTyped(next);
+    resetAddress();
+    setRefresh((count) => count + 1);
+    return true;
+  };
   // Reload a moment after each edit, so a server edit has restarted the project first.
   const editKey = `${lastEdit?.id ?? ""}:${lastEdit?.at ?? ""}`;
   const [reloadedEdit, setReloadedEdit] = useState(editKey);
@@ -86,24 +129,48 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
   return (
     <>
       <header className="workspace-pane-heading">
-        <Monitor aria-hidden="true" /><h2>Live preview</h2>
+        <h2 className="sr-only">Live preview</h2>
+        <form
+          className="workspace-preview-address"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const input = event.currentTarget.elements.namedItem("address") as HTMLInputElement;
+            if (goTo(input.value)) input.blur();
+          }}
+        >
+          <InputGroup className="h-8 border-transparent bg-transparent shadow-none hover:bg-muted has-[input:focus-visible]:bg-background">
+            <InputGroupAddon><GlobeIcon /></InputGroupAddon>
+            <InputGroupInput
+              name="address"
+              aria-label="Preview address"
+              aria-invalid={invalid || undefined}
+              title={invalid ? "Enter an http or https address, or a path such as /about" : url?.href}
+              placeholder="Enter an address or a path"
+              spellCheck={false}
+              autoComplete="off"
+              value={draft ?? (url ? displayAddress(url) : "")}
+              onChange={(event) => editAddress(event.target.value)}
+              onFocus={(event) => event.currentTarget.select()}
+              onBlur={resetAddress}
+              onKeyDown={(event) => {
+                if (event.key !== "Escape") return;
+                resetAddress();
+                event.currentTarget.blur();
+              }}
+            />
+          </InputGroup>
+        </form>
         <div className="workspace-preview-actions">
-          <Button size="icon-sm" variant="ghost" aria-label="Refresh preview" title="Refresh preview" disabled={!url}
-            onClick={() => setRefresh((count) => count + 1)}>
-            <RefreshCw />
-          </Button>
-          {url && <Button size="icon-sm" variant="ghost" aria-label="Open preview in new tab" title="Open in new tab"
-            nativeButton={false} render={<a href={url.href} target="_blank" rel="noopener noreferrer" />}>
-            <ExternalLink />
-          </Button>}
+          <IconAction label="Refresh preview" disabled={!url} onClick={() => setRefresh((count) => count + 1)}>
+            <ReloadIcon />
+          </IconAction>
+          {url && <IconAction label="Open preview in new tab" nativeButton={false} render={<a href={url.href} target="_blank" rel="noopener noreferrer" />}>
+            <ExternalLinkIcon />
+          </IconAction>}
         </div>
       </header>
       <div className="workspace-preview-canvas">
         <div className="workspace-browser">
-          <div className="workspace-address">
-            <Globe2 aria-hidden="true" />
-            <span title={url?.href}>{url ? `${url.host}${url.pathname}` : "Preview URL"}</span>
-          </div>
           {url && reachable ? (
             <iframe
               key={revision}
@@ -113,22 +180,28 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="workspace-empty workspace-preview-empty">
-              <span className="workspace-empty-icon"><Monitor aria-hidden="true" /></span>
-              <h3>{checking ? "Connecting to preview…" : "Preview unavailable"}</h3>
-              {!checking && (url ? (
-                preview?.managed ? (
-                  <p>Aha is starting your project. Refresh the preview in a moment.</p>
-                ) : import.meta.env.VITE_AHA_PREVIEW_URL ? (
-                  <p>Start the project server, then refresh the preview.</p>
-                ) : (
-                  <>
-                    <p>Start the portfolio example, then refresh the preview.</p>
-                    <code>cd examples/portfolio<br />npm install<br />npm start</code>
-                  </>
-                )
-              ) : <p>Set VITE_AHA_PREVIEW_URL to an HTTP or HTTPS address on a different origin.</p>)}
-            </div>
+            <Empty className="workspace-preview-empty">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">{checking ? <Spinner aria-hidden="true" /> : <MonitorIcon aria-hidden="true" />}</EmptyMedia>
+                <EmptyTitle role="heading" aria-level={3}>{checking ? "Connecting to preview…" : "Preview unavailable"}</EmptyTitle>
+                {!checking && (
+                  <EmptyDescription>
+                    {!url ? "Set VITE_AHA_PREVIEW_URL to an HTTP or HTTPS address on a different origin." :
+                      preview?.managed ? "Aha is starting your project. Refresh the preview in a moment." :
+                      import.meta.env.VITE_AHA_PREVIEW_URL ? "Start the project server, then refresh the preview." :
+                      "Start the portfolio example, then refresh the preview."}
+                  </EmptyDescription>
+                )}
+              </EmptyHeader>
+              {!checking && url && !preview?.managed && !import.meta.env.VITE_AHA_PREVIEW_URL && (
+                <EmptyContent>
+                  <CodeBlock size="sm" className="text-start">
+                    <CodeBlockActions><CodeBlockCopyButton value={START_EXAMPLE} /></CodeBlockActions>
+                    <CodeBlockContent>{START_EXAMPLE}</CodeBlockContent>
+                  </CodeBlock>
+                </EmptyContent>
+              )}
+            </Empty>
           )}
         </div>
         <p className="workspace-preview-footer" role="status">

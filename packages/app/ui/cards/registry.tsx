@@ -1,29 +1,44 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import type { Citation } from "@aha/contracts";
 import { defineRegistry } from "@json-render/react";
-import { ArrowDown, ArrowRight, BookOpen, ChevronDown, ChevronLeft, ChevronRight, FileCode2, Flag, GitBranch } from "lucide-react";
+import { ArrowDownIcon, ArrowRightIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
 import { Button } from "../components/ui/button.tsx";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
+import { AhaMascot, type MascotAccessory } from "@/components/AhaMascot";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
 import { Input } from "../components/ui/input.tsx";
 import { cardCatalog } from "./catalog.ts";
+import { CitedCode, type LineRange } from "./CitedCode.tsx";
 import { InlineCode } from "./InlineCode.tsx";
 import { useCard } from "./context.ts";
 
 function Citations({ citations, expandable = false }: { citations: Citation[]; expandable?: boolean }) {
   if (citations.length === 0) return null;
-  const files = new Map<string, Set<string>>();
+  const files = new Map<string, { labels: Set<string>; ranges: LineRange[] }>();
   for (const { path, startLine, endLine } of citations) {
-    const lines = files.get(path) ?? new Set<string>();
-    if (startLine !== undefined) lines.add(endLine !== undefined && endLine !== startLine ? `${startLine}–${endLine}` : `${startLine}`);
-    files.set(path, lines);
+    const file = files.get(path) ?? { labels: new Set<string>(), ranges: [] };
+    if (startLine !== undefined) {
+      file.labels.add(endLine !== undefined && endLine !== startLine ? `${startLine}–${endLine}` : `${startLine}`);
+      file.ranges.push({ start: startLine, end: endLine ?? startLine });
+    }
+    files.set(path, file);
   }
+  // Each reference opens the cited lines from the project, so the learner can check the claim against the code.
   const references = (
-      <ul aria-label="Code references" className="grid gap-1 text-xs text-muted-foreground">
-        {[...files].map(([path, lines]) => (
-          <li key={path} className="flex items-start gap-2">
-            <FileCode2 aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
-            <code className="min-w-0 wrap-anywhere">{path}{lines.size > 0 && `:${[...lines].join(", ")}`}</code>
+      <ul aria-label="Code references" className="-mx-2 grid gap-0.5 text-xs text-muted-foreground">
+        {[...files].map(([path, { labels, ranges }]) => (
+          <li key={path} className="group/citation">
+            <Collapsible>
+              <CollapsibleTrigger className="lesson-citation-trigger flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-start transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none">
+                <CodeFileIcon aria-hidden="true" className="size-3.5 shrink-0" />
+                <code className="min-w-0 flex-1 leading-snug wrap-anywhere">{path}{labels.size > 0 && `:${[...labels].join(", ")}`}</code>
+                <ChevronDownIcon aria-hidden="true" className="lesson-citation-chevron size-3.5 shrink-0 transition-transform" />
+              </CollapsibleTrigger>
+              {/* Only a reference with another below it needs space under its code; the card pads the last one. */}
+              <CollapsibleContent className="pt-1.5 group-not-last/citation:pb-1">
+                <CitedCode path={path} ranges={ranges} />
+              </CollapsibleContent>
+            </Collapsible>
           </li>
         ))}
       </ul>
@@ -32,11 +47,11 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
     return (
       <Collapsible className="border-t pt-1">
         <CollapsibleTrigger render={<Button type="button" variant="ghost" size="sm" className="lesson-evidence-trigger w-full justify-start" />}>
-          <FileCode2 data-icon="inline-start" aria-hidden="true" />
+          <CodeFileIcon data-icon="inline-start" aria-hidden="true" />
           Code references
-          <ChevronDown data-icon="inline-end" className="ms-auto" aria-hidden="true" />
+          <ChevronDownIcon data-icon="inline-end" className="ms-auto" aria-hidden="true" />
         </CollapsibleTrigger>
-        <CollapsibleContent className="px-2 pb-2 pt-1">{references}</CollapsibleContent>
+        <CollapsibleContent className="pt-1">{references}</CollapsibleContent>
       </Collapsible>
     );
   }
@@ -59,7 +74,7 @@ function TextAnswer({ disabled, onSubmit }: { disabled: boolean; onSubmit: (text
       }}
     >
       <Input disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
-      <Button disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
+      <Button variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
     </form>
   );
 }
@@ -76,7 +91,7 @@ function ChoiceButton({ children, disabled, onClick }: { children: string; disab
   return (
     <Button variant="ghost" className="w-full justify-between px-3 py-2.5 text-start font-normal" disabled={disabled} onClick={onClick}>
       <span className="min-w-0 wrap-anywhere">{children}</span>
-      <ChevronRight data-icon="inline-end" aria-hidden="true" className="text-muted-foreground" />
+      <ChevronRightIcon data-icon="inline-end" aria-hidden="true" className="text-muted-foreground" />
     </Button>
   );
 }
@@ -103,17 +118,21 @@ function FlagExplanation() {
       ) : (
         <Button type="button" variant="ghost" size="xs" className="text-muted-foreground"
           onClick={() => dispatch({ type: "flag_explanation", lessonId: flag.lessonId, cardEntryId: entryId })}>
-          <Flag data-icon="inline-start" aria-hidden="true" /> Flag as incorrect
+          <FlagIcon data-icon="inline-start" aria-hidden="true" /> Flag as incorrect
         </Button>
       )}
     </CardFooter>
   );
 }
 
-function StructuredExplanation({ title, citations, children }: { title: string; citations: Citation[]; children: ReactNode }) {
+function CardMascot({ accessory }: { accessory: MascotAccessory }) {
+  return <CardAction><AhaMascot accessory={accessory} className="lesson-card-mascot" /></CardAction>;
+}
+
+function StructuredExplanation({ title, citations, accessory, children }: { title: string; citations: Citation[]; accessory: MascotAccessory; children: ReactNode }) {
   return (
     <Card aria-label="Explanation" className="lesson-reading-card min-w-0" data-diagram>
-      <CardHeader><CardTitle role="heading" aria-level={3}>{title}</CardTitle></CardHeader>
+      <CardHeader><CardTitle role="heading" aria-level={3}>{title}</CardTitle><CardMascot accessory={accessory} /></CardHeader>
       <CardContent className="grid min-w-0 gap-3">
         {children}
         <Citations citations={citations} expandable />
@@ -128,7 +147,7 @@ function ProcessSteps({ steps, label }: { steps: string[]; label: string }) {
     <ol aria-label={label} role="list" className="lesson-process-steps">
       {steps.map((step, index) => (
         <li key={index}>
-          {index > 0 && <ArrowDown aria-hidden="true" />}
+          {index > 0 && <ArrowDownIcon aria-hidden="true" />}
           <span>{step}</span>
         </li>
       ))}
@@ -145,12 +164,13 @@ export const { registry } = defineRegistry(cardCatalog, {
       return (
         <Card aria-label="Offer" className="lesson-invitation" data-offer-state={done ? "inactive" : "available"}>
           <CardHeader>
-            <span className="lesson-offer-caption"><BookOpen aria-hidden="true" />Optional lesson</span>
+            <span className="lesson-offer-caption">Optional lesson</span>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.body}</CardDescription>
+            <CardMascot accessory="bulb" />
           </CardHeader>
           <CardFooter className="flex-wrap gap-2">
-            <Button disabled={done} onClick={() => respond("accept")}>Show me why</Button>
+            <Button variant={done ? "secondary" : "default"} disabled={done} onClick={() => respond("accept")}>Show me why</Button>
             <Button disabled={done} variant="ghost" onClick={() => respond("skip")}>Skip this time</Button>
           </CardFooter>
         </Card>
@@ -174,6 +194,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardHeader>
             <StepLabel>Predict</StepLabel>
             <CardTitle role="heading" aria-level={3}>{props.question}</CardTitle>
+            <CardMascot accessory="question" />
           </CardHeader>
           <CardContent className="grid gap-2.5">
             {endedEarly ? (
@@ -206,6 +227,7 @@ export const { registry } = defineRegistry(cardCatalog, {
             <CardHeader>
               <StepLabel>{props.mode === "judge_fix" ? "Judge the fix" : "Put it in your own words"}</StepLabel>
               <CardTitle role="heading" aria-level={3}>{props.prompt}</CardTitle>
+              <CardMascot accessory="speech" />
             </CardHeader>
           )}
           <CardContent className="grid gap-2.5">
@@ -236,13 +258,13 @@ export const { registry } = defineRegistry(cardCatalog, {
       );
     },
     Flowchart: ({ props }) => (
-      <StructuredExplanation title={props.title} citations={props.citations}>
+      <StructuredExplanation title={props.title} citations={props.citations} accessory="signpost">
         <div className="lesson-process">
           <ProcessSteps steps={props.steps} label="Process steps" />
           {props.decision && (
             <>
-              <ArrowDown aria-hidden="true" className="lesson-process-connector" />
-              <p className="lesson-process-question"><GitBranch aria-hidden="true" />{props.decision.question}</p>
+              <ArrowDownIcon aria-hidden="true" className="lesson-process-connector" />
+              <p className="lesson-process-question"><BranchIcon aria-hidden="true" />{props.decision.question}</p>
               <ul aria-label="Decision branches" role="list" className="lesson-process-branches">
                 {props.decision.branches.map(({ label, steps }) => (
                   <li key={label}>
@@ -253,7 +275,7 @@ export const { registry } = defineRegistry(cardCatalog, {
               </ul>
               {props.decision.continuation && (
                 <>
-                  <p className="lesson-process-join"><ArrowDown aria-hidden="true" /> Paths rejoin</p>
+                  <p className="lesson-process-join"><ArrowDownIcon aria-hidden="true" /> Paths rejoin</p>
                   <ProcessSteps steps={props.decision.continuation} label="Shared next steps" />
                 </>
               )}
@@ -263,7 +285,7 @@ export const { registry } = defineRegistry(cardCatalog, {
       </StructuredExplanation>
     ),
     ContrastView: ({ props }) => (
-      <StructuredExplanation title={props.title} citations={props.citations}>
+      <StructuredExplanation title={props.title} citations={props.citations} accessory="contrast">
         <p className="lesson-comparison-takeaway">{props.takeaway}</p>
         <div className="lesson-comparison">
           <div className="lesson-comparison-head" aria-hidden="true">
@@ -284,7 +306,7 @@ export const { registry } = defineRegistry(cardCatalog, {
     SequenceDiagram: ({ props }) => {
       const lanes = new Map(props.participants.map(({ id, label }, index) => [id, { position: index + 1, label }]));
       return (
-        <StructuredExplanation title={props.title} citations={props.citations}>
+        <StructuredExplanation title={props.title} citations={props.citations} accessory="envelope">
           <div className="lesson-sequence" style={{ "--sequence-lanes": lanes.size } as CSSProperties}>
             <div className="lesson-sequence-lanes" aria-hidden="true">
               {props.participants.map(({ id, label }) => <p key={id}>{label}</p>)}
@@ -295,11 +317,11 @@ export const { registry } = defineRegistry(cardCatalog, {
                 const receiver = lanes.get(to)!;
                 const first = Math.min(sender.position, receiver.position);
                 const last = Math.max(sender.position, receiver.position);
-                const Arrow = sender.position < receiver.position ? ChevronRight : ChevronLeft;
+                const Arrow = sender.position < receiver.position ? ChevronRightIcon : ChevronLeftIcon;
                 return (
                   <li key={index}>
                     <p className="lesson-sequence-route">
-                      {sender.label} <ArrowRight aria-hidden="true" /><span className="sr-only">to </span>{receiver.label}
+                      {sender.label} <ArrowRightIcon aria-hidden="true" /><span className="sr-only">to </span>{receiver.label}
                     </p>
                     <div className="lesson-sequence-message" style={{ gridColumn: `${first} / ${last + 1}`, "--sequence-span": last - first + 1 } as CSSProperties}>
                       <p>{label}</p>
@@ -321,6 +343,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardHeader>
             <StepLabel>Explanation</StepLabel>
             <CardTitle role="heading" aria-level={3}>{props.title}</CardTitle>
+            <CardMascot accessory="flow" />
           </CardHeader>
           <CardContent className="grid gap-3">
             {props.summary && <p className="text-sm leading-relaxed">{props.summary}</p>}
@@ -348,6 +371,7 @@ export const { registry } = defineRegistry(cardCatalog, {
         <CardHeader>
           <StepLabel>Explanation</StepLabel>
           <CardTitle><InlineCode text={props.title} /></CardTitle>
+          <CardMascot accessory="cap" />
         </CardHeader>
         <CardContent className="grid gap-3">
           <p className="text-sm leading-relaxed"><InlineCode text={props.text} /></p>

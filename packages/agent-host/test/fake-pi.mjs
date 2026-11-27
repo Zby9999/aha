@@ -19,7 +19,13 @@ if (env.FAKE_PI_ON_START === "exit") {
 
 if (env.FAKE_PI_LOG) appendFileSync(env.FAKE_PI_LOG, `${JSON.stringify({ type: "__start__", argv: process.argv.slice(2), cwd: process.cwd(), learnerContextFile: env.AHA_LEARNER_CONTEXT_FILE, port: env.PORT, inherited: Object.keys(env).filter((key) => key.startsWith("AHA_") || key === "TYPESAFE_API_KEY") })}\n`);
 
-const MODEL ={ id: "fake-model", name: "Fake Model", provider: "fake", api: "fake" };
+const MODEL = { id: "fake-model", name: "Fake Model", provider: "fake", api: "fake" };
+const OTHER_MODEL = { id: "fake-large", name: "Fake Large", provider: "fake", api: "fake" };
+const COMMANDS = [
+  { name: "fix-tests", description: "Fix failing tests", source: "prompt", sourceInfo: { path: "/x/fix-tests.md", source: "local", scope: "project", origin: "top-level" } },
+  { name: "skill:explain", source: "skill", sourceInfo: { path: "/x/SKILL.md", source: "auto", scope: "user", origin: "top-level" } },
+];
+let current = MODEL;
 const events = env.FAKE_PI_EVENTS ? readFileSync(env.FAKE_PI_EVENTS, "utf8").replaceAll("__CWD__", JSON.stringify(process.cwd()).slice(1, -1)).split("\n").filter((line) => line.trim()) : [];
 const turns = [[]];
 for (const line of events) {
@@ -34,9 +40,17 @@ function handle(command) {
   if (env.FAKE_PI_ON_START === "silent") return;
   switch (command.type) {
     case "get_available_models":
-      return respond(command, { models: env.FAKE_PI_MODELS === "none" ? [] : [MODEL] });
+      return respond(command, { models: env.FAKE_PI_MODELS === "none" ? [] : [MODEL, OTHER_MODEL] });
     case "get_state":
-      return respond(command, { model: env.FAKE_PI_MODELS === "no-default" ? { ...MODEL, id: "unknown" } : MODEL, isStreaming: false });
+      return respond(command, { model: env.FAKE_PI_MODELS === "no-default" ? { ...MODEL, id: "unknown" } : current, isStreaming: false });
+    case "get_commands":
+      return respond(command, { commands: COMMANDS });
+    case "set_model": {
+      const model = [MODEL, OTHER_MODEL].find((m) => m.provider === command.provider && m.id === command.modelId);
+      if (!model) return out({ id: command.id, type: "response", command: command.type, success: false, error: `Model not found: ${command.provider}/${command.modelId}` });
+      current = model;
+      return respond(command, model);
+    }
     case "prompt": {
       if (command.message === "__crash__") process.exit(3);
       respond(command, { disposition: "started" });

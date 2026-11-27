@@ -37,6 +37,15 @@ export function isLocalOrigin(origin: string | undefined, port: number): boolean
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
+function isLoopbackHost(host: string | undefined): boolean {
+  if (!host) return false;
+  try {
+    return LOOPBACK_HOSTS.has(new URL(`http://${host}`).hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Serves the web UI and a WebSocket at /ws: a snapshot of the Timeline, then each new entry; actions go to the backend.
  * Listens on loopback by default and accepts sockets only from its own page.
@@ -75,6 +84,20 @@ export function startServer({ backend, port, uiDir, host = "127.0.0.1", previewU
       res.writeHead(405).end(JSON.stringify({ error: "Method not allowed" }));
       return;
     }
+    if (url.pathname === "/api/project-file") {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      // Read-only, but still only for this app's page: refuse other sites and DNS-rebound hosts.
+      const site = req.headers["sec-fetch-site"];
+      if (req.method !== "GET" || !isLoopbackHost(req.headers.host) || (site !== undefined && site !== "same-origin")) {
+        res.writeHead(403).end(JSON.stringify({ error: "Forbidden" }));
+        return;
+      }
+      const path = url.searchParams.get("path") ?? "";
+      void backend.readProjectFile(path).then((text) => res.end(JSON.stringify({ path, text })), (error) => {
+        res.writeHead(404).end(JSON.stringify({ error: (error as Error).message }));
+      });
+      return;
+    }
     if (url.pathname === "/api/preview") {
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ url: previewUrl }));
       return;
@@ -98,8 +121,16 @@ export function startServer({ backend, port, uiDir, host = "127.0.0.1", previewU
   backend.timeline.subscribe((entry) => {
     for (const socket of sockets.clients) send(socket, { type: "entry", entry });
   });
+  backend.onAgentSettings((settings) => {
+    for (const socket of sockets.clients) send(socket, { type: "agent_settings", settings });
+  });
   sockets.on("connection", (socket) => {
     send(socket, { type: "snapshot", entries: [...backend.timeline.entries()] });
+    // The model picker and `/` menu stay empty if the agent cannot say; the work itself is unaffected.
+    backend.agentSettings().then(
+      (settings) => { if (socket.readyState === socket.OPEN) send(socket, { type: "agent_settings", settings }); },
+      (error) => console.warn(`[aha] Could not read the agent's models and commands: ${(error as Error).message}`),
+    );
     socket.on("message", async (data) => {
       try {
         const message = JSON.parse(String(data)) as ClientMessage;

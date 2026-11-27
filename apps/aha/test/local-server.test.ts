@@ -52,6 +52,19 @@ describe("local-only server", () => {
     await expect(connect(port)).rejects.toThrow("HTTP 401");
   });
 
+  test("serves a cited project file to the app's page, and nothing outside the project's own files", async () => {
+    const { port } = await start();
+    const read = (path: string, headers: Record<string, string> = {}) =>
+      fetch(`http://127.0.0.1:${port}/api/project-file?path=${encodeURIComponent(path)}`, { headers });
+    const served = await read("server.js", { "sec-fetch-site": "same-origin" });
+    expect(served.status).toBe(200);
+    expect(((await served.json()) as { text: string }).text).toContain("express");
+    for (const path of ["../package.json", "/etc/hosts", "node_modules/express/package.json", ".aha/index.md", ".env"]) {
+      expect((await read(path)).status, path).toBe(404);
+    }
+    expect((await read("server.js", { "sec-fetch-site": "cross-site" })).status).toBe(403);
+  });
+
   test("isLocalOrigin only accepts http on a loopback host at the app's port", () => {
     expect(isLocalOrigin("http://[::1]:4317", 4317)).toBe(true);
     expect(isLocalOrigin("https://localhost:4317", 4317)).toBe(false);

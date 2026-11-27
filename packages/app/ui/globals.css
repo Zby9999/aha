@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Allo (the "friendly" cut: roundness fixed at 50) and Geist Mono, self-hosted so the local app looks the same on every
+   machine and offline. */
+@import "allo-font/friendly";
+@import "@fontsource-variable/geist-mono";
 
 /* Tailwind must also scan the prebuilt json-render shadcn components. */
 @source "../node_modules/@json-render/shadcn/dist";
 @source "../node_modules/streamdown/dist/*.js";
 
 /*
- * Design tokens (ADR-0004): shadcn/ui neutral theme. Change colours, radius and fonts here only;
+ * Design tokens (ADR-0004): shadcn/ui neutral theme with the mascot's purple as the primary colour, Allo and Geist Mono. Change colours, radius and fonts here only;
  * every component, in the app shell and in lesson cards, reads these variables.
  */
 :root {
@@ -20,8 +24,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.5 0.2 295);
+  --primary-foreground: oklch(0.985 0.01 295);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -31,16 +35,19 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.62 0.18 295);
   /* Aha-specific: the Offer and lesson cards stand out from the work. */
   --lesson: #f1f1f1;
   --lesson-border: var(--input);
   --lesson-reading: #fafafa;
-  --lesson-accent: #2857a8;
+  --lesson-accent: oklch(0.5 0.2 295);
   --workspace-canvas: oklch(0.963 0.009 252);
-  --workspace-accent: oklch(0.38 0.087 193);
-  --workspace-accent-surface: oklch(0.933 0.041 188);
+  --workspace-accent: var(--lesson-accent);
+  --workspace-accent-surface: oklch(0.94 0.035 295);
   --workspace-shadow: oklch(0.23 0.025 250 / 10%);
+  --mascot-body: oklch(0.62 0.18 295);
+  --mascot-eye: oklch(0.99 0.008 295);
+  --mascot-pupil: oklch(0.22 0.05 295);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,8 +58,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: oklch(0.72 0.15 295);
+    --primary-foreground: oklch(0.18 0.04 295);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -62,18 +69,22 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: oklch(0.62 0.15 295);
     --lesson: #303030;
     --lesson-reading: #262626;
-    --lesson-accent: #9dbdff;
+    --lesson-accent: oklch(0.8 0.11 295);
     --workspace-canvas: oklch(0.195 0.012 252);
-    --workspace-accent: oklch(0.82 0.095 185);
-    --workspace-accent-surface: oklch(0.29 0.047 191);
+    --workspace-accent: var(--lesson-accent);
+    --workspace-accent-surface: oklch(0.3 0.07 295);
     --workspace-shadow: oklch(0.12 0.025 250 / 45%);
+    --mascot-body: oklch(0.68 0.17 295);
   }
 }
 
 @theme inline {
+  /* Allo has no CJK glyphs: Chinese uses Resource Han Rounded (loaded in index.html), then the system's own UI font. */
+  --font-sans: "Allo", "Resource Han Rounded", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -124,14 +135,17 @@
   justify-content: space-between;
   gap: 0.65rem 1rem;
   padding: 0.65rem clamp(0.9rem, 2.2vw, 2rem);
+  /* The mascot's body sits ~0.23rem inside its box; this puts its visible
+     left edge as far from the window as its top is from the header's. */
+  padding-left: 1rem;
+  /* The last icon button sits as far from the window's edge as from the header's top. */
+  padding-right: 1.25rem;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
 
 .workspace-identity,
 .workspace-brand,
-.workspace-header-tools,
-.workspace-connection,
 .workspace-project {
   display: flex;
   align-items: center;
@@ -142,26 +156,12 @@
   gap: 1rem;
 }
 
-.workspace-brand { gap: 0.65rem; }
-.workspace-brand h1 { font-size: 1.2rem; font-weight: 680; letter-spacing: -0.04em; }
+.workspace-brand { gap: 0.3rem; }
+.workspace-brand h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.025em; }
 
-.workspace-brand-mark,
-.workspace-reply-mark,
-.workspace-empty-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  background: var(--workspace-accent-surface);
-  color: var(--workspace-accent);
-}
+.workspace-reply-mark { flex: none; }
 
-.workspace-brand-mark {
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: var(--radius);
-}
-
-.workspace-brand-mark svg { width: 1.2rem; height: 1.2rem; }
+.workspace-brand-mark { width: 2.25rem; height: 2.25rem; flex: none; }
 
 .workspace-project {
   min-width: 0;
@@ -174,30 +174,8 @@
 
 .workspace-project svg { width: 1rem; height: 1rem; flex: none; }
 .workspace-project span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-header-tools { flex: none; gap: 1rem; }
-.workspace-connection { gap: 0.4rem; color: var(--muted-foreground); font-size: 0.8125rem; }
-.workspace-connection > span { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; }
-.workspace-connection[data-connected="true"] { color: var(--workspace-accent); }
-
-.workspace-layout-picker {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.2rem;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 0.25rem);
-  background: var(--muted);
-}
-
-.workspace-layout-picker button { border-radius: var(--radius); color: var(--muted-foreground); }
-.workspace-layout-picker button[aria-pressed="true"] {
-  background: var(--card);
-  color: var(--foreground);
-  box-shadow: 0 1px 3px var(--workspace-shadow);
-}
-
 .workspace-main {
-  display: grid;
-  grid-template-columns: minmax(20rem, 1.18fr) minmax(0, 1.55fr);
+  display: flex;
   min-height: 0;
   flex: 1;
 }
@@ -211,30 +189,24 @@
 }
 
 .workspace-chat,
+.workspace-detail,
 .workspace-preview,
 .workspace-learn {
   display: flex;
   flex-direction: column;
 }
 
+.workspace-chat,
+.workspace-detail { height: 100%; }
 .workspace-chat { background: var(--card); }
+.workspace-detail > section { flex: 1; }
 
-.workspace-detail {
-  display: grid;
-  gap: 0;
-  border-left: 1px solid var(--border);
-}
-
-.workspace-detail[data-layout="three-pane"] {
-  grid-template-columns: minmax(0, 1.27fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-}
-
-.workspace-detail[data-layout="three-pane"] .workspace-learn { border-left: 1px solid var(--border); }
-.workspace-detail[data-layout="tabbed"] { grid-template-rows: auto minmax(0, 1fr); }
-.workspace-tabbar { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); background: var(--card); }
-.workspace-tabbar [data-slot="tabs-trigger"] { padding-inline: 0.65rem; }
-.workspace-tabbar [data-slot="tabs-trigger"][data-active] { box-shadow: 0 1px 3px var(--workspace-shadow); }
+.workspace-header-tools { display: flex; flex: none; align-items: center; gap: 0.25rem; }
+.workspace-header-tools button { color: var(--muted-foreground); }
+.workspace-header-tools button[aria-pressed="true"] { background: var(--muted); color: var(--foreground); }
+.workspace-main [data-slot="resizable-handle"] { transition: background-color 150ms; }
+.workspace-main [data-slot="resizable-handle"]:hover,
+.workspace-main [data-slot="resizable-handle"][data-separator="active"] { background: var(--ring); }
 
 .workspace-pane-heading {
   display: flex;
@@ -242,13 +214,15 @@
   flex: none;
   align-items: center;
   gap: 0.6rem;
-  padding-inline: 1rem;
+  /* Trailing icon buttons sit as far from the right edge as from the top. */
+  padding-inline: 1rem 0.75rem;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
 
-.workspace-pane-heading h2 { font-size: 0.9rem; font-weight: 650; }
-.workspace-pane-heading > svg { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
+.workspace-pane-heading h2 { font-size: 0.875rem; font-weight: 600; }
+.workspace-pane-heading > .aha-mascot { flex: none; width: 1.75rem; height: 1.75rem; margin-block: -0.25rem; }
+.workspace-pane-heading > svg:not(.aha-mascot) { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
 .workspace-learn .workspace-pane-heading > svg { color: var(--workspace-accent); }
 .workspace-chat-content { max-width: 47rem; margin-inline: auto; padding: 1.25rem clamp(0.7rem, 2vw, 1.5rem) 4rem; }
 .workspace-reply-mark { width: 2rem; height: 2rem; }
@@ -256,74 +230,31 @@
 .workspace-input { border-radius: calc(var(--radius) + 0.65rem); background: var(--card); box-shadow: 0 4px 16px var(--workspace-shadow); }
 .workspace-input textarea { font-size: 1rem; }
 .workspace-preview { background: var(--workspace-canvas); }
-.workspace-preview-actions { display: flex; gap: 0.15rem; margin-inline-start: auto; }
+.workspace-preview-actions { display: flex; flex: none; gap: 0.15rem; margin-inline-start: auto; }
 
-.workspace-preview-canvas {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding: clamp(0.65rem, 1.5vw, 1.2rem);
-}
+.workspace-preview-address { min-width: 0; flex: 1; margin-inline-start: -0.5rem; }
+.workspace-preview-address input { text-overflow: ellipsis; }
 
-.workspace-browser {
+/* The project page fills the pane; the last edit sits in a thin bar under it. */
+.workspace-preview-canvas { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+.workspace-browser { display: flex; min-height: 0; flex: 1; flex-direction: column; background: var(--card); }
+.workspace-browser iframe { display: block; width: 100%; min-height: 0; flex: 1; border: 0; background: #fff; }
+.workspace-preview-footer {
   display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 0.3rem);
-  background: var(--card);
-  box-shadow: 0 8px 20px var(--workspace-shadow);
-}
-
-.workspace-browser iframe { display: block; width: 100%; min-height: 0; flex: 1; border: 0; }
-.workspace-address {
-  display: flex;
-  min-height: 2.4rem;
   flex: none;
-  align-items: center;
   gap: 0.5rem;
-  padding-inline: 0.8rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
-
-.workspace-address svg { width: 0.9rem; height: 0.9rem; flex: none; }
-.workspace-address span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-preview-footer { display: flex; gap: 0.5rem; color: var(--muted-foreground); font-size: 0.8125rem; }
 .workspace-preview-footer > span { flex: none; }
 .workspace-preview-footer code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-learn { background: var(--background); }
 
-.workspace-empty {
-  display: flex;
-  min-height: 12rem;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 1.2rem;
-  text-align: center;
-}
-
-.workspace-empty-icon { width: 2.75rem; height: 2.75rem; border-radius: calc(var(--radius) + 0.3rem); }
-.workspace-empty-icon svg { width: 1.3rem; height: 1.3rem; }
-.workspace-preview-empty .workspace-empty-icon { background: var(--muted); color: var(--muted-foreground); }
-.workspace-empty h3 { font-size: 1rem; font-weight: 650; letter-spacing: -0.015em; }
-.workspace-empty p { max-width: 29ch; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.65; }
-.workspace-empty code {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--muted);
-  text-align: start;
-  font-size: 0.75rem;
-}
+/* Empty states (shadcn Empty) fill the pane they sit in. */
+[data-slot="empty"] { flex: 1; }
 
 .workspace-learn-cards {
   position: relative;
@@ -340,7 +271,7 @@
 
 .workspace-learn-cards > * { flex: none; }
 .workspace-learn-cards > * { scroll-margin-block-start: 1rem; }
-.workspace-learn-cards button { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
+.workspace-learn-cards button:not(.lesson-citation-trigger) { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
 
 .lesson-reading-card {
   gap: 0.8rem;
@@ -355,31 +286,18 @@
 }
 .workspace-main[data-mode="learning"] .lesson-pane-heading { background: var(--lesson); }
 .lesson-pane-title { display: grid; gap: .18rem; min-inline-size: 0; overflow-wrap: anywhere; }
-.lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 650; }
-.lesson-pane-heading { padding-block: .55rem; }
-.lesson-pending {
-  display: flex;
-  gap: .55rem;
-  align-items: center;
-  padding: .5rem var(--radius);
-  font-size: .85rem;
-  color: var(--muted-foreground);
-}
-.lesson-pending svg { inline-size: 1rem; flex: none; color: var(--lesson-accent); }
+.lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 600; }
+.lesson-pane-heading { padding-block: .55rem; padding-inline-start: .75rem; } /* the mascot is larger than an icon: same inset left as top */
+.lesson-pending { padding: .5rem 1rem; }
+.workspace-learn-cards > .lesson-pending { padding-inline: 0; }
 .lesson-work-mode > svg { color: var(--lesson-accent); }
 .workspace-user-bubble > [data-slot="bubble-content"] { border-radius: var(--message-radius); }
 .lesson-invitation { background: var(--lesson); box-shadow: none; --tw-ring-shadow: 0 0 transparent; }
 .lesson-invitation[data-offer-state="inactive"] { background: var(--muted); }
-.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 650; }
-.lesson-invitation[data-offer-state="available"] .lesson-offer-caption { color: var(--lesson-accent); }
-.lesson-offer-caption svg { inline-size: .9rem; block-size: .9rem; }
-@media (prefers-reduced-motion: no-preference) {
-  .lesson-pending svg, [data-agent-pending] .workspace-reply-mark svg { animation: lesson-status-pulse 1.6s ease-in-out infinite; }
-  @keyframes lesson-status-pulse { 50% { opacity: .55; } }
-}
+.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; color: var(--lesson-accent); font-size: .75rem; font-weight: 600; }
 .lesson-reading-card [data-slot="card-title"] {
-  font-weight: 650;
-  line-height: 1.35;
+  font-weight: 600;
+  line-height: 1.375;
 }
 
 .lesson-reading-card[data-diagram] [data-slot="card-title"] {
@@ -403,8 +321,8 @@
 
 .lesson-flow > li[data-start]:not(:first-child) { margin-block-start: 0.625rem; }
 .lesson-flow-node, .lesson-flow-edge { position: relative; padding-inline-start: 1.5rem; }
-.lesson-flow-node { padding-block: 0.1875rem; font-weight: 600; line-height: 1.4; }
-.lesson-flow-edge { padding-block: 0.125rem; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.4; }
+.lesson-flow-node { padding-block: 0.1875rem; font-weight: 600; line-height: 1.375; }
+.lesson-flow-edge { padding-block: 0.125rem; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.375; }
 
 .lesson-flow-node::before, .lesson-flow-edge::before {
   content: "";
@@ -436,6 +354,7 @@
 .lesson-fix-feedback { border-inline-start: 2px solid var(--workspace-accent); padding-inline-start: 0.75rem; }
 
 .lesson-evidence-trigger { min-height: 2.5rem; }
+.lesson-citation-trigger[aria-expanded="true"] .lesson-citation-chevron { rotate: 180deg; }
 .lesson-evidence-trigger[aria-expanded="true"] [data-icon="inline-end"] { rotate: 180deg; }
 
 .lesson-process {
@@ -470,7 +389,7 @@
   border-radius: calc(var(--radius) - 2px);
   background: var(--workspace-accent-surface);
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -488,13 +407,13 @@
   background: var(--card);
 }
 
-.lesson-process-branches > li > p { margin-block-end: 0.2rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 650; }
+.lesson-process-branches > li > p { margin-block-end: 0.2rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 600; }
 .lesson-process-join { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.75rem; color: var(--muted-foreground); }
 
 .lesson-comparison-takeaway { font-size: 0.875rem; line-height: 1.5; color: var(--workspace-accent); font-weight: 600; }
 .lesson-comparison { border: 1px solid var(--border); border-radius: var(--radius); overflow-wrap: anywhere; }
 .lesson-comparison-head, .lesson-comparison-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.lesson-comparison-head { font-size: 0.8125rem; font-weight: 650; }
+.lesson-comparison-head { font-size: 0.875rem; font-weight: 600; }
 .lesson-comparison-head > p, .lesson-comparison-row dd { min-width: 0; padding: 0.55rem 0.65rem; }
 .lesson-comparison-head > p + p, .lesson-comparison-row dd + dd { border-inline-start: 1px solid var(--border); }
 .lesson-comparison-row dt {
@@ -507,7 +426,7 @@
   font-weight: 600;
 }
 
-.lesson-comparison-row dd { font-size: 0.8125rem; line-height: 1.45; }
+.lesson-comparison-row dd { font-size: 0.875rem; line-height: 1.5; }
 
 .lesson-sequence {
   container-type: inline-size;
@@ -520,14 +439,14 @@
 .lesson-sequence-lanes, .lesson-sequence-arrow { display: none; }
 .lesson-sequence-messages > li { min-width: 0; padding: 0.65rem 0.75rem; }
 .lesson-sequence-messages > li + li { border-block-start: 1px solid var(--border); }
-.lesson-sequence-route { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 650; }
+.lesson-sequence-route { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 600; }
 .lesson-sequence-route svg { width: 0.8rem; height: 0.8rem; }
-.lesson-sequence-message { min-width: 0; font-size: 0.875rem; line-height: 1.45; margin-block-start: 0.2rem; }
+.lesson-sequence-message { min-width: 0; font-size: 0.875rem; line-height: 1.5; margin-block-start: 0.2rem; }
 
 @container (min-width: 27rem) {
   .lesson-sequence-lanes, .lesson-sequence-messages > li { display: grid; grid-template-columns: repeat(var(--sequence-lanes), minmax(0, 1fr)); }
   .lesson-sequence-lanes { border-block-end: 1px solid var(--border); background: var(--workspace-accent-surface); border-start-start-radius: calc(var(--radius) - 1px); border-start-end-radius: calc(var(--radius) - 1px); }
-  .lesson-sequence-lanes p { padding: 0.5rem; text-align: center; font-size: 0.8125rem; font-weight: 650; }
+  .lesson-sequence-lanes p { padding: 0.5rem; text-align: center; font-size: 0.875rem; font-weight: 600; }
   .lesson-sequence-lanes p + p { border-inline-start: 1px solid var(--border); }
   .lesson-sequence-messages > li { padding: 0.4rem 0; }
   .lesson-sequence-route { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -543,32 +462,92 @@
   .workspace-main { overflow: hidden; }
 }
 
-@media (min-width: 53rem) and (max-width: 70rem) {
-  .workspace-detail[data-layout="three-pane"] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(12rem, 1.25fr) minmax(10rem, 1fr);
-    overflow-y: auto;
-  }
-
-  .workspace-detail[data-layout="three-pane"] .workspace-learn { border-left: 0; border-top: 1px solid var(--border); }
-}
-
 @media (max-width: 52.999rem) {
-  .workspace-main,
-  .workspace-detail[data-layout="three-pane"] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-  }
-
+  .workspace-main { flex-direction: column; }
   .workspace-chat { height: clamp(25rem, 68dvh, 42rem); }
-  .workspace-detail { border-top: 1px solid var(--border); border-left: 0; }
+  .workspace-detail { height: auto; border-top: 1px solid var(--border); }
   .workspace-preview { min-height: 23rem; }
   .workspace-learn { min-height: 14rem; }
-  .workspace-detail[data-layout="three-pane"] .workspace-learn { border-left: 0; border-top: 1px solid var(--border); }
 }
 
 @media (max-width: 30rem) {
-  .workspace-connection { display: none; }
-  .workspace-layout-picker button span { display: none; }
   .workspace-project { max-width: 10rem; }
 }
+.workspace-connection-error { width: auto; margin-inline: clamp(0.85rem, 2vw, 1.65rem); }
+
+/* Aha mascot: idle breathes, blinks and glances; thinking tilts and puffs thought dots. */
+.aha-mascot { overflow: visible; }
+.aha-mascot g { transform-box: view-box; }
+.aha-mascot-body { transform-origin: 24px 43px; animation: mascot-breathe 3.6s ease-in-out infinite; }
+.aha-mascot-eyes { transform-origin: 22px 26.5px; animation: mascot-blink 5.2s infinite; }
+.aha-mascot-pupils { animation: mascot-glance 8s ease-in-out infinite; }
+.aha-mascot[data-mood="thinking"] .aha-mascot-sway { transform-origin: 24px 43px; animation: mascot-ponder 3s ease-in-out infinite; }
+.aha-mascot[data-mood="thinking"] .aha-mascot-pupils { animation: mascot-look-up 3s ease-in-out infinite; }
+.aha-mascot-thought circle { transform-box: fill-box; transform-origin: center; opacity: 0; animation: mascot-thought 2.4s ease-out infinite; }
+.aha-mascot-thought circle:nth-child(2) { animation-delay: .3s; }
+.aha-mascot-thought circle:nth-child(3) { animation-delay: .6s; }
+
+@keyframes mascot-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .965); } }
+@keyframes mascot-blink { 0%, 90%, 96%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.12); } }
+@keyframes mascot-glance {
+  0%, 30%, 90%, 100% { transform: translate(1.6px, .8px); }
+  38%, 54% { transform: translate(-1.6px, .8px); }
+  62%, 80% { transform: translate(1.2px, -1.2px); }
+}
+@keyframes mascot-ponder { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(3deg); } }
+@keyframes mascot-look-up { 0%, 100% { transform: translate(1.6px, -2.4px); } 50% { transform: translate(.6px, -2.6px); } }
+@keyframes mascot-thought {
+  0% { opacity: 0; transform: scale(.3); }
+  25%, 70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.9); }
+}
+
+/* Lesson-card props: each kind of card gives the mascot something to do. */
+.aha-mascot[data-accessory] .aha-mascot-prop { transform-box: fill-box; }
+.aha-mascot[data-accessory="signpost"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-sign 3.2s ease-in-out infinite; }
+.aha-mascot[data-accessory="envelope"] .aha-mascot-prop { animation: mascot-send 2.8s ease-in-out infinite; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle { transform-box: view-box; animation: mascot-flow 1.2s linear infinite; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle:first-child { animation-name: mascot-flow-in; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle:last-child { animation-name: mascot-flow-out; }
+.aha-mascot[data-accessory="cap"] .aha-mascot-prop { transform-box: view-box; }
+.aha-mascot[data-accessory="cap"] .aha-mascot-tassel { transform-box: view-box; transform-origin: 37.6px 1.3px; animation: mascot-tassel 2.6s ease-in-out infinite; }
+.aha-mascot[data-accessory="bulb"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-bulb 2.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="bulb"] .aha-mascot-rays { animation: mascot-rays 2.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="question"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-bob 2.2s ease-in-out infinite; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle { transform-box: fill-box; transform-origin: center; animation: mascot-typing 1.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle:nth-child(2) { animation-delay: .18s; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle:nth-child(3) { animation-delay: .36s; }
+.aha-mascot:is([data-accessory="bulb"], [data-accessory="question"], [data-accessory="envelope"], [data-accessory="speech"]) .aha-mascot-pupils { animation: mascot-look-up 3s ease-in-out infinite; }
+.aha-mascot[data-accessory="contrast"] .aha-mascot-pupils { animation: mascot-compare 3.6s ease-in-out infinite; }
+
+@keyframes mascot-sign { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes mascot-send {
+  0% { opacity: 0; transform: translate(-6px, 5px) scale(.6); }
+  25%, 70% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(3px, -2px) scale(1); }
+}
+@keyframes mascot-flow { from { transform: translateX(0); } to { transform: translateX(8px); } }
+@keyframes mascot-flow-in { from { opacity: 0; transform: translateX(0); } to { opacity: 1; transform: translateX(8px); } }
+@keyframes mascot-flow-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(8px); } }
+@keyframes mascot-tassel { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(5deg); } }
+@keyframes mascot-bulb { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+@keyframes mascot-rays { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-1.5px) rotate(6deg); } }
+@keyframes mascot-typing { 0%, 60%, 100% { transform: translateY(0); opacity: .55; } 30% { transform: translateY(-1.2px); opacity: 1; } }
+@keyframes mascot-compare {
+  0%, 15%, 100% { transform: translate(-1.6px, .8px); }
+  50%, 65% { transform: translate(1.6px, .8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aha-mascot *, .aha-mascot-thought circle, .aha-mascot-prop circle { animation: none !important; }
+  .aha-mascot-thought circle { opacity: 1; }
+  .aha-mascot-pupils { transform: translate(1.6px, .8px); }
+  .aha-mascot[data-mood="thinking"] .aha-mascot-pupils { transform: translate(1.6px, -2.4px); }
+}
+
+.lesson-card-mascot { width: 2.75rem; height: 2.75rem; margin: -0.35rem -0.25rem -0.5rem 0.25rem; }
+
+/* Cited code bleeds 0.5rem into the card's side padding; when it ends a card, it bleeds as far into the bottom padding. */
+[data-slot="card"]:not(:has(> [data-slot="card-footer"])) > [data-slot="card-content"]:last-child
+  ul[aria-label="Code references"]:last-child > li:last-child [data-slot="collapsible-content"] { margin-bottom: -0.5rem; }

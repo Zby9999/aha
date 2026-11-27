@@ -1,14 +1,21 @@
 import { useRef, useState } from "react";
-import { isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
+import { activeLesson, isKind, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
+import { AhaMascot } from "@/components/AhaMascot";
+import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
+import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
+import { insertCommand, matchCommands, slashQuery } from "./slashCommands.ts";
 import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
 import { Workspace } from "./Workspace.tsx";
+import { DiffBlock } from "@/components/diff-block";
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
+import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
-import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
+import { Message, MessageContent, MessageHeader } from "@/components/ui/message";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
 import {
@@ -19,29 +26,23 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
-import {
-  Trace,
-  TraceCollapsible,
-  TraceCollapsibleContent,
-  TraceCollapsibleTrigger,
-  TraceIcon,
-  TraceLine,
-  TraceTitle,
-} from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { composerPlaceholder, conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
 
 export function App() {
-  const { entries, error, connected, dispatch } = useTimeline();
+  const { entries, error, connected, dispatch, agentSettings } = useTimeline();
   const [text, setText] = useState("");
+  const [slashActive, setSlashActive] = useState(0);
+  /** Set when Escape closes the `/` menu; the next edit reopens it. */
+  const [slashDismissed, setSlashDismissed] = useState(false);
   const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
+  const [reviewRequest, setReviewRequest] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
   const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
-  const cardsById = new Map(lessonCards.map((entry) => [entry.id, entry]));
   const lessonAnswers = new Map(entries.flatMap((entry) => entry.kind === "card_answer" ? [[entry.cardEntryId, entry.answer] as const] : []));
   const flaggedExplanations = new Set(entries.flatMap((entry) => entry.kind === "explanation_flagged" ? [entry.cardEntryId] : []));
   const lastLessonId = entries.findLast((entry) => isKind(entry, "lesson_start"))?.lessonId;
@@ -49,20 +50,37 @@ export function App() {
   const session = sessionView(entries);
   const { modeChange } = session;
   const learning = session.mode === "learning";
-  const items = conversationItems(entries, connected && !learning);
+  // Reviewing a past Lesson is a view only: it never changes the Mode, and starting a Lesson ends it.
+  const review = !learning && reviewRequest ? lessonSpan(entries, reviewRequest) : undefined;
+  const reviewing = review ? reviewRequest : undefined;
+  const reviewTitle = lessonTitle(entries, review?.impasseId);
+  const shownLessonId = learning ? activeLesson(entries)?.lessonId : reviewing ?? lastLessonId;
+  const items = conversationItems(chatEntries(entries, reviewing), connected && !learning && !reviewing);
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
-  const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
+  const canSend = connected && !reviewing && Boolean(text.trim()) && (!learning || session.lessonReady);
   const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
   const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
+  // Learning-mode messages never reach the agent, so its model and commands are only offered at work.
+  const agentControls = connected && !learning && !reviewing;
+  // With Ask why on, the message starts a Lesson instead of going to the agent: no `/` commands either.
+  const query = agentControls && !asking && !slashDismissed ? slashQuery(text) : null;
+  const slashCommands = query === null ? [] : matchCommands(agentSettings?.commands ?? [], query);
+  const slashOpen = slashCommands.length > 0;
+  const slashIndex = Math.min(slashActive, slashCommands.length - 1);
+  const pickCommand = (command: (typeof slashCommands)[number]) => {
+    setText(insertCommand(command));
+    setSlashActive(0);
+  };
   const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
 
   return (
     <Workspace
       projectName={projectName}
-      connected={connected}
       modeChange={modeChange}
-      defaultTab={session.defaultTab}
+      defaultTab={reviewing ? "explain" : session.defaultTab}
+      showExplain={learning || Boolean(reviewing) || session.defaultTab === "explain"}
+      viewKey={reviewing}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
         <LearningPanel
@@ -71,8 +89,8 @@ export function App() {
           answers={lessonAnswers}
           flaggedExplanations={flaggedExplanations}
           outcomes={lessonOutcomes}
-          latestLessonId={lastLessonId}
-          lessonTitle={session.lessonTitle}
+          lessonId={shownLessonId}
+          lessonTitle={learning ? session.lessonTitle : lessonTitle(entries, lessonSpan(entries, shownLessonId ?? "")?.impasseId)}
           isDone={(entry) => !connected || session.isDone(entry)}
           dispatch={dispatch}
           connected={connected}
@@ -92,7 +110,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -100,67 +118,113 @@ export function App() {
           <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
-      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
+      {error && (
+        <Alert variant="destructive" className="workspace-connection-error">
+          <AlertIcon />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <form
         ref={formRef}
-        className="workspace-composer"
+        className="workspace-composer relative"
         onSubmit={(e) => {
           e.preventDefault();
           if (!canSend) return;
           // In learning mode the backend treats send_message as a follow-up question inside the Lesson.
-          if (!dispatch(asking ? { type: "ask_why", text } : { type: "send_message", text })) return;
+          // A picked command ends with a space for its arguments; Pi gets the command without it.
+          const message = text.startsWith("/") ? text.trimEnd() : text;
+          if (!dispatch(asking ? { type: "ask_why", text: message } : { type: "send_message", text: message })) return;
           setText("");
           setAskWhyRevision(null);
         }}
       >
-        {learning && (
-          <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm" role="status">
-            <GraduationCap className="size-4 shrink-0" />
+        {(learning || reviewing) && (
+          <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson py-2 ps-4 pe-2 text-sm" role="status">
+            <LearnIcon className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
-              Learning: {session.lessonTitle ?? "starting a Lesson…"}
+              {learning ? `Learning: ${session.lessonTitle ?? "starting a Lesson…"}` : `Reviewing: ${reviewTitle ?? "a past Lesson"}`}
             </span>
-            <Button type="button" size="sm" variant="outline" disabled={!connected} onClick={() => dispatch({ type: "back_to_work" })}>
-              <ArrowLeft />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={learning && !connected}
+              onClick={() => learning ? dispatch({ type: "back_to_work" }) : setReviewRequest(undefined)}
+            >
+              <ArrowLeftIcon />
               Back to work
             </Button>
           </div>
         )}
         <InputGroup className={asking || learning ? "workspace-input ring-1 ring-lesson-border" : "workspace-input"}>
+          {slashOpen && (
+            <SlashCommandMenu commands={slashCommands} active={slashIndex} onPick={pickCommand} onHover={setSlashActive} />
+          )}
           <InputGroupTextarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setSlashActive(0);
+              setSlashDismissed(false);
+            }}
+            disabled={Boolean(reviewing)}
+            aria-controls={slashOpen ? SLASH_MENU_ID : undefined}
+            aria-activedescendant={slashOpen ? slashOptionId(slashIndex) : undefined}
+            aria-autocomplete="list"
             onKeyDown={(e) => {
+              if (slashOpen && !e.nativeEvent.isComposing) {
+                const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+                if (step) {
+                  e.preventDefault();
+                  setSlashActive((slashIndex + step + slashCommands.length) % slashCommands.length);
+                  return;
+                }
+                if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
+                  e.preventDefault();
+                  pickCommand(slashCommands[slashIndex]!);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setSlashDismissed(true);
+                  return;
+                }
+              }
               if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 formRef.current?.requestSubmit();
               }
             }}
-            placeholder={composerPlaceholder(session, asking)}
+            placeholder={composerPlaceholder(session, asking, Boolean(reviewing))}
             aria-label="Message"
             className="p-3"
           />
           <InputGroupAddon align="block-end">
             <Toggle
               pressed={asking}
-              disabled={!connected || !session.canStartLesson}
+              disabled={!connected || !session.canStartLesson || Boolean(reviewing)}
               onPressedChange={(pressed) => setAskWhyRevision(pressed ? revision : null)}
               variant="outline"
               size="sm"
               aria-label="Ask why"
-              className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+              className="data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
             >
-              <HelpCircle />
+              <AhaMascot accessory="question" className="size-5" />
               Ask why
             </Toggle>
+            <ModelPicker
+              settings={agentSettings}
+              disabled={!agentControls}
+              onSelect={(model) => dispatch({ type: "set_model", provider: model.provider, modelId: model.id })}
+            />
             <InputGroupButton
               type="submit"
               size="icon-sm"
-              variant="default"
-              className="ml-auto rounded-full"
+              variant={canSend ? "default" : "secondary"}
               disabled={!canSend}
               aria-label={asking || learning ? "Ask" : "Send"}
             >
-              <ArrowUp />
+              <ArrowUpIcon />
             </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
@@ -169,12 +233,13 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected, cardsById }: {
+function ViewItemView({ item, dispatch, session, connected, onReview }: {
   item: ConversationItem;
+  /** Opens a past Lesson's conversation; absent while a Lesson runs or is being reviewed. */
+  onReview?: ((lessonId: string) => void) | undefined;
   dispatch: Dispatch;
   session: SessionView;
   connected: boolean;
-  cardsById: ReadonlyMap<string, TimelineEntryOf<"lesson_card">>;
 }) {
   if (item.type === "agent_turn" || item.type === "agent_message") {
     const parts = item.type === "agent_turn" ? item.parts : [item];
@@ -182,28 +247,29 @@ function ViewItemView({ item, dispatch, session, connected, cardsById }: {
     const pending = item.type === "agent_turn" && item.pending;
     return (
       <Message className="gap-3" data-agent-pending={pending || runningTool || undefined}>
-        <MessageAvatar className="workspace-reply-mark self-start">
-          <Sparkles className="size-4" aria-hidden="true" />
-        </MessageAvatar>
-        <MessageContent className="gap-1">
-          <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
-          {parts.map((part) => part.type === "agent_message" ? (
+        <AhaMascot mood={pending || runningTool ? "thinking" : "idle"} className="workspace-reply-mark self-start" />
+        {/* Text and tool runs get room between them; the name stays close to the first one. */}
+        <MessageContent className="gap-3">
+          <MessageHeader className="-mb-2 px-0 font-semibold text-foreground">Aha</MessageHeader>
+          {replyParts(parts).map((part) => part.type === "agent_message" ? (
             <Markdown key={part.key} streaming={part.streaming}>{part.text}</Markdown>
-          ) : <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />)}
+          ) : part.type === "steps" ? <AgentSteps key={part.key} steps={part.steps} /> : (
+            <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} />
+          ))}
           {pending && !runningTool && (
-            <p className="text-sm text-muted-foreground" role="status">
-              {parts.length ? "Waiting for the reply" : "Working on your request"}
-            </p>
+            <Trace role="status">
+              <TraceLine status="running">
+                <TraceIcon><Spinner aria-hidden="true" /></TraceIcon>
+                <TraceTitle>{parts.length ? "Waiting for the reply" : "Working on your request"}</TraceTitle>
+              </TraceLine>
+            </Trace>
           )}
         </MessageContent>
       </Message>
     );
   }
-  if (item.type === "tool") return <ToolLine item={item} />;
+  if (item.type === "tool") return <AgentSteps steps={[item]} />;
   const { entry } = item;
-  if (entry.kind === "card_answer") {
-    return <UserMessage>{answerText(entry.answer, cardsById.get(entry.cardEntryId))}</UserMessage>;
-  }
   return (
     <Entry
       entry={entry}
@@ -211,6 +277,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById }: {
       done={!connected || session.isDone(entry)}
       canStartLesson={connected && session.canStartLesson}
       canRetry={connected && session.canRetry(entry)}
+      onReview={onReview}
     />
   );
 }
@@ -227,61 +294,17 @@ function UserMessage({ children }: { children: React.ReactNode }) {
   );
 }
 
-const TOOL_VERBS: Record<string, [running: string, done: string]> = {
-  read: ["Reading", "Read"],
-  edit: ["Editing", "Edited"],
-  write: ["Writing", "Wrote"],
-  grep: ["Searching", "Searched"],
-  find: ["Finding", "Found"],
-  ls: ["Listing", "Listed"],
-  bash: ["Running", "Ran"],
-};
-
-/** A tool call as a Trace line (shadcn/ui "Tool" pattern): a plain line while it runs, collapsible once output arrives. */
-function ToolLine({ item }: { item: Extract<ViewItem, { type: "tool" }> }) {
-  const [running, done] = TOOL_VERBS[item.toolName] ?? ["Running", "Ran"];
-  const target = typeof item.args.path === "string" ? item.args.path : typeof item.args.command === "string" ? item.args.command : item.toolName;
-  const icon = item.toolName === "read" ? <FileText /> : item.toolName === "grep" || item.toolName === "find" ? <Search /> : <Wrench />;
-  if (item.state === "running") {
-    return (
-      <Trace>
-        <TraceLine status="running">
-          <TraceIcon>{icon}</TraceIcon>
-          <TraceTitle>{running} {target}</TraceTitle>
-        </TraceLine>
-      </Trace>
-    );
-  }
-  const failed = item.state === "error";
-  return (
-    <Trace>
-      <TraceCollapsible>
-        <TraceCollapsibleTrigger>
-          <TraceLine status={failed ? "error" : undefined}>
-            <TraceIcon>{icon}</TraceIcon>
-            <TraceTitle>{failed ? `Failed to ${running.toLowerCase()}` : done} {target}</TraceTitle>
-          </TraceLine>
-        </TraceCollapsibleTrigger>
-        <TraceCollapsibleContent>
-          <CodeBlock size="sm">
-            <CodeBlockContent wrap className="max-h-64">{item.output ?? ""}</CodeBlockContent>
-          </CodeBlock>
-        </TraceCollapsibleContent>
-      </TraceCollapsible>
-    </Trace>
-  );
-}
-
 function Meta({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
-  entry: Exclude<TimelineEntry, TimelineEntryOf<"card_answer">>;
+function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
+  entry: TimelineEntry;
   dispatch: Dispatch;
   done: boolean;
   canStartLesson: boolean;
   canRetry: boolean;
+  onReview?: ((lessonId: string) => void) | undefined;
 }) {
   switch (entry.kind) {
     case "user_message":
@@ -289,26 +312,29 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
     case "file_edit":
       return (
         <div role="group" aria-label={`Edited ${entry.path}`} className="rounded-lg border bg-card px-3 py-3 text-sm">
-          <div className="flex min-w-0 items-center gap-2">
-            <FilePen className="size-4 shrink-0 text-muted-foreground" />
+          {/* The row is as tall as the Why button: indent the icon so it sits as far from the left edge as from the top. */}
+          <div className="flex min-w-0 items-center gap-2 ps-1.5">
+            <EditFileIcon className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
             <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>
             <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
-            <CodeBlock size="sm" className="mt-2">
-              <CodeBlockContent>{entry.diff}</CodeBlockContent>
-            </CodeBlock>
+            <DiffBlock diff={entry.diff} path={entry.path} />
           )}
         </div>
       );
     case "error":
       return (
-        <p role={entry.source === "app" ? "alert" : undefined} className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertTriangle className="size-4" />
-          {entry.message}
-          {entry.path && <span className="font-mono text-xs opacity-80">{entry.path}</span>}
-        </p>
+        // Only the app's own errors interrupt a screen reader; the agent's are part of its reply.
+        <Alert variant="destructive" role={entry.source === "app" ? "alert" : undefined} className="min-w-0">
+          <AlertIcon />
+          {/* Errors can be long and contain unbroken JSON: wrap anywhere and keep Pi's line breaks. */}
+          <AlertDescription className="min-w-0 whitespace-pre-wrap wrap-anywhere">
+            {entry.message}
+            {entry.path && <span className="ms-2 font-mono text-xs opacity-80">{entry.path}</span>}
+          </AlertDescription>
+        </Alert>
       );
     case "impasse":
       // The user's own Ask why question shows as their turn; an explicit Why uses a quiet line.
@@ -316,13 +342,13 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
         return (
           <UserMessage>
             <span className="inline-flex items-center gap-1.5">
-              <HelpCircle className="size-3.5 shrink-0 text-muted-foreground" />
+              <AhaMascot accessory="question" className="size-4 shrink-0" />
               {entry.impasse.text ?? entry.impasse.title}
             </span>
           </UserMessage>
         );
       }
-      return <Meta icon={<Lightbulb className="size-3.5" />}>{entry.impasse.title}</Meta>;
+      return <Meta icon={<IdeaIcon className="size-3.5" />}>{entry.impasse.title}</Meta>;
     case "offer":
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
@@ -331,19 +357,31 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
       return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_error":
       return (
-        <div role="alert" className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertTriangle className="size-4 shrink-0" />
-          <span className="flex-1">{entry.message} Your answer is saved.</span>
+        <Alert variant="destructive">
+          <AlertIcon />
+          <AlertDescription className="wrap-anywhere">{entry.message} Your answer is saved.</AlertDescription>
           {canRetry && (
-            <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
-              <RotateCw />
-              Retry
+            <AlertAction>
+              <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
+                <RetryIcon />
+                Retry
+              </Button>
+            </AlertAction>
+          )}
+        </Alert>
+      );
+    case "lesson_end":
+      return (
+        <div className="flex items-center gap-2">
+          <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>
+          {onReview && (
+            <Button size="xs" variant="ghost" className="text-muted-foreground" onClick={() => onReview(entry.lessonId)}>
+              <HistoryIcon />
+              Review
             </Button>
           )}
         </div>
       );
-    case "lesson_end":
-      return <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>;
     case "tool_call":
     case "tool_result":
     case "agent_message":
@@ -352,6 +390,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
     case "session_end":
     case "lesson_start":
     case "lesson_card":
+    case "card_answer":
     case "mode_change":
     case "answer_assessment":
     case "lesson_answer_recovered":
@@ -361,12 +400,3 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
   }
 }
 
-function answerText(answer: CardAnswer, card: TimelineEntryOf<"lesson_card"> | undefined): string {
-  if (answer.type === "choice") {
-    const root = card?.card.elements[card.card.root];
-    const probe = probeCardSchema.safeParse(root?.props);
-    return probe.data?.options?.find((option) => option.id === answer.optionId)?.label ?? "Prediction submitted.";
-  }
-  if (answer.type === "text") return answer.text;
-  return answer.addressesCause ? "The fix addresses the cause." : `The fix only hides the symptom. ${answer.reason ?? ""}`;
-}

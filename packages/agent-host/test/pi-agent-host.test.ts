@@ -111,6 +111,30 @@ describe("sending a message", () => {
   });
 });
 
+describe("models and commands", () => {
+  test("reports Pi's models, its current model and its commands", async () => {
+    const session = await start();
+    expect(await session.getSettings()).toEqual({
+      models: [{ provider: "fake", id: "fake-model", name: "Fake Model" }, { provider: "fake", id: "fake-large", name: "Fake Large" }],
+      currentModel: { provider: "fake", id: "fake-model", name: "Fake Model" },
+      commands: [{ name: "fix-tests", description: "Fix failing tests", source: "prompt" }, { name: "skill:explain", source: "skill" }],
+    });
+  });
+
+  test("switches Pi's model with set_model", async () => {
+    const session = await start();
+    expect(await session.setModel({ provider: "fake", id: "fake-large" })).toEqual({ provider: "fake", id: "fake-large", name: "Fake Large" });
+    expect(received()).toContainEqual(expect.objectContaining({ type: "set_model", provider: "fake", modelId: "fake-large" }));
+    expect((await session.getSettings()).currentModel?.id).toBe("fake-large");
+  });
+
+  test("rejects a model Pi does not know, keeping the current one", async () => {
+    const session = await start();
+    await expect(session.setModel({ provider: "fake", id: "nope" })).rejects.toThrow(/Model not found/);
+    expect((await session.getSettings()).currentModel?.id).toBe("fake-model");
+  });
+});
+
 describe("learner context", () => {
   const context = {
     concepts: [

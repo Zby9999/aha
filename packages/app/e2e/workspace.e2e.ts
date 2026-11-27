@@ -108,7 +108,12 @@ const test = base.extend<{
   },
 });
 
-const tab = (page: Page, name: string) => page.getByRole("tab", { name, exact: true });
+/** One of the side panel's views: "Live preview", "Learning panel" or "Learner model". */
+const view = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
+/** A header button that switches the side panel's view. */
+const sideButton = (page: Page, name: string) => page.getByRole("banner").getByRole("button", { name, exact: true });
+/** Reopens the latest past Lesson; the Explain tab exists only while a Lesson is open. */
+const review = (page: Page) => page.getByRole("button", { name: "Review", exact: true }).last();
 const why = (page: Page) => page.getByRole("button", { name: "Why?", exact: true });
 const askWhy = (page: Page) => page.getByRole("button", { name: "Ask why", exact: true });
 const card = (page: Page, name: string) => page.getByRole("log", { name: "Lesson cards" }).getByLabel(name, { exact: true });
@@ -118,8 +123,10 @@ test("the pending state of a new Lesson stays visible and replaces the previous 
   await page.getByRole("button", { name: "Show me why" }).click();
   await expect(card(page, "Probe")).toBeVisible();
   await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  await review(page).click();
   const oldOutcome = page.getByText("Ended early · Read-only", { exact: true });
   await expect(oldOutcome).toBeVisible();
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
 
   const continueLesson = workspace.holdNextLesson();
   try {
@@ -171,6 +178,9 @@ test("the gallery renders each lesson card at a phone width and keeps preview ac
   await expect(references).toHaveAttribute("aria-expanded", "false");
   await references.press("Enter");
   await expect(page.getByRole("list", { name: "Code references" })).toContainText("server.js:38–44");
+  // A reference opens the cited lines from the project, with a little context around them.
+  await page.getByRole("button", { name: "server.js:38–44" }).click();
+  await expect(page.getByLabel("server.js lines 36–46")).toContainText("app.get('/api/me'");
   await page.getByRole("button", { name: "Flag as incorrect" }).click();
   await expect(page.getByRole("status")).toHaveText("Flagged as incorrect");
   await page.getByRole("button", { name: "Reset preview" }).press("Enter");
@@ -189,13 +199,14 @@ test("the gallery renders each lesson card at a phone width and keeps preview ac
   await expect(stage.getByText("Server", { exact: true })).toBeVisible();
 });
 
-test("tabbed layout follows the Lesson and records Probe and Articulation answers once", async ({ page, workspace }) => {
-  await page.getByRole("button", { name: "Tabbed layout" }).click();
-  await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
-  await tab(page, "Memory").click();
+test("the workspace tabs follow the Lesson and records Probe and Articulation answers once", async ({ page, workspace }) => {
+  await expect(view(page, "Live preview")).toBeVisible();
+  await sideButton(page, "Memory").click();
   await page.getByRole("button", { name: "Show me why" }).click();
-  await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
-  await expect(why(page).first()).toBeDisabled();
+  await expect(view(page, "Learning panel")).toBeVisible();
+  // The conversation pane shows only the Lesson, so the work's Why buttons are out of sight.
+  await expect(page.getByRole("button", { name: "Back to work", exact: true })).toBeVisible();
+  await expect(why(page)).toHaveCount(0);
   await expect(askWhy(page)).toBeDisabled();
   await expect(page.getByRole("button", { name: "Skip this time", exact: true })).toBeDisabled();
   await expect(card(page, "Probe").getByRole("textbox", { name: "Answer" })).toBeEnabled();
@@ -209,17 +220,20 @@ test("tabbed layout follows the Lesson and records Probe and Articulation answer
   expect(workspace.timeline.entries().filter((e) => e.kind === "user_message")).toHaveLength(userTurns);
 
   await page.reload();
-  await expect(page.getByRole("button", { name: "Tabbed layout" })).toHaveAttribute("aria-pressed", "true");
-  await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+  await expect(view(page, "Learning panel")).toBeVisible();
   const probeAnswer = "The page creates a new session token when it loads.";
   await card(page, "Probe").getByRole("textbox", { name: "Answer" }).fill(probeAnswer);
   await answer(page, "Probe").click();
   await expect(card(page, "Probe")).toContainText(probeAnswer);
   await expect(answer(page, "Probe")).toHaveCount(0);
+  // The answer stays on its card; the Lesson conversation keeps only what was asked in the composer.
+  const lessonChat = page.getByLabel("Timeline", { exact: true });
+  await expect(lessonChat.getByText(question, { exact: true })).toBeVisible();
+  await expect(lessonChat.getByText(probeAnswer, { exact: true })).toHaveCount(0);
   const articulation = "Persist the current session token across refreshes.";
   await card(page, "Articulation").getByRole("textbox", { name: "Answer" }).fill(articulation);
   await answer(page, "Articulation").click();
-  await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
+  await expect(view(page, "Live preview")).toBeVisible();
   await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
 
   const entries = workspace.timeline.entries();
@@ -229,28 +243,32 @@ test("tabbed layout follows the Lesson and records Probe and Articulation answer
     { step: "articulate", answer: { type: "text", text: articulation } },
   ]);
 
-  await tab(page, "Explain").click();
+  await review(page).click();
   await expect(card(page, "Articulation")).toContainText(articulation);
   await expect(answer(page, "Articulation")).toHaveCount(0);
 });
 
-test("three-pane Why is tied to a file edit and Back to work unlocks lesson entry points", async ({ page, workspace }) => {
-  await expect(page.getByRole("button", { name: "Three-pane layout" })).toHaveAttribute("aria-pressed", "true");
+test("Why is tied to a file edit and Back to work unlocks lesson entry points", async ({ page, workspace }) => {
   await expect(page.getByRole("heading", { name: "Live preview" })).toBeVisible();
   const edit = workspace.timeline.entries().find((entry) => entry.kind === "file_edit")!;
   await why(page).first().click();
   await expect(card(page, "Probe").getByRole("textbox", { name: "Answer" })).toBeEnabled();
-  await expect(page.getByRole("button", { name: "Show me why" })).toBeDisabled();
+  // A Lesson started from Why is its own conversation: the work's Offer is out of sight until Back to work.
+  await expect(page.getByRole("button", { name: "Show me why" })).toHaveCount(0);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "impasse")).toMatchObject({
     impasse: { trigger: "why", sourceEntryIds: [edit.id] },
   });
 
   await page.getByRole("button", { name: "Back to work", exact: true }).click();
   await expect(page.getByRole("button", { name: "Show me why" })).toBeEnabled();
+  await review(page).click();
   await expect(card(page, "Probe")).toContainText("No prediction submitted.");
   await expect(card(page, "Probe").getByRole("textbox")).toHaveCount(0);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "lesson_end")).toMatchObject({ outcome: "abandoned" });
   expect(workspace.evidence).toHaveLength(0);
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  await expect(view(page, "Learning panel")).toBeHidden();
+  await expect(sideButton(page, "Preview")).toHaveCount(0);
 
   const userTurns = workspace.timeline.entries().filter((e) => e.kind === "user_message").length;
   const question = "What does sessionStorage do here?";
@@ -258,31 +276,79 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
   await page.getByRole("textbox", { name: "Message" }).fill(question);
   await page.getByRole("button", { name: "Ask", exact: true }).click();
   await expect(card(page, "Probe").last().getByRole("textbox", { name: "Answer" })).toBeEnabled();
-  await expect(card(page, "Probe").first()).toContainText("No prediction submitted.");
-  await expect(card(page, "Probe").first().getByRole("button")).toHaveCount(0);
+  // Each Lesson stands alone: the abandoned one is reached with Review once back at work.
+  await expect(card(page, "Probe")).toHaveCount(1);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "impasse")).toMatchObject({
     impasse: { trigger: "ask_why", text: question },
   });
   expect(workspace.timeline.entries().filter((e) => e.kind === "user_message")).toHaveLength(userTurns);
 
-  await page.getByRole("button", { name: "Tabbed layout" }).click();
-  await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+  await expect(view(page, "Learning panel")).toBeVisible();
   await page.getByRole("button", { name: "Back to work", exact: true }).click();
-  await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
+  await expect(view(page, "Live preview")).toBeVisible();
   await expect(askWhy(page)).toBeEnabled();
+  await expect(why(page).first()).toBeEnabled();
+
+  // Review reopens an earlier Lesson read-only, without changing the Mode.
+  await page.getByRole("button", { name: "Review", exact: true }).first().click();
+  await expect(view(page, "Learning panel")).toBeVisible();
+  await expect(card(page, "Probe")).toContainText("No prediction submitted.");
+  await expect(card(page, "Probe").getByRole("textbox")).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeDisabled();
+  await expect(why(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeEnabled();
+  await expect(why(page).first()).toBeEnabled();
+  expect(workspace.timeline.entries().findLast((e) => e.kind === "mode_change")).toMatchObject({ mode: "work" });
+});
+
+test("the side panel collapses, header buttons switch its view, and a Lesson opens it again", async ({ page, workspace: _workspace }) => {
+  await expect(view(page, "Live preview")).toBeVisible();
+  await page.getByRole("button", { name: "Hide side panel", exact: true }).click();
+  await expect(view(page, "Live preview")).toBeHidden();
+  await sideButton(page, "Memory").click();
+  await expect(view(page, "Learner model")).toBeVisible();
+  await sideButton(page, "Memory").click();
+  await expect(view(page, "Live preview")).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide side panel", exact: true }).click();
+  await page.getByRole("button", { name: "Show me why" }).click();
+  await expect(view(page, "Learning panel")).toBeVisible();
+  await sideButton(page, "Preview").click();
+  await expect(view(page, "Live preview")).toBeVisible();
+  await sideButton(page, "Preview").click();
+  await expect(view(page, "Learning panel")).toBeVisible();
+});
+
+test("the preview address bar opens typed addresses and paths, and rejects others", async ({ page, workspace: _workspace }) => {
+  const address = view(page, "Live preview").getByRole("textbox", { name: "Preview address" });
+  const frame = view(page, "Live preview").getByTitle("Project preview");
+  await address.fill("javascript:alert(1)");
+  await address.press("Enter");
+  await expect(address).toHaveAttribute("aria-invalid", "true");
+  await address.press("Escape");
+  await expect(address).not.toHaveAttribute("aria-invalid");
+
+  await address.fill("127.0.0.1:9/start");
+  await address.press("Enter");
+  await expect(address).toHaveValue("127.0.0.1:9/start");
+  await address.fill("/next?page=2");
+  await address.press("Enter");
+  await expect(address).toHaveValue("127.0.0.1:9/next?page=2");
+  await expect(view(page, "Live preview").getByLabel("Open preview in new tab")).toHaveAttribute("href", "http://127.0.0.1:9/next?page=2");
+  await expect(frame).toHaveCount(0);
 });
 
 test.describe("fixture teaching", () => {
   test.use({ teachingImplementation: "real" });
 
   test("a shorter Lesson keeps Explain selected and unlocks work after the recorded server edit", async ({ page, workspace }) => {
-    await page.getByRole("button", { name: "Tabbed layout" }).click();
     await page.getByRole("button", { name: "Show me why" }).click();
     await card(page, "Probe").getByRole("button", { name: "It stays the same", exact: true }).click();
     await card(page, "Articulation").getByRole("button", { name: "Only hides the symptom" }).click();
     const completed = page.getByText("Lesson complete. Back to work.", { exact: true });
     await expect(completed).toHaveCount(1);
-    await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
+    await expect(view(page, "Live preview")).toBeVisible();
     await expect.poll(() => workspace.evidence).toContainEqual(expect.objectContaining({ conceptId: DEMO_CONCEPTS.sessionToken, type: "fix_judgement" }));
 
     const priorEntries = workspace.timeline.entries();
@@ -296,31 +362,31 @@ test.describe("fixture teaching", () => {
       entry.kind === "file_edit" && entry.path === recordedServerEdit.path,
     );
     expect(newEdit).toMatchObject({ diff: recordedServerEdit.diff });
-    await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+    await expect(view(page, "Learning panel")).toBeVisible();
     expect(workspace.timeline.entries().findLast((entry) => entry.kind === "impasse")).toMatchObject({
       impasse: { trigger: "why", sourceEntryIds: [newEdit!.id] },
     });
     await card(page, "Probe").last().getByRole("button", { name: "The page creates a new token" }).click();
 
     await expect(completed).toHaveCount(2);
-    await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+    await expect(view(page, "Learning panel")).toBeVisible();
     await expect(card(page, "Explanation").last()).toContainText("Check the session lookup");
-    await expect(card(page, "Articulation")).toHaveCount(1);
+    await expect(card(page, "Articulation")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Back to work", exact: true })).toHaveCount(0);
     await expect(askWhy(page)).toBeEnabled();
     await expect(message).toHaveAttribute("placeholder", "Message your agent…");
 
     await page.reload();
-    await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+    await expect(view(page, "Learning panel")).toBeVisible();
     await expect(card(page, "Explanation").last()).toBeVisible();
-    await tab(page, "Preview").click();
-    await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
-    await tab(page, "Memory").click();
+    await sideButton(page, "Preview").click();
+    await expect(view(page, "Live preview")).toBeVisible();
+    await sideButton(page, "Memory").click();
     const nextMessage = "Please continue checking the portfolio.";
     await message.fill(nextMessage);
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(page.getByText(`(stub agent) You said: ${nextMessage}`, { exact: true })).toBeVisible();
-    await expect(tab(page, "Memory")).toHaveAttribute("aria-selected", "true");
+    await expect(view(page, "Learner model")).toBeVisible();
   });
 
   test("the learning invitation complements the 401 logs and an early exit leaves a read-only record", async ({ page, workspace }) => {
@@ -334,6 +400,7 @@ test.describe("fixture teaching", () => {
     const finalQuestion = card(page, "Articulation");
     await expect(finalQuestion.getByRole("button", { name: "Only hides the symptom" })).toBeEnabled();
     await page.getByRole("button", { name: "Back to work", exact: true }).click();
+    await review(page).click();
 
     await expect(page.getByText("Ended early · Read-only", { exact: true })).toBeVisible();
     await expect(card(page, "Probe")).toContainText("Your prediction · There is no token until I log in");
@@ -379,6 +446,7 @@ test.describe("fixture teaching", () => {
     await judgement.getByRole("button", { name: "Fixes the cause", exact: true }).click();
     await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
     await page.reload();
+    await review(page).click();
     await expect(judgement).toContainText("Your answer · Fixes the cause");
     await expect(judgement.getByRole("region", { name: "Fix feedback" }).getByRole("heading", { name: "Only hides the symptom" })).toBeVisible();
     await expect(judgement).toContainText("Saving the list doesn’t fix the token mismatch.");
@@ -406,12 +474,14 @@ test.describe("Lesson answer recovery", () => {
     await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
     expect(workspace.timeline.entries().findLast((entry) => entry.kind === "lesson_end")).toMatchObject({ outcome: "completed" });
     const explanation = workspace.timeline.entries().filter((entry) => isKind(entry, "lesson_card")).find((entry) => entry.step === "explain")!;
+    await review(page).click();
     await card(page, "Explanation").getByRole("button", { name: "Flag as incorrect" }).click();
     await expect(card(page, "Explanation").getByRole("status")).toHaveText("Flagged as incorrect");
     expect(workspace.timeline.entries().filter((entry) => entry.kind === "explanation_flagged")).toMatchObject([
       { lessonId: explanation.lessonId, cardEntryId: explanation.id },
     ]);
     await page.reload();
+    await review(page).click();
     await expect(card(page, "Explanation").getByRole("status")).toHaveText("Flagged as incorrect");
   });
 });
@@ -429,4 +499,39 @@ test("Skip is recorded without Evidence and leaves the composer in work mode", a
   expect(entries.filter((e) => isKind(e, "offer_response")).map((e) => e.response)).toEqual(["skip"]);
   expect(entries.some((e) => e.kind === "lesson_start")).toBe(false);
   expect(workspace.evidence).toHaveLength(0);
+});
+
+test("the composer switches the agent's model and runs a / command, and hides both during a Lesson", async ({ page, workspace }) => {
+  const input = page.getByRole("textbox", { name: "Message" });
+  const commands = page.getByRole("listbox", { name: "Commands" });
+
+  // Model picker: lists the stub's models and switches for the session.
+  await page.getByRole("button", { name: "Model: Stub Fast", exact: true }).click();
+  await expect(page.getByRole("menuitemradio")).toHaveText(["Stub Fast", "Stub Smart"]);
+  await page.getByRole("menuitemradio", { name: "Stub Smart" }).click();
+  await expect(page.getByRole("button", { name: "Model: Stub Smart", exact: true })).toBeVisible();
+
+  // `/` opens the agent's commands; typing filters, Escape closes, arrows and Enter pick.
+  await input.fill("/");
+  await expect(commands.getByRole("option")).toHaveCount(3);
+  await input.press("Escape");
+  await expect(commands).toBeHidden();
+  await input.fill("/re");
+  await expect(commands.getByRole("option")).toHaveCount(1);
+  await input.fill("/");
+  await input.press("ArrowDown");
+  await input.press("ArrowUp");
+  await expect(commands.getByRole("option", { selected: true })).toContainText("/fix-tests");
+  await input.press("Enter");
+  await expect(input).toHaveValue("/fix-tests ");
+  await expect(commands).toBeHidden();
+  await input.press("Enter");
+  await expect(page.getByText("(stub agent) You said: /fix-tests", { exact: true })).toBeVisible();
+  expect(workspace.timeline.entries()).toContainEqual(expect.objectContaining({ kind: "user_message", source: "agent-host", text: "/fix-tests" }));
+
+  // In a Lesson messages never reach the agent: no model switch, no `/` menu.
+  await page.getByRole("button", { name: "Show me why" }).click();
+  await expect(page.getByRole("button", { name: "Model: Stub Smart", exact: true })).toBeDisabled();
+  await input.fill("/");
+  await expect(commands).toBeHidden();
 });
