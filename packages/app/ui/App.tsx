@@ -282,13 +282,17 @@ function ViewItemView({ item, dispatch, session, connected, onReview }: {
   );
 }
 
-function UserMessage({ children }: { children: React.ReactNode }) {
+/** The user's turn. `mark` sits outside the bubble, beside its first line. */
+function UserMessage({ children, mark }: { children: React.ReactNode; mark?: React.ReactNode }) {
+  const bubble = (
+    <Bubble align="end" variant="muted" className="workspace-user-bubble">
+      <BubbleContent className="whitespace-pre-wrap">{children}</BubbleContent>
+    </Bubble>
+  );
   return (
     <Message align="end">
       <MessageContent>
-        <Bubble align="end" variant="muted" className="workspace-user-bubble">
-          <BubbleContent className="whitespace-pre-wrap">{children}</BubbleContent>
-        </Bubble>
+        {mark ? <div className="flex min-w-0 items-start justify-end gap-2">{mark}{bubble}</div> : bubble}
       </MessageContent>
     </Message>
   );
@@ -340,11 +344,8 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       // The user's own Ask why question shows as their turn; an explicit Why uses a quiet line.
       if (entry.impasse.trigger === "ask_why") {
         return (
-          <UserMessage>
-            <span className="inline-flex items-center gap-1.5">
-              <AhaMascot accessory="question" className="size-4 shrink-0" />
-              {entry.impasse.text ?? entry.impasse.title}
-            </span>
+          <UserMessage mark={<AhaMascot accessory="question" className="ask-why-mark size-6 shrink-0" />}>
+            {entry.impasse.text ?? entry.impasse.title}
           </UserMessage>
         );
       }

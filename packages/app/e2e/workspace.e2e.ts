@@ -403,7 +403,7 @@ test.describe("fixture teaching", () => {
     await review(page).click();
 
     await expect(page.getByText("Ended early · Read-only", { exact: true })).toBeVisible();
-    await expect(card(page, "Probe")).toContainText("Your prediction · There is no token until I log in");
+    await expect(card(page, "Probe")).toContainText("Your prediction: There is no token until I log in");
     await expect(card(page, "Explanation")).toContainText("The browser creates the token before you sign in");
     await expect(card(page, "Explanation").getByRole("button", { name: "Flag as incorrect" })).toHaveCount(0);
     await expect(finalQuestion).toContainText("Final question unanswered.");
@@ -418,7 +418,7 @@ test.describe("fixture teaching", () => {
     const probe = card(page, "Probe");
     await expect(probe).toBeInViewport();
     await probe.getByRole("button", { name: "The page creates a new token" }).click();
-    await expect(probe).toContainText("Your prediction · The page creates a new token");
+    await expect(probe).toContainText("Your prediction: The page creates a new token");
     const explanation = card(page, "Explanation");
     await expect(explanation).toBeInViewport();
     await expect(explanation).toContainText("Correct prediction.");
@@ -438,7 +438,7 @@ test.describe("fixture teaching", () => {
     await page.getByRole("button", { name: "Show me why" }).click();
     const probe = card(page, "Probe");
     await probe.getByRole("button", { name: "It stays the same", exact: true }).click();
-    await expect(probe).toContainText("Your prediction · It stays the same");
+    await expect(probe).toContainText("Your prediction: It stays the same");
     await expect(probe.getByRole("button")).toHaveCount(0);
     await expect(card(page, "Explanation")).toContainText("The token lives only in memory.");
     const judgement = card(page, "Articulation");
@@ -447,7 +447,7 @@ test.describe("fixture teaching", () => {
     await expect(page.getByText("Lesson complete. Back to work.", { exact: true })).toBeVisible();
     await page.reload();
     await review(page).click();
-    await expect(judgement).toContainText("Your answer · Fixes the cause");
+    await expect(judgement).toContainText("Your answer: Fixes the cause");
     await expect(judgement.getByRole("region", { name: "Fix feedback" }).getByRole("heading", { name: "Only hides the symptom" })).toBeVisible();
     await expect(judgement).toContainText("Saving the list doesn’t fix the token mismatch.");
     await expect.poll(() => workspace.evidence).toContainEqual(expect.objectContaining({ type: "fix_judgement", outcome: "negative" }));

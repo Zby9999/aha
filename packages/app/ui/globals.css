@@ -222,6 +222,10 @@
 
 .workspace-pane-heading h2 { font-size: 0.875rem; font-weight: 600; }
 .workspace-pane-heading > .aha-mascot { flex: none; width: 1.75rem; height: 1.75rem; margin-block: -0.25rem; }
+/* A long lesson title wraps: the mascot stays top-left, 0.75rem from the top as from the left. */
+.lesson-pane-heading > .aha-mascot { align-self: flex-start; margin-block: 0.2rem 0; }
+/* The Ask why mark sits outside the bubble, level with its first line. */
+.ask-why-mark { margin-top: 0.5rem; }
 .workspace-pane-heading > svg:not(.aha-mascot) { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
 .workspace-learn .workspace-pane-heading > svg { color: var(--workspace-accent); }
 .workspace-chat-content { max-width: 47rem; margin-inline: auto; padding: 1.25rem clamp(0.7rem, 2vw, 1.5rem) 4rem; }
@@ -271,7 +275,7 @@
 
 .workspace-learn-cards > * { flex: none; }
 .workspace-learn-cards > * { scroll-margin-block-start: 1rem; }
-.workspace-learn-cards button:not(.lesson-citation-trigger) { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
+.workspace-learn-cards button:not(.lesson-citation-trigger, [data-slot="input-group"] button) { max-width: 100%; height: auto; min-height: 2rem; white-space: normal; }
 
 .lesson-reading-card {
   gap: 0.8rem;

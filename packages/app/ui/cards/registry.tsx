@@ -1,12 +1,12 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import type { Citation } from "@aha/contracts";
 import { defineRegistry } from "@json-render/react";
-import { ArrowDownIcon, ArrowRightIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
+import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
 import { Button } from "../components/ui/button.tsx";
 import { AhaMascot, type MascotAccessory } from "@/components/AhaMascot";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
-import { Input } from "../components/ui/input.tsx";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../components/ui/input-group.tsx";
 import { cardCatalog } from "./catalog.ts";
 import { CitedCode, type LineRange } from "./CitedCode.tsx";
 import { InlineCode } from "./InlineCode.tsx";
@@ -66,15 +66,23 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
 function TextAnswer({ disabled, onSubmit }: { disabled: boolean; onSubmit: (text: string) => void }) {
   const [text, setText] = useState("");
   return (
+    // The submit button sits inside the field, like the composer's send button, so it doesn't read as a second label.
     <form
-      className="grid w-full gap-2"
+      className="w-full"
       onSubmit={(e) => {
         e.preventDefault();
         if (text.trim()) onSubmit(text);
       }}
     >
-      <Input disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
-      <Button variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()} className="justify-self-start" type="submit">Answer</Button>
+      {/* 40px field, 12px radius; the 28px button is inset 6px with a 6px radius, so the corners nest. */}
+      <InputGroup data-disabled={disabled || undefined} className="h-10 rounded-[0.75rem]">
+        <InputGroupInput disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer…" aria-label="Answer" />
+        <InputGroupAddon align="inline-end" className="pr-[5px] has-[>button]:mr-0">
+          <InputGroupButton type="submit" size="icon-xs" className="h-7 w-7 rounded-[6px]" aria-label="Answer" variant={disabled || !text.trim() ? "secondary" : "default"} disabled={disabled || !text.trim()}>
+            <ArrowUpIcon />
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </form>
   );
 }
@@ -84,7 +92,8 @@ function StepLabel({ children }: { children: string }) {
 }
 
 function SubmittedAnswer({ children, label = "Your answer" }: { children: string; label?: string }) {
-  return <p className="wrap-anywhere text-sm leading-relaxed text-muted-foreground">{label} · {children}</p>;
+  // The learner recognises their own words; the label is only for screen readers.
+  return <p className="wrap-anywhere text-sm leading-relaxed text-foreground"><span className="sr-only">{label}: </span>{children}</p>;
 }
 
 function ChoiceButton({ children, disabled, onClick }: { children: string; disabled: boolean; onClick: () => void }) {
