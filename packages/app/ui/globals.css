@@ -10,7 +10,7 @@
 @source "../node_modules/streamdown/dist/*.js";
 
 /*
- * Design tokens (ADR-0004): shadcn/ui neutral theme with Geist fonts. Change colours, radius and fonts here only;
+ * Design tokens (ADR-0004): shadcn/ui neutral theme with the mascot's purple as the primary colour, and Geist fonts. Change colours, radius and fonts here only;
  * every component, in the app shell and in lesson cards, reads these variables.
  */
 :root {
@@ -23,8 +23,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.5 0.2 295);
+  --primary-foreground: oklch(0.985 0.01 295);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -34,15 +34,15 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.62 0.18 295);
   /* Aha-specific: the Offer and lesson cards stand out from the work. */
   --lesson: #f1f1f1;
   --lesson-border: var(--input);
   --lesson-reading: #fafafa;
   --lesson-accent: oklch(0.5 0.2 295);
   --workspace-canvas: oklch(0.963 0.009 252);
-  --workspace-accent: oklch(0.38 0.087 193);
-  --workspace-accent-surface: oklch(0.933 0.041 188);
+  --workspace-accent: var(--lesson-accent);
+  --workspace-accent-surface: oklch(0.94 0.035 295);
   --workspace-shadow: oklch(0.23 0.025 250 / 10%);
   --mascot-body: oklch(0.62 0.18 295);
   --mascot-eye: oklch(0.99 0.008 295);
@@ -57,8 +57,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: oklch(0.72 0.15 295);
+    --primary-foreground: oklch(0.18 0.04 295);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -68,13 +68,13 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --ring: oklch(0.62 0.15 295);
     --lesson: #303030;
     --lesson-reading: #262626;
     --lesson-accent: oklch(0.8 0.11 295);
     --workspace-canvas: oklch(0.195 0.012 252);
-    --workspace-accent: oklch(0.82 0.095 185);
-    --workspace-accent-surface: oklch(0.29 0.047 191);
+    --workspace-accent: var(--lesson-accent);
+    --workspace-accent-surface: oklch(0.3 0.07 295);
     --workspace-shadow: oklch(0.12 0.025 250 / 45%);
     --mascot-body: oklch(0.68 0.17 295);
   }

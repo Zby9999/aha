@@ -207,7 +207,7 @@ export function App() {
               variant="outline"
               size="sm"
               aria-label="Ask why"
-              className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
+              className="data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
             >
               <HelpIcon />
               Ask why
@@ -221,7 +221,6 @@ export function App() {
               type="submit"
               size="icon-sm"
               variant="default"
-              className="rounded-full"
               disabled={!canSend}
               aria-label={asking || learning ? "Ask" : "Send"}
             >

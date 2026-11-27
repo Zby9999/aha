@@ -35,7 +35,7 @@ export function ModelPicker({ settings, disabled, onSelect }: {
             size="sm"
             variant="ghost"
             aria-label={`Model: ${label}`}
-            className="ml-auto max-w-48 rounded-full text-muted-foreground"
+            className="ml-auto max-w-48 text-muted-foreground"
           />
         }
       >
@@ -102,7 +102,7 @@ export function SlashCommandMenu({ commands, active, onPick, onHover }: {
           onMouseMove={() => onHover(index)}
           onClick={() => onPick(command)}
           className={cn(
-            "flex min-h-7 cursor-default items-baseline gap-2 rounded-xl px-2 py-1.5 text-sm select-none",
+            "flex min-h-7 cursor-default items-baseline gap-2 rounded-[0.75rem] px-2 py-1.5 text-sm select-none",
             index === active && "bg-accent text-accent-foreground",
           )}
         >
