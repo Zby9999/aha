@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { activeLesson, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { BookOpen } from "lucide-react";
+import { BookIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
@@ -53,7 +53,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
   return (
     <>
       <header className="workspace-pane-heading lesson-pane-heading">
-        <BookOpen aria-hidden="true" />
+        <BookIcon aria-hidden="true" />
         <div className="lesson-pane-title">
           {lesson && <span className="lesson-pane-mode">Learning mode</span>}
           <h2>{lessonTitle ?? "Learning"}</h2>
@@ -90,7 +90,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
       ) : (
         !waiting && <Empty>
           <EmptyHeader>
-            <EmptyMedia variant="icon"><BookOpen aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon"><BookIcon aria-hidden="true" /></EmptyMedia>
             <EmptyTitle role="heading" aria-level={3}>Understand a code change</EmptyTitle>
             <EmptyDescription>Choose <strong>Why?</strong> next to an edit or turn on <strong>Ask why</strong> below the conversation.</EmptyDescription>
           </EmptyHeader>

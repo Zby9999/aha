@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowLeft, BookOpen, Sparkles } from "lucide-react";
+import { ArrowLeftIcon, BookIcon, SparkleIcon } from "@/components/icons";
 import { EXPLANATION_COMPONENTS, type CardAnswer, type UserAction } from "@aha/contracts";
 import { lessonGalleryFixtures } from "@aha/contracts/fixtures";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
@@ -62,7 +62,7 @@ function Gallery() {
   return (
     <main className="gallery-shell">
       <header className="gallery-header">
-        <a href="/" className="gallery-back"><ArrowLeft aria-hidden="true" /><span className="workspace-brand-mark"><Sparkles aria-hidden="true" /></span> Aha</a>
+        <a href="/" className="gallery-back"><ArrowLeftIcon aria-hidden="true" /><span className="workspace-brand-mark"><SparkleIcon aria-hidden="true" /></span> Aha</a>
         <div>
           <h1>Lesson cards</h1>
           <p>Portfolio · Signing in after a refresh</p>
@@ -76,7 +76,7 @@ function Gallery() {
         </nav>
         <section className="gallery-preview" aria-label={`${names[sample]} preview`} data-wide={wide || undefined}>
           <header className="gallery-toolbar">
-            <h2><BookOpen aria-hidden="true" /> Learning</h2>
+            <h2><BookIcon aria-hidden="true" /> Learning</h2>
             <Button type="button" variant="outline" size="sm" className="gallery-width" aria-pressed={wide} onClick={() => setWide(!wide)}>Wide preview</Button>
           </header>
           <div className="gallery-stage">

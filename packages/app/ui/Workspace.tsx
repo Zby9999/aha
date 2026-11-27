@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
-import { BookOpen, FolderCode, Monitor, PanelRightClose, PanelRightOpen, Sparkles } from "lucide-react";
+import { BookIcon, FolderIcon, MonitorIcon, SidebarCloseIcon, SidebarOpenIcon, SparkleIcon } from "@/components/icons";
 import { MemoryPanel } from "./MemoryPanel.tsx";
 import { useMediaQuery } from "./hooks/use-media-query.ts";
 import { IconAction } from "@/components/icon-action";
@@ -88,29 +88,29 @@ export function Workspace({ projectName, modeChange, defaultTab, children, previ
       <header className="workspace-header">
         <div className="workspace-identity">
           <div className="workspace-brand">
-            <span className="workspace-brand-mark"><Sparkles aria-hidden="true" /></span>
+            <span className="workspace-brand-mark"><SparkleIcon aria-hidden="true" /></span>
             <h1>Aha</h1>
           </div>
           <div className="workspace-project">
-            <FolderCode aria-hidden="true" />
+            <FolderIcon aria-hidden="true" />
             <span title={projectName}>{projectName}</span>
           </div>
         </div>
         <div className="workspace-header-tools">
           {showExplain && (
             <Button size="sm" variant="ghost" aria-pressed={view === "preview" && !hidden} onClick={() => toggle("preview")}>
-              <Monitor data-icon="inline-start" />Preview
+              <MonitorIcon data-icon="inline-start" />Preview
             </Button>
           )}
           <Button size="sm" variant="ghost" aria-pressed={view === "memory" && !hidden} onClick={() => toggle("memory")}>
-            <BookOpen data-icon="inline-start" />Memory
+            <BookIcon data-icon="inline-start" />Memory
           </Button>
           {wide && (
             <IconAction
               label={collapsed ? "Show side panel" : "Hide side panel"}
               onClick={() => (collapsed ? panel.current?.expand() : panel.current?.collapse())}
             >
-              {collapsed ? <PanelRightOpen /> : <PanelRightClose />}
+              {collapsed ? <SidebarOpenIcon /> : <SidebarCloseIcon />}
             </IconAction>
           )}
         </div>

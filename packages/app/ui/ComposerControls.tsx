@@ -1,5 +1,5 @@
 import type { AgentCommand, AgentModel, AgentSettings } from "@aha/contracts";
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "@/components/icons";
 import { Fragment } from "react";
 import {
   DropdownMenu,
@@ -40,7 +40,7 @@ export function ModelPicker({ settings, disabled, onSelect }: {
         }
       >
         <span className="truncate">{label}</span>
-        <ChevronDown />
+        <ChevronDownIcon />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="top" className="w-56">
         <DropdownMenuRadioGroup

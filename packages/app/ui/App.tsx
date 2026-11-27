@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, GraduationCap, HelpCircle, History, Lightbulb, RotateCw, Sparkles } from "lucide-react";
+import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HelpIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon, SparkleIcon } from "@/components/icons";
 import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
@@ -120,7 +120,7 @@ export function App() {
       </MessageScrollerProvider>
       {error && (
         <Alert variant="destructive" className="workspace-connection-error">
-          <AlertTriangle />
+          <AlertIcon />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -140,7 +140,7 @@ export function App() {
       >
         {(learning || reviewing) && (
           <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm" role="status">
-            <GraduationCap className="size-4 shrink-0" />
+            <LearnIcon className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
               {learning ? `Learning: ${session.lessonTitle ?? "starting a Lesson…"}` : `Reviewing: ${reviewTitle ?? "a past Lesson"}`}
             </span>
@@ -151,7 +151,7 @@ export function App() {
               disabled={learning && !connected}
               onClick={() => learning ? dispatch({ type: "back_to_work" }) : setReviewRequest(undefined)}
             >
-              <ArrowLeft />
+              <ArrowLeftIcon />
               Back to work
             </Button>
           </div>
@@ -209,7 +209,7 @@ export function App() {
               aria-label="Ask why"
               className="rounded-full data-[pressed]:bg-lesson data-[pressed]:text-foreground data-[pressed]:ring-1 data-[pressed]:ring-lesson-border"
             >
-              <HelpCircle />
+              <HelpIcon />
               Ask why
             </Toggle>
             <ModelPicker
@@ -225,7 +225,7 @@ export function App() {
               disabled={!canSend}
               aria-label={asking || learning ? "Ask" : "Send"}
             >
-              <ArrowUp />
+              <ArrowUpIcon />
             </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
@@ -250,7 +250,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
     return (
       <Message className="gap-3" data-agent-pending={pending || runningTool || undefined}>
         <MessageAvatar className="workspace-reply-mark self-start">
-          <Sparkles className="size-4" aria-hidden="true" />
+          <SparkleIcon className="size-4" aria-hidden="true" />
         </MessageAvatar>
         <MessageContent className="gap-1">
           <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
@@ -319,7 +319,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       return (
         <div role="group" aria-label={`Edited ${entry.path}`} className="rounded-lg border bg-card px-3 py-3 text-sm">
           <div className="flex min-w-0 items-center gap-2">
-            <FilePen className="size-4 shrink-0 text-muted-foreground" />
+            <EditFileIcon className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
             <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>
             <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
@@ -333,7 +333,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       return (
         // Only the app's own errors interrupt a screen reader; the agent's are part of its reply.
         <Alert variant="destructive" role={entry.source === "app" ? "alert" : undefined} className="min-w-0">
-          <AlertTriangle />
+          <AlertIcon />
           {/* Errors can be long and contain unbroken JSON: wrap anywhere and keep Pi's line breaks. */}
           <AlertDescription className="min-w-0 whitespace-pre-wrap wrap-anywhere">
             {entry.message}
@@ -347,13 +347,13 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
         return (
           <UserMessage>
             <span className="inline-flex items-center gap-1.5">
-              <HelpCircle className="size-3.5 shrink-0 text-muted-foreground" />
+              <HelpIcon className="size-3.5 shrink-0 text-muted-foreground" />
               {entry.impasse.text ?? entry.impasse.title}
             </span>
           </UserMessage>
         );
       }
-      return <Meta icon={<Lightbulb className="size-3.5" />}>{entry.impasse.title}</Meta>;
+      return <Meta icon={<IdeaIcon className="size-3.5" />}>{entry.impasse.title}</Meta>;
     case "offer":
       return <LessonCardView card={entry.card} entryId={entry.id} done={done} dispatch={dispatch} />;
     case "offer_response":
@@ -363,12 +363,12 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
     case "lesson_error":
       return (
         <Alert variant="destructive">
-          <AlertTriangle />
+          <AlertIcon />
           <AlertDescription className="wrap-anywhere">{entry.message} Your answer is saved.</AlertDescription>
           {canRetry && (
             <AlertAction>
               <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
-                <RotateCw />
+                <RetryIcon />
                 Retry
               </Button>
             </AlertAction>
@@ -381,7 +381,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
           <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>
           {onReview && (
             <Button size="xs" variant="ghost" className="text-muted-foreground" onClick={() => onReview(entry.lessonId)}>
-              <History />
+              <HistoryIcon />
               Review
             </Button>
           )}

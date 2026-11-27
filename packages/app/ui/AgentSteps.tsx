@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CircleAlert, CircleCheck, FileText, LoaderCircle, Search, Wrench } from "lucide-react";
+import { CircleAlertIcon, CircleCheckIcon, FileIcon, LoaderIcon, SearchIcon, ToolIcon } from "@/components/icons";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
 import {
   Trace,
@@ -33,8 +33,8 @@ function stepTitle(step: AgentStep): string {
 }
 
 function stepIcon(step: AgentStep) {
-  if (step.toolName === "read") return <FileText />;
-  return step.toolName === "grep" || step.toolName === "find" ? <Search /> : <Wrench />;
+  if (step.toolName === "read") return <FileIcon />;
+  return step.toolName === "grep" || step.toolName === "find" ? <SearchIcon /> : <ToolIcon />;
 }
 
 const failed = (step: AgentStep) => step.state === "error" || Boolean(step.error);
@@ -64,8 +64,8 @@ function ToolStep({ step }: { step: AgentStep }) {
 }
 
 function StatusIcon({ status }: { status?: "running" | "error" }) {
-  if (status === "running") return <LoaderCircle className="animate-spin" />;
-  return status === "error" ? <CircleAlert /> : <CircleCheck />;
+  if (status === "running") return <LoaderIcon className="animate-spin" />;
+  return status === "error" ? <CircleAlertIcon /> : <CircleCheckIcon />;
 }
 
 /** A run of tool calls. One call shows as itself; several fold under a summary that stays open while they run. */

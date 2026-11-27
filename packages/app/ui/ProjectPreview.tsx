@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
-import { ExternalLink, Globe2, Monitor, RefreshCw } from "lucide-react";
+import { ExternalLinkIcon, GlobeIcon, MonitorIcon, ReloadIcon } from "@/components/icons";
 import { IconAction } from "@/components/icon-action";
 import { CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton } from "@/components/ui/code-block";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -91,20 +91,20 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
   return (
     <>
       <header className="workspace-pane-heading">
-        <Monitor aria-hidden="true" /><h2>Live preview</h2>
+        <MonitorIcon aria-hidden="true" /><h2>Live preview</h2>
         <div className="workspace-preview-actions">
           <IconAction label="Refresh preview" disabled={!url} onClick={() => setRefresh((count) => count + 1)}>
-            <RefreshCw />
+            <ReloadIcon />
           </IconAction>
           {url && <IconAction label="Open preview in new tab" nativeButton={false} render={<a href={url.href} target="_blank" rel="noopener noreferrer" />}>
-            <ExternalLink />
+            <ExternalLinkIcon />
           </IconAction>}
         </div>
       </header>
       <div className="workspace-preview-canvas">
         <div className="workspace-browser">
           <div className="workspace-address">
-            <Globe2 aria-hidden="true" />
+            <GlobeIcon aria-hidden="true" />
             <span title={url?.href}>{url ? `${url.host}${url.pathname}` : "Preview URL"}</span>
           </div>
           {url && reachable ? (
@@ -118,7 +118,7 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
           ) : (
             <Empty className="workspace-preview-empty">
               <EmptyHeader>
-                <EmptyMedia variant="icon">{checking ? <Spinner aria-hidden="true" /> : <Monitor aria-hidden="true" />}</EmptyMedia>
+                <EmptyMedia variant="icon">{checking ? <Spinner aria-hidden="true" /> : <MonitorIcon aria-hidden="true" />}</EmptyMedia>
                 <EmptyTitle role="heading" aria-level={3}>{checking ? "Connecting to preview…" : "Preview unavailable"}</EmptyTitle>
                 {!checking && (
                   <EmptyDescription>

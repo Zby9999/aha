@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Concept, LearnerModelFile } from "@aha/contracts";
-import { BookOpen } from "lucide-react";
+import { BookIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +63,7 @@ export function MemoryPanel({ visible }: { visible: boolean }) {
   return (
     <>
       <header className="workspace-pane-heading">
-        <BookOpen aria-hidden="true" />
+        <BookIcon aria-hidden="true" />
         <h2>Learner model</h2>
         {message && <span role="status" className="ml-auto text-xs text-muted-foreground">{message}</span>}
       </header>
