@@ -1,7 +1,7 @@
 import { activeLesson, isKind, offerCardSchema, pendingLessonError, type Mode, type TimelineEntry, type TimelineEntryOf } from "@aha/contracts";
 /** A tool call's state as the Trace line shows it. */
 export type ToolState = "running" | "completed" | "error";
-type ToolItem = { type: "tool"; key: string; toolName: string; args: Record<string, unknown>; state: ToolState; output?: string };
+type ToolItem = { type: "tool"; key: string; toolCallId: string; toolName: string; args: Record<string, unknown>; state: ToolState; output?: string };
 
 /** What the chat shows: Timeline entries folded into messages that may still be streaming, and tool calls with their results. */
 export type ViewItem =
@@ -45,7 +45,7 @@ export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
         break;
       }
       case "tool_call": {
-        const item = { type: "tool" as const, key: entry.id, toolName: entry.toolName, args: entry.args, state: "running" as ToolState };
+        const item = { type: "tool" as const, key: entry.id, toolCallId: entry.toolCallId, toolName: entry.toolName, args: entry.args, state: "running" as ToolState };
         tools.set(entry.toolCallId, item);
         items.push(item);
         break;
@@ -60,6 +60,35 @@ export function toViewItems(entries: readonly TimelineEntry[]): ViewItem[] {
     }
   }
   return items;
+}
+
+/** A tool call inside a reply, with the error the agent host reported for it, if any. */
+export type AgentStep = ToolItem & { error?: string };
+
+/** A reply's parts with each run of consecutive tool calls gathered into one group of steps (shadcn/ui "Chain of Thought"). */
+export type ReplyPart = Exclude<ViewItem, ToolItem> | { type: "steps"; key: string; steps: AgentStep[] };
+
+export function replyParts(parts: readonly ViewItem[]): ReplyPart[] {
+  const result: ReplyPart[] = [];
+  for (const part of parts) {
+    const run = result.at(-1);
+    if (part.type === "tool") {
+      if (run?.type === "steps") run.steps.push({ ...part });
+      else result.push({ type: "steps", key: part.key, steps: [{ ...part }] });
+      continue;
+    }
+    // A tool's error belongs on its step, not in a box of its own.
+    if (part.type === "entry" && part.entry.kind === "error" && part.entry.origin === "tool" && run?.type === "steps") {
+      const { toolCallId, message } = part.entry;
+      const step = run.steps.findLast((candidate) => toolCallId === undefined || candidate.toolCallId === toolCallId);
+      if (step) {
+        step.error = message;
+        continue;
+      }
+    }
+    result.push(part as Exclude<ViewItem, ToolItem>);
+  }
+  return result;
 }
 
 /** Keep agent text, tool actions and the resulting edits in their Timeline order within a reply. */
@@ -210,4 +239,21 @@ export function composerPlaceholder(session: SessionView, asking: boolean, revie
       : "Preparing the Lesson… you can ask about it once it starts.";
   }
   return asking ? "What do you want to understand?" : "Message your agent…";
+}
+
+/**
+ * What teaching is working on in the running Lesson, or undefined when it is waiting for the learner.
+ * Teaching is at work whenever the learner's latest answer or question is newer than its latest card.
+ */
+export function lessonProgress(entries: readonly TimelineEntry[]): string | undefined {
+  const lesson = activeLesson(entries);
+  if (!lesson || pendingLessonError(entries, "explicit")) return undefined;
+  if (lesson.lessonId === undefined) return "Preparing the lesson";
+  const own = entries.filter((entry) => entry.seq > (lesson.startSeq ?? Infinity) && "lessonId" in entry && entry.lessonId === lesson.lessonId);
+  const card = own.findLast((entry) => entry.kind === "lesson_card" || entry.kind === "lesson_end");
+  if (!card) return "Preparing the lesson";
+  const learner = own.findLast((entry) => entry.kind === "card_answer" || entry.kind === "lesson_question");
+  if (!learner || learner.seq < card.seq) return undefined;
+  if (learner.kind === "lesson_question") return "Answering your question";
+  return learner.kind === "card_answer" && learner.step === "probe" ? "Preparing the explanation" : "Checking your answer";
 }

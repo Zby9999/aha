@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, History, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, GraduationCap, HelpCircle, History, Lightbulb, RotateCw, Sparkles } from "lucide-react";
+import { AgentSteps } from "./AgentSteps.tsx";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { ModelPicker, SLASH_MENU_ID, SlashCommandMenu, slashOptionId } from "./ComposerControls.tsx";
 import { insertCommand, matchCommands, slashQuery } from "./slashCommands.ts";
@@ -10,7 +11,6 @@ import { Workspace } from "./Workspace.tsx";
 import { DiffBlock } from "@/components/diff-block";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
 import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
 import { Toggle } from "@/components/ui/toggle";
@@ -22,18 +22,9 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
-import {
-  Trace,
-  TraceCollapsible,
-  TraceCollapsibleContent,
-  TraceCollapsibleTrigger,
-  TraceIcon,
-  TraceLine,
-  TraceTitle,
-} from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { chatEntries, composerPlaceholder, conversationItems, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, replyParts, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -255,9 +246,11 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
         </MessageAvatar>
         <MessageContent className="gap-1">
           <MessageHeader className="px-0 font-semibold text-foreground">Aha</MessageHeader>
-          {parts.map((part) => part.type === "agent_message" ? (
+          {replyParts(parts).map((part) => part.type === "agent_message" ? (
             <Markdown key={part.key} streaming={part.streaming}>{part.text}</Markdown>
-          ) : <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />)}
+          ) : part.type === "steps" ? <AgentSteps key={part.key} steps={part.steps} /> : (
+            <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
+          ))}
           {pending && !runningTool && (
             <p className="text-sm text-muted-foreground" role="status">
               {parts.length ? "Waiting for the reply" : "Working on your request"}
@@ -267,7 +260,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
       </Message>
     );
   }
-  if (item.type === "tool") return <ToolLine item={item} />;
+  if (item.type === "tool") return <AgentSteps steps={[item]} />;
   const { entry } = item;
   if (entry.kind === "card_answer") {
     return <UserMessage>{answerText(entry.answer, cardsById.get(entry.cardEntryId))}</UserMessage>;
@@ -293,51 +286,6 @@ function UserMessage({ children }: { children: React.ReactNode }) {
         </Bubble>
       </MessageContent>
     </Message>
-  );
-}
-
-const TOOL_VERBS: Record<string, [running: string, done: string]> = {
-  read: ["Reading", "Read"],
-  edit: ["Editing", "Edited"],
-  write: ["Writing", "Wrote"],
-  grep: ["Searching", "Searched"],
-  find: ["Finding", "Found"],
-  ls: ["Listing", "Listed"],
-  bash: ["Running", "Ran"],
-};
-
-/** A tool call as a Trace line (shadcn/ui "Tool" pattern): a plain line while it runs, collapsible once output arrives. */
-function ToolLine({ item }: { item: Extract<ViewItem, { type: "tool" }> }) {
-  const [running, done] = TOOL_VERBS[item.toolName] ?? ["Running", "Ran"];
-  const target = typeof item.args.path === "string" ? item.args.path : typeof item.args.command === "string" ? item.args.command : item.toolName;
-  const icon = item.toolName === "read" ? <FileText /> : item.toolName === "grep" || item.toolName === "find" ? <Search /> : <Wrench />;
-  if (item.state === "running") {
-    return (
-      <Trace>
-        <TraceLine status="running">
-          <TraceIcon>{icon}</TraceIcon>
-          <TraceTitle>{running} {target}</TraceTitle>
-        </TraceLine>
-      </Trace>
-    );
-  }
-  const failed = item.state === "error";
-  return (
-    <Trace>
-      <TraceCollapsible>
-        <TraceCollapsibleTrigger>
-          <TraceLine status={failed ? "error" : undefined}>
-            <TraceIcon>{icon}</TraceIcon>
-            <TraceTitle>{done} {target}{failed && " (failed)"}</TraceTitle>
-          </TraceLine>
-        </TraceCollapsibleTrigger>
-        <TraceCollapsibleContent>
-          <CodeBlock size="sm">
-            <CodeBlockContent wrap className="max-h-64">{item.output ?? ""}</CodeBlockContent>
-          </CodeBlock>
-        </TraceCollapsibleContent>
-      </TraceCollapsible>
-    </Trace>
   );
 }
 

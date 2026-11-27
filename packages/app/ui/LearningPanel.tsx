@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
-import { activeLesson, pendingLessonError, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { BookOpen, Sparkles } from "lucide-react";
+import { activeLesson, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
+import { BookOpen, LoaderCircle } from "lucide-react";
+import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
+import { lessonProgress } from "./timelineView.ts";
 
 interface LearningPanelProps {
   entries: readonly TimelineEntry[];
@@ -26,11 +28,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
   // Each Lesson stands alone: earlier Lessons are reached with Review in the work conversation.
   const shown = lessonId === undefined ? [] : cards.filter((card) => card.lessonId === lessonId &&
     (lesson?.lessonId !== lessonId || card.seq > (lesson.startSeq ?? Infinity)));
-  const probe = shown.find((card) => card.step === "probe");
-  const waiting = lesson && !pendingLessonError(entries, "explicit")
-    ? lesson.lessonId === undefined || shown.length === 0 ? "Preparing the lesson" :
-      shown.length === 1 && probe && answers.has(probe.id) ? "Preparing the explanation" : undefined
-    : undefined;
+  const waiting = lessonProgress(entries);
 
   useEffect(() => {
     const latestCard = shown.at(-1);
@@ -61,7 +59,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
           {outcome === "completed" ? "Completed" : "Ended early · Read-only"}
         </span>}
       </header>
-      {waiting && <div className="lesson-pending" role="status"><Sparkles aria-hidden="true" />{waiting}</div>}
+      {waiting && !shown.length && <LessonProgress label={waiting} />}
       {shown.length ? (
         <div className="workspace-learn-cards" ref={scroll} role="log" aria-label="Lesson cards">
           {shown.map((entry) => {
@@ -83,6 +81,8 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
               </div>
             );
           })}
+          {/* The next step is prepared below the cards, where it will appear. */}
+          {waiting && <LessonProgress label={waiting} />}
         </div>
       ) : (
         !waiting && <div className="workspace-empty">
@@ -91,5 +91,17 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
         </div>
       )}
     </>
+  );
+}
+
+/** Teaching at work on the next card, as a running Trace line (shadcn/ui AI Elements). */
+function LessonProgress({ label }: { label: string }) {
+  return (
+    <Trace className="lesson-pending" role="status">
+      <TraceLine status="running">
+        <TraceIcon><LoaderCircle className="animate-spin" /></TraceIcon>
+        <TraceTitle>{label}</TraceTitle>
+      </TraceLine>
+    </Trace>
   );
 }

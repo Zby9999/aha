@@ -333,15 +333,8 @@
 .lesson-pane-title { display: grid; gap: .18rem; min-inline-size: 0; overflow-wrap: anywhere; }
 .lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 650; }
 .lesson-pane-heading { padding-block: .55rem; }
-.lesson-pending {
-  display: flex;
-  gap: .55rem;
-  align-items: center;
-  padding: .5rem var(--radius);
-  font-size: .85rem;
-  color: var(--muted-foreground);
-}
-.lesson-pending svg { inline-size: 1rem; flex: none; color: var(--lesson-accent); }
+.lesson-pending { padding: .5rem 1rem; }
+.workspace-learn-cards > .lesson-pending { padding-inline: 0; }
 .lesson-work-mode > svg { color: var(--lesson-accent); }
 .workspace-user-bubble > [data-slot="bubble-content"] { border-radius: var(--message-radius); }
 .lesson-invitation { background: var(--lesson); box-shadow: none; --tw-ring-shadow: 0 0 transparent; }
@@ -350,7 +343,7 @@
 .lesson-invitation[data-offer-state="available"] .lesson-offer-caption { color: var(--lesson-accent); }
 .lesson-offer-caption svg { inline-size: .9rem; block-size: .9rem; }
 @media (prefers-reduced-motion: no-preference) {
-  .lesson-pending svg, [data-agent-pending] .workspace-reply-mark svg { animation: lesson-status-pulse 1.6s ease-in-out infinite; }
+  [data-agent-pending] .workspace-reply-mark svg { animation: lesson-status-pulse 1.6s ease-in-out infinite; }
   @keyframes lesson-status-pulse { 50% { opacity: .55; } }
 }
 .lesson-reading-card [data-slot="card-title"] {
