@@ -147,7 +147,7 @@
 }
 
 .workspace-brand { gap: 0.65rem; }
-.workspace-brand h1 { font-size: 1.2rem; font-weight: 680; letter-spacing: -0.04em; }
+.workspace-brand h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.025em; }
 
 .workspace-brand-mark,
 .workspace-reply-mark {
@@ -222,7 +222,7 @@
   background: var(--card);
 }
 
-.workspace-pane-heading h2 { font-size: 0.9rem; font-weight: 650; }
+.workspace-pane-heading h2 { font-size: 0.875rem; font-weight: 600; }
 .workspace-pane-heading > svg { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
 .workspace-learn .workspace-pane-heading > svg { color: var(--workspace-accent); }
 .workspace-chat-content { max-width: 47rem; margin-inline: auto; padding: 1.25rem clamp(0.7rem, 2vw, 1.5rem) 4rem; }
@@ -264,12 +264,12 @@
   padding-inline: 0.8rem;
   border-bottom: 1px solid var(--border);
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
 .workspace-address svg { width: 0.9rem; height: 0.9rem; flex: none; }
 .workspace-address span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-preview-footer { display: flex; gap: 0.5rem; color: var(--muted-foreground); font-size: 0.8125rem; }
+.workspace-preview-footer { display: flex; gap: 0.5rem; color: var(--muted-foreground); font-size: 0.75rem; }
 .workspace-preview-footer > span { flex: none; }
 .workspace-preview-footer code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-learn { background: var(--background); }
@@ -307,7 +307,7 @@
 }
 .workspace-main[data-mode="learning"] .lesson-pane-heading { background: var(--lesson); }
 .lesson-pane-title { display: grid; gap: .18rem; min-inline-size: 0; overflow-wrap: anywhere; }
-.lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 650; }
+.lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 600; }
 .lesson-pane-heading { padding-block: .55rem; }
 .lesson-pending { padding: .5rem 1rem; }
 .workspace-learn-cards > .lesson-pending { padding-inline: 0; }
@@ -315,7 +315,7 @@
 .workspace-user-bubble > [data-slot="bubble-content"] { border-radius: var(--message-radius); }
 .lesson-invitation { background: var(--lesson); box-shadow: none; --tw-ring-shadow: 0 0 transparent; }
 .lesson-invitation[data-offer-state="inactive"] { background: var(--muted); }
-.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 650; }
+.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 600; }
 .lesson-invitation[data-offer-state="available"] .lesson-offer-caption { color: var(--lesson-accent); }
 .lesson-offer-caption svg { inline-size: .9rem; block-size: .9rem; }
 @media (prefers-reduced-motion: no-preference) {
@@ -323,8 +323,8 @@
   @keyframes lesson-status-pulse { 50% { opacity: .55; } }
 }
 .lesson-reading-card [data-slot="card-title"] {
-  font-weight: 650;
-  line-height: 1.35;
+  font-weight: 600;
+  line-height: 1.375;
 }
 
 .lesson-reading-card[data-diagram] [data-slot="card-title"] {
@@ -348,8 +348,8 @@
 
 .lesson-flow > li[data-start]:not(:first-child) { margin-block-start: 0.625rem; }
 .lesson-flow-node, .lesson-flow-edge { position: relative; padding-inline-start: 1.5rem; }
-.lesson-flow-node { padding-block: 0.1875rem; font-weight: 600; line-height: 1.4; }
-.lesson-flow-edge { padding-block: 0.125rem; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.4; }
+.lesson-flow-node { padding-block: 0.1875rem; font-weight: 600; line-height: 1.375; }
+.lesson-flow-edge { padding-block: 0.125rem; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.375; }
 
 .lesson-flow-node::before, .lesson-flow-edge::before {
   content: "";
@@ -416,7 +416,7 @@
   border-radius: calc(var(--radius) - 2px);
   background: var(--workspace-accent-surface);
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -434,13 +434,13 @@
   background: var(--card);
 }
 
-.lesson-process-branches > li > p { margin-block-end: 0.2rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 650; }
+.lesson-process-branches > li > p { margin-block-end: 0.2rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 600; }
 .lesson-process-join { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.75rem; color: var(--muted-foreground); }
 
 .lesson-comparison-takeaway { font-size: 0.875rem; line-height: 1.5; color: var(--workspace-accent); font-weight: 600; }
 .lesson-comparison { border: 1px solid var(--border); border-radius: var(--radius); overflow-wrap: anywhere; }
 .lesson-comparison-head, .lesson-comparison-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.lesson-comparison-head { font-size: 0.8125rem; font-weight: 650; }
+.lesson-comparison-head { font-size: 0.875rem; font-weight: 600; }
 .lesson-comparison-head > p, .lesson-comparison-row dd { min-width: 0; padding: 0.55rem 0.65rem; }
 .lesson-comparison-head > p + p, .lesson-comparison-row dd + dd { border-inline-start: 1px solid var(--border); }
 .lesson-comparison-row dt {
@@ -453,7 +453,7 @@
   font-weight: 600;
 }
 
-.lesson-comparison-row dd { font-size: 0.8125rem; line-height: 1.45; }
+.lesson-comparison-row dd { font-size: 0.875rem; line-height: 1.5; }
 
 .lesson-sequence {
   container-type: inline-size;
@@ -466,14 +466,14 @@
 .lesson-sequence-lanes, .lesson-sequence-arrow { display: none; }
 .lesson-sequence-messages > li { min-width: 0; padding: 0.65rem 0.75rem; }
 .lesson-sequence-messages > li + li { border-block-start: 1px solid var(--border); }
-.lesson-sequence-route { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 650; }
+.lesson-sequence-route { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; color: var(--workspace-accent); font-size: 0.75rem; font-weight: 600; }
 .lesson-sequence-route svg { width: 0.8rem; height: 0.8rem; }
-.lesson-sequence-message { min-width: 0; font-size: 0.875rem; line-height: 1.45; margin-block-start: 0.2rem; }
+.lesson-sequence-message { min-width: 0; font-size: 0.875rem; line-height: 1.5; margin-block-start: 0.2rem; }
 
 @container (min-width: 27rem) {
   .lesson-sequence-lanes, .lesson-sequence-messages > li { display: grid; grid-template-columns: repeat(var(--sequence-lanes), minmax(0, 1fr)); }
   .lesson-sequence-lanes { border-block-end: 1px solid var(--border); background: var(--workspace-accent-surface); border-start-start-radius: calc(var(--radius) - 1px); border-start-end-radius: calc(var(--radius) - 1px); }
-  .lesson-sequence-lanes p { padding: 0.5rem; text-align: center; font-size: 0.8125rem; font-weight: 650; }
+  .lesson-sequence-lanes p { padding: 0.5rem; text-align: center; font-size: 0.875rem; font-weight: 600; }
   .lesson-sequence-lanes p + p { border-inline-start: 1px solid var(--border); }
   .lesson-sequence-messages > li { padding: 0.4rem 0; }
   .lesson-sequence-route { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
