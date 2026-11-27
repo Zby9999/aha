@@ -143,4 +143,6 @@ test("work and the running Lesson are separate conversations", () => {
   expect(kinds(chatEntries(t.entries()))).toEqual([
     "user_message", "impasse", "mode_change", "lesson_start", "agent_message", "lesson_end", "mode_change",
   ]);
+  // Review shows the past Lesson's own conversation again, without the agent's work.
+  expect(kinds(chatEntries(t.entries(), "l1"))).toEqual(["impasse", "lesson_start", "lesson_question", "lesson_end"]);
 });

@@ -26,14 +26,16 @@ interface WorkspaceProps {
   children: ReactNode;
   preview: ReactNode;
   explain: (visible: boolean) => ReactNode;
+  /** A view within the Mode, such as a reviewed Lesson; changing it resets a manual tab choice like a Mode change does. */
+  viewKey?: string | undefined;
 }
 
-export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain }: WorkspaceProps) {
+export function Workspace({ projectName, connected, modeChange, defaultTab, children, preview, explain, viewKey }: WorkspaceProps) {
   const [layout, setLayout] = useState(savedLayout);
   const [manualTab, setManualTab] = useState<{ tab: WorkspaceTab; revision: string }>();
   const mode = modeChange?.mode ?? "work";
   // A manual choice lasts until the next Timeline transition, including after a reconnect.
-  const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
+  const revision = `${modeChange ? `${modeChange.id}:${modeChange.at}` : ""}|${viewKey ?? ""}`;
   const tab = manualTab?.revision === revision ? manualTab.tab : defaultTab;
   const tabbed = layout === "tabbed";
 

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
+import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
+import { AlertTriangle, ArrowLeft, ArrowUp, FilePen, FileText, GraduationCap, HelpCircle, History, Lightbulb, RotateCw, Search, Sparkles, Wrench } from "lucide-react";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/trace";
 import { Badge } from "./components/ui/badge.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { chatEntries, composerPlaceholder, conversationItems, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
+import { chatEntries, composerPlaceholder, conversationItems, lessonSpan, lessonTitle, sessionView, type ConversationItem, type SessionView, type ViewItem } from "./timelineView.ts";
 import { useTimeline } from "./useTimeline.ts";
 
 type Dispatch = (action: UserAction) => void;
@@ -39,6 +39,7 @@ export function App() {
   const { entries, error, connected, dispatch } = useTimeline();
   const [text, setText] = useState("");
   const [askWhyRevision, setAskWhyRevision] = useState<string | null>(null);
+  const [reviewRequest, setReviewRequest] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
   const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
   const cardsById = new Map(lessonCards.map((entry) => [entry.id, entry]));
@@ -49,10 +50,15 @@ export function App() {
   const session = sessionView(entries);
   const { modeChange } = session;
   const learning = session.mode === "learning";
-  const items = conversationItems(chatEntries(entries), connected && !learning);
+  // Reviewing a past Lesson is a view only: it never changes the Mode, and starting a Lesson ends it.
+  const review = !learning && reviewRequest ? lessonSpan(entries, reviewRequest) : undefined;
+  const reviewing = review ? reviewRequest : undefined;
+  const reviewTitle = lessonTitle(entries, review?.impasseId);
+  const shownLessonId = learning ? activeLesson(entries)?.lessonId : reviewing ?? lastLessonId;
+  const items = conversationItems(chatEntries(entries, reviewing), connected && !learning && !reviewing);
   const revision = modeChange ? `${modeChange.id}:${modeChange.at}` : "";
   const asking = !learning && askWhyRevision === revision;
-  const canSend = connected && Boolean(text.trim()) && (!learning || session.lessonReady);
+  const canSend = connected && !reviewing && Boolean(text.trim()) && (!learning || session.lessonReady);
   const lastEdit = entries.findLast((entry) => isKind(entry, "file_edit"));
   const projectDir = entries.findLast((entry) => isKind(entry, "session_start"))?.projectDir;
   const projectName = projectDir?.split(/[\\/]/).filter(Boolean).at(-1) ?? "Workspace";
@@ -62,7 +68,8 @@ export function App() {
       projectName={projectName}
       connected={connected}
       modeChange={modeChange}
-      defaultTab={session.defaultTab}
+      defaultTab={reviewing ? "explain" : session.defaultTab}
+      viewKey={reviewing}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
         <LearningPanel
@@ -71,8 +78,8 @@ export function App() {
           answers={lessonAnswers}
           flaggedExplanations={flaggedExplanations}
           outcomes={lessonOutcomes}
-          latestLessonId={lastLessonId}
-          lessonTitle={session.lessonTitle}
+          lessonId={shownLessonId}
+          lessonTitle={learning ? session.lessonTitle : lessonTitle(entries, lessonSpan(entries, shownLessonId ?? "")?.impasseId)}
           isDone={(entry) => !connected || session.isDone(entry)}
           dispatch={dispatch}
           connected={connected}
@@ -92,7 +99,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} onReview={learning || reviewing ? undefined : setReviewRequest} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -113,13 +120,19 @@ export function App() {
           setAskWhyRevision(null);
         }}
       >
-        {learning && (
+        {(learning || reviewing) && (
           <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm" role="status">
             <GraduationCap className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
-              Learning: {session.lessonTitle ?? "starting a Lesson…"}
+              {learning ? `Learning: ${session.lessonTitle ?? "starting a Lesson…"}` : `Reviewing: ${reviewTitle ?? "a past Lesson"}`}
             </span>
-            <Button type="button" size="sm" variant="outline" disabled={!connected} onClick={() => dispatch({ type: "back_to_work" })}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={learning && !connected}
+              onClick={() => learning ? dispatch({ type: "back_to_work" }) : setReviewRequest(undefined)}
+            >
               <ArrowLeft />
               Back to work
             </Button>
@@ -129,20 +142,21 @@ export function App() {
           <InputGroupTextarea
             value={text}
             onChange={(e) => setText(e.target.value)}
+            disabled={Boolean(reviewing)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 formRef.current?.requestSubmit();
               }
             }}
-            placeholder={composerPlaceholder(session, asking)}
+            placeholder={composerPlaceholder(session, asking, Boolean(reviewing))}
             aria-label="Message"
             className="p-3"
           />
           <InputGroupAddon align="block-end">
             <Toggle
               pressed={asking}
-              disabled={!connected || !session.canStartLesson}
+              disabled={!connected || !session.canStartLesson || Boolean(reviewing)}
               onPressedChange={(pressed) => setAskWhyRevision(pressed ? revision : null)}
               variant="outline"
               size="sm"
@@ -169,8 +183,10 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected, cardsById }: {
+function ViewItemView({ item, dispatch, session, connected, cardsById, onReview }: {
   item: ConversationItem;
+  /** Opens a past Lesson's conversation; absent while a Lesson runs or is being reviewed. */
+  onReview?: ((lessonId: string) => void) | undefined;
   dispatch: Dispatch;
   session: SessionView;
   connected: boolean;
@@ -211,6 +227,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById }: {
       done={!connected || session.isDone(entry)}
       canStartLesson={connected && session.canStartLesson}
       canRetry={connected && session.canRetry(entry)}
+      onReview={onReview}
     />
   );
 }
@@ -276,12 +293,13 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   return <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{children}</p>;
 }
 
-function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
+function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
   entry: Exclude<TimelineEntry, TimelineEntryOf<"card_answer">>;
   dispatch: Dispatch;
   done: boolean;
   canStartLesson: boolean;
   canRetry: boolean;
+  onReview?: ((lessonId: string) => void) | undefined;
 }) {
   switch (entry.kind) {
     case "user_message":
@@ -343,7 +361,17 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry }: {
         </div>
       );
     case "lesson_end":
-      return <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>;
+      return (
+        <div className="flex items-center gap-2">
+          <Meta>{entry.outcome === "completed" ? "Lesson complete." : "Left the Lesson."} Back to work.</Meta>
+          {onReview && (
+            <Button size="xs" variant="ghost" className="text-muted-foreground" onClick={() => onReview(entry.lessonId)}>
+              <History />
+              Review
+            </Button>
+          )}
+        </div>
+      );
     case "tool_call":
     case "tool_result":
     case "agent_message":

@@ -9,7 +9,8 @@ interface LearningPanelProps {
   answers: ReadonlyMap<string, CardAnswer>;
   flaggedExplanations: ReadonlySet<string>;
   outcomes: ReadonlyMap<string, TimelineEntryOf<"lesson_end">["outcome"]>;
-  latestLessonId: string | undefined;
+  /** The one Lesson the panel shows: the running one, the one being reviewed, or the last one. */
+  lessonId: string | undefined;
   lessonTitle: string | undefined;
   isDone: (entry: TimelineEntryOf<"lesson_card">) => boolean;
   dispatch: (action: UserAction) => void;
@@ -17,26 +18,26 @@ interface LearningPanelProps {
   visible: boolean;
 }
 
-export function LearningPanel({ entries, cards, answers, flaggedExplanations, outcomes, latestLessonId, lessonTitle, isDone, dispatch, connected, visible }: LearningPanelProps) {
+export function LearningPanel({ entries, cards, answers, flaggedExplanations, outcomes, lessonId, lessonTitle, isDone, dispatch, connected, visible }: LearningPanelProps) {
   const scroll = useRef<HTMLDivElement>(null);
   const seen = useRef<string | undefined>(undefined);
   const lesson = activeLesson(entries);
-  const outcome = !lesson && latestLessonId ? outcomes.get(latestLessonId) : undefined;
-  const currentCards = lesson ? cards.filter((card) => card.lessonId === lesson.lessonId && card.seq > (lesson.startSeq ?? Infinity)) : [];
-  const probe = currentCards.find((card) => card.step === "probe");
+  const outcome = lessonId && lesson?.lessonId !== lessonId ? outcomes.get(lessonId) : undefined;
+  // Each Lesson stands alone: earlier Lessons are reached with Review in the work conversation.
+  const shown = lessonId === undefined ? [] : cards.filter((card) => card.lessonId === lessonId &&
+    (lesson?.lessonId !== lessonId || card.seq > (lesson.startSeq ?? Infinity)));
+  const probe = shown.find((card) => card.step === "probe");
   const waiting = lesson && !pendingLessonError(entries, "explicit")
-    ? currentCards.length === 0 ? "Preparing the lesson" :
-      currentCards.length === 1 && probe && answers.has(probe.id) ? "Preparing the explanation" : undefined
+    ? lesson.lessonId === undefined || shown.length === 0 ? "Preparing the lesson" :
+      shown.length === 1 && probe && answers.has(probe.id) ? "Preparing the explanation" : undefined
     : undefined;
 
   useEffect(() => {
-    const latestCard = cards.at(-1);
+    const latestCard = shown.at(-1);
     if (!visible || !latestCard || !scroll.current || latestCard.id === seen.current) return;
-    const earlier = cards.findIndex((entry) => entry.id === seen.current);
-    const previousCard = cards.at(-2);
-    const target = latestCard.step === "articulate" && previousCard?.step === "explain" && previousCard.lessonId === latestCard.lessonId
-      ? cards.length - 2
-      : earlier < 0 ? cards.findIndex((entry) => entry.lessonId === latestCard.lessonId) : earlier + 1;
+    const earlier = shown.findIndex((entry) => entry.id === seen.current);
+    const previousCard = shown.at(-2);
+    const target = latestCard.step === "articulate" && previousCard?.step === "explain" ? shown.length - 2 : earlier < 0 ? 0 : earlier + 1;
     const next = scroll.current.children[target];
     if (next instanceof HTMLElement) {
       if (window.matchMedia("(max-width: 52.999rem)").matches) {
@@ -46,7 +47,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
       }
     }
     seen.current = latestCard.id;
-  }, [cards, visible]);
+  }, [shown, visible]);
 
   return (
     <>
@@ -54,16 +55,16 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
         <BookOpen aria-hidden="true" />
         <div className="lesson-pane-title">
           {lesson && <span className="lesson-pane-mode">Learning mode</span>}
-          <h2>{lesson ? lessonTitle ?? "Learning" : "Learning"}</h2>
+          <h2>{lessonTitle ?? "Learning"}</h2>
         </div>
         {outcome && <span className="ml-auto text-xs font-medium text-muted-foreground" role="status">
           {outcome === "completed" ? "Completed" : "Ended early · Read-only"}
         </span>}
       </header>
       {waiting && <div className="lesson-pending" role="status"><Sparkles aria-hidden="true" />{waiting}</div>}
-      {cards.length ? (
+      {shown.length ? (
         <div className="workspace-learn-cards" ref={scroll} role="log" aria-label="Lesson cards">
-          {cards.map((entry) => {
+          {shown.map((entry) => {
             const submitted = answers.get(entry.id);
             const endedEarly = outcomes.get(entry.lessonId) === "abandoned";
             return (

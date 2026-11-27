@@ -261,8 +261,8 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
   await page.getByRole("textbox", { name: "Message" }).fill(question);
   await page.getByRole("button", { name: "Ask", exact: true }).click();
   await expect(card(page, "Probe").last().getByRole("textbox", { name: "Answer" })).toBeEnabled();
-  await expect(card(page, "Probe").first()).toContainText("No prediction submitted.");
-  await expect(card(page, "Probe").first().getByRole("button")).toHaveCount(0);
+  // Each Lesson stands alone: the abandoned one is reached with Review once back at work.
+  await expect(card(page, "Probe")).toHaveCount(1);
   expect(workspace.timeline.entries().findLast((e) => e.kind === "impasse")).toMatchObject({
     impasse: { trigger: "ask_why", text: question },
   });
@@ -274,6 +274,18 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
   await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
   await expect(askWhy(page)).toBeEnabled();
   await expect(why(page).first()).toBeEnabled();
+
+  // Review reopens an earlier Lesson read-only, without changing the Mode.
+  await page.getByRole("button", { name: "Review", exact: true }).first().click();
+  await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
+  await expect(card(page, "Probe")).toContainText("No prediction submitted.");
+  await expect(card(page, "Probe").getByRole("textbox")).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeDisabled();
+  await expect(why(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "Message" })).toBeEnabled();
+  await expect(why(page).first()).toBeEnabled();
+  expect(workspace.timeline.entries().findLast((e) => e.kind === "mode_change")).toMatchObject({ mode: "work" });
 });
 
 test.describe("fixture teaching", () => {
@@ -309,7 +321,7 @@ test.describe("fixture teaching", () => {
     await expect(completed).toHaveCount(2);
     await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
     await expect(card(page, "Explanation").last()).toContainText("Check the session lookup");
-    await expect(card(page, "Articulation")).toHaveCount(1);
+    await expect(card(page, "Articulation")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Back to work", exact: true })).toHaveCount(0);
     await expect(askWhy(page)).toBeEnabled();
     await expect(message).toHaveAttribute("placeholder", "Message your agent…");
