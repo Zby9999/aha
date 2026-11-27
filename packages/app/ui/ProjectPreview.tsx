@@ -4,6 +4,7 @@ import { ExternalLinkIcon, GlobeIcon, MonitorIcon, ReloadIcon } from "@/componen
 import { IconAction } from "@/components/icon-action";
 import { CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton } from "@/components/ui/code-block";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 
 const START_EXAMPLE = "cd examples/portfolio\nnpm install\nnpm start";
@@ -20,6 +21,19 @@ function safePreviewUrl(href: string): URL | null {
   } catch {
     return null;
   }
+}
+
+/** What the address bar shows for a URL: no scheme, like a browser's bar. */
+function displayAddress(url: URL): string {
+  return `${url.host}${url.pathname}${url.search}${url.hash}`;
+}
+
+/** An address typed into the bar: a path opens on the current preview host, a bare host gets http://. */
+function typedPreviewUrl(input: string, base: URL | null): URL | null {
+  const text = input.trim();
+  if (!text) return null;
+  if (text.startsWith("/")) return base ? safePreviewUrl(new URL(text, base).href) : null;
+  return safePreviewUrl(/^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : `http://${text}`);
 }
 
 /** Without a backend-run preview: VITE_AHA_PREVIEW_URL, or port 3000 on this host (the portfolio's `npm start`). */
@@ -52,8 +66,32 @@ function usePreviewUrl(): { url: URL | null; managed: boolean } | undefined {
 
 export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_edit"> }) {
   const preview = usePreviewUrl();
-  const url = preview?.url ?? null;
+  // An address the user typed replaces the project's own until the page reloads.
+  const [typed, setTyped] = useState<URL | null>(null);
+  const url = typed ?? preview?.url ?? null;
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
   const [refresh, setRefresh] = useState(0);
+
+  const editAddress = (value: string) => {
+    setDraft(value);
+    setInvalid(false);
+  };
+  const resetAddress = () => {
+    setDraft(null);
+    setInvalid(false);
+  };
+  const goTo = (input: string) => {
+    const next = typedPreviewUrl(input, url);
+    if (!next) {
+      setInvalid(true);
+      return false;
+    }
+    setTyped(next);
+    resetAddress();
+    setRefresh((count) => count + 1);
+    return true;
+  };
   // Reload a moment after each edit, so a server edit has restarted the project first.
   const editKey = `${lastEdit?.id ?? ""}:${lastEdit?.at ?? ""}`;
   const [reloadedEdit, setReloadedEdit] = useState(editKey);
@@ -92,8 +130,36 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
     <>
       <header className="workspace-pane-heading">
         <h2 className="sr-only">Live preview</h2>
-        <GlobeIcon aria-hidden="true" />
-        <span className="workspace-preview-url" title={url?.href}>{url ? `${url.host}${url.pathname}` : "No preview address"}</span>
+        <form
+          className="workspace-preview-address"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const input = event.currentTarget.elements.namedItem("address") as HTMLInputElement;
+            if (goTo(input.value)) input.blur();
+          }}
+        >
+          <InputGroup className="h-8 border-transparent bg-transparent shadow-none hover:bg-muted has-[input:focus-visible]:bg-background">
+            <InputGroupAddon><GlobeIcon /></InputGroupAddon>
+            <InputGroupInput
+              name="address"
+              aria-label="Preview address"
+              aria-invalid={invalid || undefined}
+              title={invalid ? "Enter an http or https address, or a path such as /about" : url?.href}
+              placeholder="Enter an address or a path"
+              spellCheck={false}
+              autoComplete="off"
+              value={draft ?? (url ? displayAddress(url) : "")}
+              onChange={(event) => editAddress(event.target.value)}
+              onFocus={(event) => event.currentTarget.select()}
+              onBlur={resetAddress}
+              onKeyDown={(event) => {
+                if (event.key !== "Escape") return;
+                resetAddress();
+                event.currentTarget.blur();
+              }}
+            />
+          </InputGroup>
+        </form>
         <div className="workspace-preview-actions">
           <IconAction label="Refresh preview" disabled={!url} onClick={() => setRefresh((count) => count + 1)}>
             <ReloadIcon />

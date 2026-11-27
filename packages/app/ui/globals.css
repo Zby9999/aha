@@ -231,9 +231,10 @@
 .workspace-input { border-radius: calc(var(--radius) + 0.65rem); background: var(--card); box-shadow: 0 4px 16px var(--workspace-shadow); }
 .workspace-input textarea { font-size: 1rem; }
 .workspace-preview { background: var(--workspace-canvas); }
-.workspace-preview-actions { display: flex; gap: 0.15rem; margin-inline-start: auto; }
+.workspace-preview-actions { display: flex; flex: none; gap: 0.15rem; margin-inline-start: auto; }
 
-.workspace-preview-url { min-width: 0; overflow: hidden; color: var(--muted-foreground); font-size: 0.875rem; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-preview-address { min-width: 0; flex: 1; margin-inline-start: -0.5rem; }
+.workspace-preview-address input { text-overflow: ellipsis; }
 
 /* The project page fills the pane; the last edit sits in a thin bar under it. */
 .workspace-preview-canvas { display: flex; min-height: 0; flex: 1; flex-direction: column; }

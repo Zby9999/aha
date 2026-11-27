@@ -316,6 +316,25 @@ test("the side panel collapses, header buttons switch its view, and a Lesson ope
   await expect(view(page, "Learning panel")).toBeVisible();
 });
 
+test("the preview address bar opens typed addresses and paths, and rejects others", async ({ page, workspace: _workspace }) => {
+  const address = view(page, "Live preview").getByRole("textbox", { name: "Preview address" });
+  const frame = view(page, "Live preview").getByTitle("Project preview");
+  await address.fill("javascript:alert(1)");
+  await address.press("Enter");
+  await expect(address).toHaveAttribute("aria-invalid", "true");
+  await address.press("Escape");
+  await expect(address).not.toHaveAttribute("aria-invalid");
+
+  await address.fill("127.0.0.1:9/start");
+  await address.press("Enter");
+  await expect(address).toHaveValue("127.0.0.1:9/start");
+  await address.fill("/next?page=2");
+  await address.press("Enter");
+  await expect(address).toHaveValue("127.0.0.1:9/next?page=2");
+  await expect(view(page, "Live preview").getByLabel("Open preview in new tab")).toHaveAttribute("href", "http://127.0.0.1:9/next?page=2");
+  await expect(frame).toHaveCount(0);
+});
+
 test.describe("fixture teaching", () => {
   test.use({ teachingImplementation: "real" });
 
