@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
-import { BookIcon, FolderIcon, MonitorIcon, SidebarCloseIcon, SidebarOpenIcon, SparkleIcon } from "@/components/icons";
+import { AhaMascot } from "@/components/AhaMascot";
+import { BookIcon, FolderIcon, MonitorIcon, SidebarCloseIcon, SidebarOpenIcon } from "@/components/icons";
 import { MemoryPanel } from "./MemoryPanel.tsx";
 import { useMediaQuery } from "./hooks/use-media-query.ts";
 import { IconAction } from "@/components/icon-action";
@@ -88,7 +89,7 @@ export function Workspace({ projectName, modeChange, defaultTab, children, previ
       <header className="workspace-header">
         <div className="workspace-identity">
           <div className="workspace-brand">
-            <span className="workspace-brand-mark"><SparkleIcon aria-hidden="true" /></span>
+            <AhaMascot className="workspace-brand-mark" />
             <h1>Aha</h1>
           </div>
           <div className="workspace-project">

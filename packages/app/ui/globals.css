@@ -44,6 +44,9 @@
   --workspace-accent: oklch(0.38 0.087 193);
   --workspace-accent-surface: oklch(0.933 0.041 188);
   --workspace-shadow: oklch(0.23 0.025 250 / 10%);
+  --mascot-body: oklch(0.74 0.15 163);
+  --mascot-eye: oklch(0.99 0.01 163);
+  --mascot-pupil: oklch(0.24 0.04 190);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -73,6 +76,7 @@
     --workspace-accent: oklch(0.82 0.095 185);
     --workspace-accent-surface: oklch(0.29 0.047 191);
     --workspace-shadow: oklch(0.12 0.025 250 / 45%);
+    --mascot-body: oklch(0.76 0.15 163);
   }
 }
 
@@ -149,7 +153,6 @@
 .workspace-brand { gap: 0.65rem; }
 .workspace-brand h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.025em; }
 
-.workspace-brand-mark,
 .workspace-reply-mark {
   display: grid;
   flex: none;
@@ -158,13 +161,7 @@
   color: var(--workspace-accent);
 }
 
-.workspace-brand-mark {
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: var(--radius);
-}
-
-.workspace-brand-mark svg { width: 1.2rem; height: 1.2rem; }
+.workspace-brand-mark { width: 2.25rem; height: 2.25rem; flex: none; }
 
 .workspace-project {
   min-width: 0;
@@ -223,7 +220,8 @@
 }
 
 .workspace-pane-heading h2 { font-size: 0.875rem; font-weight: 600; }
-.workspace-pane-heading > svg { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
+.workspace-pane-heading > .aha-mascot { flex: none; width: 1.75rem; height: 1.75rem; margin-block: -0.25rem; }
+.workspace-pane-heading > svg:not(.aha-mascot) { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground); }
 .workspace-learn .workspace-pane-heading > svg { color: var(--workspace-accent); }
 .workspace-chat-content { max-width: 47rem; margin-inline: auto; padding: 1.25rem clamp(0.7rem, 2vw, 1.5rem) 4rem; }
 .workspace-reply-mark { width: 2rem; height: 2rem; }
@@ -501,3 +499,36 @@
   .workspace-project { max-width: 10rem; }
 }
 .workspace-connection-error { width: auto; margin-inline: clamp(0.85rem, 2vw, 1.65rem); }
+
+/* Aha mascot: idle breathes, blinks and glances; thinking tilts and puffs thought dots. */
+.aha-mascot { overflow: visible; }
+.aha-mascot g { transform-box: view-box; }
+.aha-mascot-body { transform-origin: 24px 43px; animation: mascot-breathe 3.6s ease-in-out infinite; }
+.aha-mascot-eyes { transform-origin: 22px 27px; animation: mascot-blink 5.2s infinite; }
+.aha-mascot-pupils { animation: mascot-glance 8s ease-in-out infinite; }
+.aha-mascot[data-mood="thinking"] .aha-mascot-sway { transform-origin: 24px 43px; animation: mascot-ponder 3s ease-in-out infinite; }
+.aha-mascot[data-mood="thinking"] .aha-mascot-pupils { animation: mascot-look-up 3s ease-in-out infinite; }
+.aha-mascot-thought circle { transform-box: fill-box; transform-origin: center; opacity: 0; animation: mascot-thought 2.4s ease-out infinite; }
+.aha-mascot-thought circle:nth-child(2) { animation-delay: .3s; }
+.aha-mascot-thought circle:nth-child(3) { animation-delay: .6s; }
+
+@keyframes mascot-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .965); } }
+@keyframes mascot-blink { 0%, 90%, 96%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.12); } }
+@keyframes mascot-glance {
+  0%, 22%, 92%, 100% { transform: translate(0, 0); }
+  28%, 46% { transform: translate(-1.6px, .5px); }
+  54%, 80% { transform: translate(1.6px, -.6px); }
+}
+@keyframes mascot-ponder { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(3deg); } }
+@keyframes mascot-look-up { 0%, 100% { transform: translate(1.4px, -2.3px); } 50% { transform: translate(.4px, -2.6px); } }
+@keyframes mascot-thought {
+  0% { opacity: 0; transform: scale(.3); }
+  25%, 70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.9); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aha-mascot *, .aha-mascot-thought circle { animation: none !important; }
+  .aha-mascot-thought circle { opacity: 1; }
+  .aha-mascot[data-mood="thinking"] .aha-mascot-pupils { transform: translate(1.4px, -2.3px); }
+}
