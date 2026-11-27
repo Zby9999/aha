@@ -276,7 +276,7 @@ function ToolLine({ item }: { item: Extract<ViewItem, { type: "tool" }> }) {
         <TraceCollapsibleTrigger>
           <TraceLine status={failed ? "error" : undefined}>
             <TraceIcon>{icon}</TraceIcon>
-            <TraceTitle>{failed ? `Failed to ${running.toLowerCase()}` : done} {target}</TraceTitle>
+            <TraceTitle>{done} {target}{failed && " (failed)"}</TraceTitle>
           </TraceLine>
         </TraceCollapsibleTrigger>
         <TraceCollapsibleContent>
@@ -322,11 +322,14 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       );
     case "error":
       return (
-        <p role={entry.source === "app" ? "alert" : undefined} className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertTriangle className="size-4" />
-          {entry.message}
-          {entry.path && <span className="font-mono text-xs opacity-80">{entry.path}</span>}
-        </p>
+        <div role={entry.source === "app" ? "alert" : undefined} className="flex min-w-0 items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          {/* Tool errors can be long and contain unbroken JSON: wrap anywhere and keep Pi's line breaks. */}
+          <p className="min-w-0 flex-1 whitespace-pre-wrap wrap-anywhere">
+            {entry.message}
+            {entry.path && <span className="ms-2 font-mono text-xs opacity-80">{entry.path}</span>}
+          </p>
+        </div>
       );
     case "impasse":
       // The user's own Ask why question shows as their turn; an explicit Why uses a quiet line.
@@ -351,7 +354,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       return (
         <div role="alert" className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           <AlertTriangle className="size-4 shrink-0" />
-          <span className="flex-1">{entry.message} Your answer is saved.</span>
+          <span className="min-w-0 flex-1 wrap-anywhere">{entry.message} Your answer is saved.</span>
           {canRetry && (
             <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
               <RotateCw />
