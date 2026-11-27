@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import type { TimelineEntryOf } from "@aha/contracts";
 import { ExternalLink, Globe2, Monitor, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { IconAction } from "@/components/icon-action";
+import { CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton } from "@/components/ui/code-block";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+
+const START_EXAMPLE = "cd examples/portfolio\nnpm install\nnpm start";
 
 /** Time for `node --watch` to restart the project after a server edit before the frame reloads. */
 const RELOAD_DELAY_MS = 1200;
@@ -88,14 +93,12 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
       <header className="workspace-pane-heading">
         <Monitor aria-hidden="true" /><h2>Live preview</h2>
         <div className="workspace-preview-actions">
-          <Button size="icon-sm" variant="ghost" aria-label="Refresh preview" title="Refresh preview" disabled={!url}
-            onClick={() => setRefresh((count) => count + 1)}>
+          <IconAction label="Refresh preview" disabled={!url} onClick={() => setRefresh((count) => count + 1)}>
             <RefreshCw />
-          </Button>
-          {url && <Button size="icon-sm" variant="ghost" aria-label="Open preview in new tab" title="Open in new tab"
-            nativeButton={false} render={<a href={url.href} target="_blank" rel="noopener noreferrer" />}>
+          </IconAction>
+          {url && <IconAction label="Open preview in new tab" nativeButton={false} render={<a href={url.href} target="_blank" rel="noopener noreferrer" />}>
             <ExternalLink />
-          </Button>}
+          </IconAction>}
         </div>
       </header>
       <div className="workspace-preview-canvas">
@@ -113,22 +116,28 @@ export function ProjectPreview({ lastEdit }: { lastEdit?: TimelineEntryOf<"file_
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="workspace-empty workspace-preview-empty">
-              <span className="workspace-empty-icon"><Monitor aria-hidden="true" /></span>
-              <h3>{checking ? "Connecting to preview…" : "Preview unavailable"}</h3>
-              {!checking && (url ? (
-                preview?.managed ? (
-                  <p>Aha is starting your project. Refresh the preview in a moment.</p>
-                ) : import.meta.env.VITE_AHA_PREVIEW_URL ? (
-                  <p>Start the project server, then refresh the preview.</p>
-                ) : (
-                  <>
-                    <p>Start the portfolio example, then refresh the preview.</p>
-                    <code>cd examples/portfolio<br />npm install<br />npm start</code>
-                  </>
-                )
-              ) : <p>Set VITE_AHA_PREVIEW_URL to an HTTP or HTTPS address on a different origin.</p>)}
-            </div>
+            <Empty className="workspace-preview-empty">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">{checking ? <Spinner aria-hidden="true" /> : <Monitor aria-hidden="true" />}</EmptyMedia>
+                <EmptyTitle role="heading" aria-level={3}>{checking ? "Connecting to preview…" : "Preview unavailable"}</EmptyTitle>
+                {!checking && (
+                  <EmptyDescription>
+                    {!url ? "Set VITE_AHA_PREVIEW_URL to an HTTP or HTTPS address on a different origin." :
+                      preview?.managed ? "Aha is starting your project. Refresh the preview in a moment." :
+                      import.meta.env.VITE_AHA_PREVIEW_URL ? "Start the project server, then refresh the preview." :
+                      "Start the portfolio example, then refresh the preview."}
+                  </EmptyDescription>
+                )}
+              </EmptyHeader>
+              {!checking && url && !preview?.managed && !import.meta.env.VITE_AHA_PREVIEW_URL && (
+                <EmptyContent>
+                  <CodeBlock size="sm" className="text-start">
+                    <CodeBlockActions><CodeBlockCopyButton value={START_EXAMPLE} /></CodeBlockActions>
+                    <CodeBlockContent>{START_EXAMPLE}</CodeBlockContent>
+                  </CodeBlock>
+                </EmptyContent>
+              )}
+            </Empty>
           )}
         </div>
         <p className="workspace-preview-footer" role="status">

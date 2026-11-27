@@ -4,6 +4,7 @@ import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
 import { BookOpen, FolderCode, Monitor, PanelRightClose, PanelRightOpen, Sparkles } from "lucide-react";
 import { MemoryPanel } from "./MemoryPanel.tsx";
 import { useMediaQuery } from "./hooks/use-media-query.ts";
+import { IconAction } from "@/components/icon-action";
 import { Button } from "@/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
@@ -105,15 +106,12 @@ export function Workspace({ projectName, modeChange, defaultTab, children, previ
             <BookOpen data-icon="inline-start" />Memory
           </Button>
           {wide && (
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              aria-label={collapsed ? "Show side panel" : "Hide side panel"}
-              title={collapsed ? "Show side panel" : "Hide side panel"}
+            <IconAction
+              label={collapsed ? "Show side panel" : "Hide side panel"}
               onClick={() => (collapsed ? panel.current?.expand() : panel.current?.collapse())}
             >
               {collapsed ? <PanelRightOpen /> : <PanelRightClose />}
-            </Button>
+            </IconAction>
           )}
         </div>
       </header>

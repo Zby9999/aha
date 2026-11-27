@@ -9,6 +9,9 @@ import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
 import { Workspace } from "./Workspace.tsx";
 import { DiffBlock } from "@/components/diff-block";
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
+import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Message, MessageAvatar, MessageContent, MessageHeader } from "@/components/ui/message";
@@ -115,7 +118,12 @@ export function App() {
           <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
-      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
+      {error && (
+        <Alert variant="destructive" className="workspace-connection-error">
+          <AlertTriangle />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <form
         ref={formRef}
         className="workspace-composer relative"
@@ -252,9 +260,12 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
             <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
           ))}
           {pending && !runningTool && (
-            <p className="text-sm text-muted-foreground" role="status">
-              {parts.length ? "Waiting for the reply" : "Working on your request"}
-            </p>
+            <Trace role="status">
+              <TraceLine status="running">
+                <TraceIcon><Spinner aria-hidden="true" /></TraceIcon>
+                <TraceTitle>{parts.length ? "Waiting for the reply" : "Working on your request"}</TraceTitle>
+              </TraceLine>
+            </Trace>
           )}
         </MessageContent>
       </Message>
@@ -320,14 +331,15 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       );
     case "error":
       return (
-        <div role={entry.source === "app" ? "alert" : undefined} className="flex min-w-0 items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-          {/* Tool errors can be long and contain unbroken JSON: wrap anywhere and keep Pi's line breaks. */}
-          <p className="min-w-0 flex-1 whitespace-pre-wrap wrap-anywhere">
+        // Only the app's own errors interrupt a screen reader; the agent's are part of its reply.
+        <Alert variant="destructive" role={entry.source === "app" ? "alert" : undefined} className="min-w-0">
+          <AlertTriangle />
+          {/* Errors can be long and contain unbroken JSON: wrap anywhere and keep Pi's line breaks. */}
+          <AlertDescription className="min-w-0 whitespace-pre-wrap wrap-anywhere">
             {entry.message}
             {entry.path && <span className="ms-2 font-mono text-xs opacity-80">{entry.path}</span>}
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
       );
     case "impasse":
       // The user's own Ask why question shows as their turn; an explicit Why uses a quiet line.
@@ -350,16 +362,18 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       return <UserMessage>{entry.text}</UserMessage>;
     case "lesson_error":
       return (
-        <div role="alert" className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <AlertTriangle className="size-4 shrink-0" />
-          <span className="min-w-0 flex-1 wrap-anywhere">{entry.message} Your answer is saved.</span>
+        <Alert variant="destructive">
+          <AlertTriangle />
+          <AlertDescription className="wrap-anywhere">{entry.message} Your answer is saved.</AlertDescription>
           {canRetry && (
-            <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
-              <RotateCw />
-              Retry
-            </Button>
+            <AlertAction>
+              <Button size="xs" variant="outline" onClick={() => dispatch({ type: "retry_answer", lessonId: entry.lessonId, cardEntryId: entry.cardEntryId })}>
+                <RotateCw />
+                Retry
+              </Button>
+            </AlertAction>
           )}
-        </div>
+        </Alert>
       );
     case "lesson_end":
       return (

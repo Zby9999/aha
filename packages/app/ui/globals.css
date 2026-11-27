@@ -150,8 +150,7 @@
 .workspace-brand h1 { font-size: 1.2rem; font-weight: 680; letter-spacing: -0.04em; }
 
 .workspace-brand-mark,
-.workspace-reply-mark,
-.workspace-empty-icon {
+.workspace-reply-mark {
   display: grid;
   flex: none;
   place-items: center;
@@ -275,31 +274,8 @@
 .workspace-preview-footer code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-learn { background: var(--background); }
 
-.workspace-empty {
-  display: flex;
-  min-height: 12rem;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 1.2rem;
-  text-align: center;
-}
-
-.workspace-empty-icon { width: 2.75rem; height: 2.75rem; border-radius: calc(var(--radius) + 0.3rem); }
-.workspace-empty-icon svg { width: 1.3rem; height: 1.3rem; }
-.workspace-preview-empty .workspace-empty-icon { background: var(--muted); color: var(--muted-foreground); }
-.workspace-empty h3 { font-size: 1rem; font-weight: 650; letter-spacing: -0.015em; }
-.workspace-empty p { max-width: 29ch; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.65; }
-.workspace-empty code {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--muted);
-  text-align: start;
-  font-size: 0.75rem;
-}
+/* Empty states (shadcn Empty) fill the pane they sit in. */
+[data-slot="empty"] { flex: 1; }
 
 .workspace-learn-cards {
   position: relative;
@@ -524,3 +500,4 @@
 @media (max-width: 30rem) {
   .workspace-project { max-width: 10rem; }
 }
+.workspace-connection-error { width: auto; margin-inline: clamp(0.85rem, 2vw, 1.65rem); }

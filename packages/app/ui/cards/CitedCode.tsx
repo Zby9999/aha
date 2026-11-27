@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useHighlightedCode } from "../hooks/use-highlighted-code.ts";
 import { CodeBlock, CodeBlockContent, CodeBlockLine } from "../components/ui/code-block.tsx";
+import { Spinner } from "../components/ui/spinner.tsx";
 
 /** Lines shown around each cited range, so the cited lines read in context. */
 const CONTEXT = 2;
@@ -42,7 +43,9 @@ export function CitedCode({ path, ranges }: { path: string; ranges: LineRange[] 
   const highlighted = useHighlightedCode(state.text ?? "", language);
 
   if (state.failed) return <p className="px-1 py-2 text-xs text-muted-foreground">This file can't be shown here.</p>;
-  if (state.text === undefined) return <p className="px-1 py-2 text-xs text-muted-foreground" role="status">Loading {path}…</p>;
+  if (state.text === undefined) {
+    return <p className="flex items-center gap-2 px-1 py-2 text-xs text-muted-foreground" role="status"><Spinner aria-hidden="true" />Loading {path}…</p>;
+  }
 
   const total = highlighted.length;
   const windows = merge((ranges.length ? ranges : [{ start: 1, end: Math.min(total, UNRANGED_LINES) }]).map(({ start, end }) => ({

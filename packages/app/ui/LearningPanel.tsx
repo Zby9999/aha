@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import { activeLesson, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
-import { BookOpen, LoaderCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { lessonProgress } from "./timelineView.ts";
@@ -55,9 +58,9 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
           {lesson && <span className="lesson-pane-mode">Learning mode</span>}
           <h2>{lessonTitle ?? "Learning"}</h2>
         </div>
-        {outcome && <span className="ml-auto text-xs font-medium text-muted-foreground" role="status">
+        {outcome && <Badge variant="secondary" className="ml-auto" role="status">
           {outcome === "completed" ? "Completed" : "Ended early · Read-only"}
-        </span>}
+        </Badge>}
       </header>
       {waiting && !shown.length && <LessonProgress label={waiting} />}
       {shown.length ? (
@@ -85,10 +88,13 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
           {waiting && <LessonProgress label={waiting} />}
         </div>
       ) : (
-        !waiting && <div className="workspace-empty">
-          <h3>Understand a code change</h3>
-          <p>Choose <strong>Why?</strong> next to an edit or turn on <strong>Ask why</strong> below the conversation.</p>
-        </div>
+        !waiting && <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><BookOpen aria-hidden="true" /></EmptyMedia>
+            <EmptyTitle role="heading" aria-level={3}>Understand a code change</EmptyTitle>
+            <EmptyDescription>Choose <strong>Why?</strong> next to an edit or turn on <strong>Ask why</strong> below the conversation.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
     </>
   );
@@ -99,7 +105,7 @@ function LessonProgress({ label }: { label: string }) {
   return (
     <Trace className="lesson-pending" role="status">
       <TraceLine status="running">
-        <TraceIcon><LoaderCircle className="animate-spin" /></TraceIcon>
+        <TraceIcon><Spinner aria-hidden="true" /></TraceIcon>
         <TraceTitle>{label}</TraceTitle>
       </TraceLine>
     </Trace>
