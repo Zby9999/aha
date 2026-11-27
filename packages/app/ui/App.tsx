@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { activeLesson, isKind, probeCardSchema, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
+import { activeLesson, isKind, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
 import { AhaMascot } from "@/components/AhaMascot";
 import { AlertIcon, ArrowLeftIcon, ArrowUpIcon, EditFileIcon, HelpIcon, HistoryIcon, IdeaIcon, LearnIcon, RetryIcon } from "@/components/icons";
 import { AgentSteps } from "./AgentSteps.tsx";
@@ -43,7 +43,6 @@ export function App() {
   const [reviewRequest, setReviewRequest] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
   const lessonCards = entries.filter((entry) => isKind(entry, "lesson_card"));
-  const cardsById = new Map(lessonCards.map((entry) => [entry.id, entry]));
   const lessonAnswers = new Map(entries.flatMap((entry) => entry.kind === "card_answer" ? [[entry.cardEntryId, entry.answer] as const] : []));
   const flaggedExplanations = new Set(entries.flatMap((entry) => entry.kind === "explanation_flagged" ? [entry.cardEntryId] : []));
   const lastLessonId = entries.findLast((entry) => isKind(entry, "lesson_start"))?.lessonId;
@@ -111,7 +110,7 @@ export function App() {
                   // Items use content-visibility, which clips paint at their box: leave room for card rings and shadows.
                   className="p-1"
                 >
-                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} onReview={learning || reviewing ? undefined : setReviewRequest} />
+                  <ViewItemView item={item} dispatch={dispatch} session={session} connected={connected} onReview={learning || reviewing ? undefined : setReviewRequest} />
                 </MessageScrollerItem>
               ))}
             </MessageScrollerContent>
@@ -234,14 +233,13 @@ export function App() {
   );
 }
 
-function ViewItemView({ item, dispatch, session, connected, cardsById, onReview }: {
+function ViewItemView({ item, dispatch, session, connected, onReview }: {
   item: ConversationItem;
   /** Opens a past Lesson's conversation; absent while a Lesson runs or is being reviewed. */
   onReview?: ((lessonId: string) => void) | undefined;
   dispatch: Dispatch;
   session: SessionView;
   connected: boolean;
-  cardsById: ReadonlyMap<string, TimelineEntryOf<"lesson_card">>;
 }) {
   if (item.type === "agent_turn" || item.type === "agent_message") {
     const parts = item.type === "agent_turn" ? item.parts : [item];
@@ -255,7 +253,7 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
           {replyParts(parts).map((part) => part.type === "agent_message" ? (
             <Markdown key={part.key} streaming={part.streaming}>{part.text}</Markdown>
           ) : part.type === "steps" ? <AgentSteps key={part.key} steps={part.steps} /> : (
-            <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} cardsById={cardsById} />
+            <ViewItemView key={part.key} item={part} dispatch={dispatch} session={session} connected={connected} />
           ))}
           {pending && !runningTool && (
             <Trace role="status">
@@ -271,9 +269,6 @@ function ViewItemView({ item, dispatch, session, connected, cardsById, onReview 
   }
   if (item.type === "tool") return <AgentSteps steps={[item]} />;
   const { entry } = item;
-  if (entry.kind === "card_answer") {
-    return <UserMessage>{answerText(entry.answer, cardsById.get(entry.cardEntryId))}</UserMessage>;
-  }
   return (
     <Entry
       entry={entry}
@@ -303,7 +298,7 @@ function Meta({ icon, children }: { icon?: React.ReactNode; children: React.Reac
 }
 
 function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
-  entry: Exclude<TimelineEntry, TimelineEntryOf<"card_answer">>;
+  entry: TimelineEntry;
   dispatch: Dispatch;
   done: boolean;
   canStartLesson: boolean;
@@ -393,6 +388,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
     case "session_end":
     case "lesson_start":
     case "lesson_card":
+    case "card_answer":
     case "mode_change":
     case "answer_assessment":
     case "lesson_answer_recovered":
@@ -402,12 +398,3 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
   }
 }
 
-function answerText(answer: CardAnswer, card: TimelineEntryOf<"lesson_card"> | undefined): string {
-  if (answer.type === "choice") {
-    const root = card?.card.elements[card.card.root];
-    const probe = probeCardSchema.safeParse(root?.props);
-    return probe.data?.options?.find((option) => option.id === answer.optionId)?.label ?? "Prediction submitted.";
-  }
-  if (answer.type === "text") return answer.text;
-  return answer.addressesCause ? "The fix addresses the cause." : `The fix only hides the symptom. ${answer.reason ?? ""}`;
-}
