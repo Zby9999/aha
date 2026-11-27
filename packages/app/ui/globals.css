@@ -44,9 +44,9 @@
   --workspace-accent: oklch(0.38 0.087 193);
   --workspace-accent-surface: oklch(0.933 0.041 188);
   --workspace-shadow: oklch(0.23 0.025 250 / 10%);
-  --mascot-body: oklch(0.74 0.15 163);
-  --mascot-eye: oklch(0.99 0.01 163);
-  --mascot-pupil: oklch(0.24 0.04 190);
+  --mascot-body: oklch(0.62 0.18 295);
+  --mascot-eye: oklch(0.99 0.008 295);
+  --mascot-pupil: oklch(0.22 0.05 295);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -76,7 +76,7 @@
     --workspace-accent: oklch(0.82 0.095 185);
     --workspace-accent-surface: oklch(0.29 0.047 191);
     --workspace-shadow: oklch(0.12 0.025 250 / 45%);
-    --mascot-body: oklch(0.76 0.15 163);
+    --mascot-body: oklch(0.68 0.17 295);
   }
 }
 
@@ -504,7 +504,7 @@
 .aha-mascot { overflow: visible; }
 .aha-mascot g { transform-box: view-box; }
 .aha-mascot-body { transform-origin: 24px 43px; animation: mascot-breathe 3.6s ease-in-out infinite; }
-.aha-mascot-eyes { transform-origin: 22px 27px; animation: mascot-blink 5.2s infinite; }
+.aha-mascot-eyes { transform-origin: 22px 26.5px; animation: mascot-blink 5.2s infinite; }
 .aha-mascot-pupils { animation: mascot-glance 8s ease-in-out infinite; }
 .aha-mascot[data-mood="thinking"] .aha-mascot-sway { transform-origin: 24px 43px; animation: mascot-ponder 3s ease-in-out infinite; }
 .aha-mascot[data-mood="thinking"] .aha-mascot-pupils { animation: mascot-look-up 3s ease-in-out infinite; }
@@ -515,20 +515,60 @@
 @keyframes mascot-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .965); } }
 @keyframes mascot-blink { 0%, 90%, 96%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.12); } }
 @keyframes mascot-glance {
-  0%, 22%, 92%, 100% { transform: translate(0, 0); }
-  28%, 46% { transform: translate(-1.6px, .5px); }
-  54%, 80% { transform: translate(1.6px, -.6px); }
+  0%, 30%, 90%, 100% { transform: translate(1.6px, .8px); }
+  38%, 54% { transform: translate(-1.6px, .8px); }
+  62%, 80% { transform: translate(1.2px, -1.2px); }
 }
 @keyframes mascot-ponder { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(3deg); } }
-@keyframes mascot-look-up { 0%, 100% { transform: translate(1.4px, -2.3px); } 50% { transform: translate(.4px, -2.6px); } }
+@keyframes mascot-look-up { 0%, 100% { transform: translate(1.6px, -2.4px); } 50% { transform: translate(.6px, -2.6px); } }
 @keyframes mascot-thought {
   0% { opacity: 0; transform: scale(.3); }
   25%, 70% { opacity: 1; transform: scale(1); }
   100% { opacity: 0; transform: scale(.9); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .aha-mascot *, .aha-mascot-thought circle { animation: none !important; }
-  .aha-mascot-thought circle { opacity: 1; }
-  .aha-mascot[data-mood="thinking"] .aha-mascot-pupils { transform: translate(1.4px, -2.3px); }
+/* Lesson-card props: each kind of card gives the mascot something to do. */
+.aha-mascot[data-accessory] .aha-mascot-prop { transform-box: fill-box; }
+.aha-mascot[data-accessory="signpost"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-sign 3.2s ease-in-out infinite; }
+.aha-mascot[data-accessory="envelope"] .aha-mascot-prop { animation: mascot-send 2.8s ease-in-out infinite; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle { transform-box: view-box; animation: mascot-flow 1.2s linear infinite; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle:first-child { animation-name: mascot-flow-in; }
+.aha-mascot[data-accessory="flow"] .aha-mascot-prop circle:last-child { animation-name: mascot-flow-out; }
+.aha-mascot[data-accessory="cap"] .aha-mascot-prop { transform-box: view-box; }
+.aha-mascot[data-accessory="cap"] .aha-mascot-tassel { transform-box: view-box; transform-origin: 37.6px 1.3px; animation: mascot-tassel 2.6s ease-in-out infinite; }
+.aha-mascot[data-accessory="bulb"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-bulb 2.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="bulb"] .aha-mascot-rays { animation: mascot-rays 2.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="question"] .aha-mascot-prop { transform-origin: 50% 100%; animation: mascot-bob 2.2s ease-in-out infinite; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle { transform-box: fill-box; transform-origin: center; animation: mascot-typing 1.4s ease-in-out infinite; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle:nth-child(2) { animation-delay: .18s; }
+.aha-mascot[data-accessory="speech"] .aha-mascot-prop circle:nth-child(3) { animation-delay: .36s; }
+.aha-mascot:is([data-accessory="bulb"], [data-accessory="question"], [data-accessory="envelope"], [data-accessory="speech"]) .aha-mascot-pupils { animation: mascot-look-up 3s ease-in-out infinite; }
+.aha-mascot[data-accessory="contrast"] .aha-mascot-pupils { animation: mascot-compare 3.6s ease-in-out infinite; }
+
+@keyframes mascot-sign { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes mascot-send {
+  0% { opacity: 0; transform: translate(-6px, 5px) scale(.6); }
+  25%, 70% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(3px, -2px) scale(1); }
 }
+@keyframes mascot-flow { from { transform: translateX(0); } to { transform: translateX(8px); } }
+@keyframes mascot-flow-in { from { opacity: 0; transform: translateX(0); } to { opacity: 1; transform: translateX(8px); } }
+@keyframes mascot-flow-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(8px); } }
+@keyframes mascot-tassel { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(5deg); } }
+@keyframes mascot-bulb { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+@keyframes mascot-rays { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-1.5px) rotate(6deg); } }
+@keyframes mascot-typing { 0%, 60%, 100% { transform: translateY(0); opacity: .55; } 30% { transform: translateY(-1.2px); opacity: 1; } }
+@keyframes mascot-compare {
+  0%, 15%, 100% { transform: translate(-1.6px, .8px); }
+  50%, 65% { transform: translate(1.6px, .8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aha-mascot *, .aha-mascot-thought circle, .aha-mascot-prop circle { animation: none !important; }
+  .aha-mascot-thought circle { opacity: 1; }
+  .aha-mascot-pupils { transform: translate(1.6px, .8px); }
+  .aha-mascot[data-mood="thinking"] .aha-mascot-pupils { transform: translate(1.6px, -2.4px); }
+}
+
+.lesson-card-mascot { width: 2.75rem; height: 2.75rem; margin: -0.35rem -0.25rem -0.5rem 0.25rem; }

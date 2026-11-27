@@ -3,7 +3,8 @@ import type { Citation } from "@aha/contracts";
 import { defineRegistry } from "@json-render/react";
 import { ArrowDownIcon, ArrowRightIcon, BookIcon, BranchIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CodeFileIcon, FlagIcon } from "@/components/icons";
 import { Button } from "../components/ui/button.tsx";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
+import { AhaMascot, type MascotAccessory } from "@/components/AhaMascot";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card.tsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible.tsx";
 import { Input } from "../components/ui/input.tsx";
 import { cardCatalog } from "./catalog.ts";
@@ -123,10 +124,14 @@ function FlagExplanation() {
   );
 }
 
-function StructuredExplanation({ title, citations, children }: { title: string; citations: Citation[]; children: ReactNode }) {
+function CardMascot({ accessory }: { accessory: MascotAccessory }) {
+  return <CardAction><AhaMascot accessory={accessory} className="lesson-card-mascot" /></CardAction>;
+}
+
+function StructuredExplanation({ title, citations, accessory, children }: { title: string; citations: Citation[]; accessory: MascotAccessory; children: ReactNode }) {
   return (
     <Card aria-label="Explanation" className="lesson-reading-card min-w-0" data-diagram>
-      <CardHeader><CardTitle role="heading" aria-level={3}>{title}</CardTitle></CardHeader>
+      <CardHeader><CardTitle role="heading" aria-level={3}>{title}</CardTitle><CardMascot accessory={accessory} /></CardHeader>
       <CardContent className="grid min-w-0 gap-3">
         {children}
         <Citations citations={citations} expandable />
@@ -161,6 +166,7 @@ export const { registry } = defineRegistry(cardCatalog, {
             <span className="lesson-offer-caption"><BookIcon aria-hidden="true" />Optional lesson</span>
             <CardTitle>{props.title}</CardTitle>
             <CardDescription>{props.body}</CardDescription>
+            <CardMascot accessory="bulb" />
           </CardHeader>
           <CardFooter className="flex-wrap gap-2">
             <Button disabled={done} onClick={() => respond("accept")}>Show me why</Button>
@@ -187,6 +193,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardHeader>
             <StepLabel>Predict</StepLabel>
             <CardTitle role="heading" aria-level={3}>{props.question}</CardTitle>
+            <CardMascot accessory="question" />
           </CardHeader>
           <CardContent className="grid gap-2.5">
             {endedEarly ? (
@@ -219,6 +226,7 @@ export const { registry } = defineRegistry(cardCatalog, {
             <CardHeader>
               <StepLabel>{props.mode === "judge_fix" ? "Judge the fix" : "Put it in your own words"}</StepLabel>
               <CardTitle role="heading" aria-level={3}>{props.prompt}</CardTitle>
+              <CardMascot accessory="speech" />
             </CardHeader>
           )}
           <CardContent className="grid gap-2.5">
@@ -249,7 +257,7 @@ export const { registry } = defineRegistry(cardCatalog, {
       );
     },
     Flowchart: ({ props }) => (
-      <StructuredExplanation title={props.title} citations={props.citations}>
+      <StructuredExplanation title={props.title} citations={props.citations} accessory="signpost">
         <div className="lesson-process">
           <ProcessSteps steps={props.steps} label="Process steps" />
           {props.decision && (
@@ -276,7 +284,7 @@ export const { registry } = defineRegistry(cardCatalog, {
       </StructuredExplanation>
     ),
     ContrastView: ({ props }) => (
-      <StructuredExplanation title={props.title} citations={props.citations}>
+      <StructuredExplanation title={props.title} citations={props.citations} accessory="contrast">
         <p className="lesson-comparison-takeaway">{props.takeaway}</p>
         <div className="lesson-comparison">
           <div className="lesson-comparison-head" aria-hidden="true">
@@ -297,7 +305,7 @@ export const { registry } = defineRegistry(cardCatalog, {
     SequenceDiagram: ({ props }) => {
       const lanes = new Map(props.participants.map(({ id, label }, index) => [id, { position: index + 1, label }]));
       return (
-        <StructuredExplanation title={props.title} citations={props.citations}>
+        <StructuredExplanation title={props.title} citations={props.citations} accessory="envelope">
           <div className="lesson-sequence" style={{ "--sequence-lanes": lanes.size } as CSSProperties}>
             <div className="lesson-sequence-lanes" aria-hidden="true">
               {props.participants.map(({ id, label }) => <p key={id}>{label}</p>)}
@@ -334,6 +342,7 @@ export const { registry } = defineRegistry(cardCatalog, {
           <CardHeader>
             <StepLabel>Explanation</StepLabel>
             <CardTitle role="heading" aria-level={3}>{props.title}</CardTitle>
+            <CardMascot accessory="flow" />
           </CardHeader>
           <CardContent className="grid gap-3">
             {props.summary && <p className="text-sm leading-relaxed">{props.summary}</p>}
@@ -361,6 +370,7 @@ export const { registry } = defineRegistry(cardCatalog, {
         <CardHeader>
           <StepLabel>Explanation</StepLabel>
           <CardTitle><InlineCode text={props.title} /></CardTitle>
+          <CardMascot accessory="cap" />
         </CardHeader>
         <CardContent className="grid gap-3">
           <p className="text-sm leading-relaxed"><InlineCode text={props.text} /></p>
