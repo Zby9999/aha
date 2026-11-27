@@ -5,6 +5,7 @@ import { LessonCardView } from "./cards/LessonCardView.tsx";
 import { LearningPanel } from "./LearningPanel.tsx";
 import { ProjectPreview } from "./ProjectPreview.tsx";
 import { Workspace } from "./Workspace.tsx";
+import { DiffBlock } from "@/components/diff-block";
 import { Markdown } from "@/components/markdown";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { CodeBlock, CodeBlockContent } from "@/components/ui/code-block";
@@ -314,9 +315,7 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
             <Button size="xs" variant="secondary" className="ml-auto" disabled={!canStartLesson} onClick={() => dispatch({ type: "why", entryId: entry.id })}>Why?</Button>
           </div>
           {entry.diff && (
-            <CodeBlock size="sm" className="mt-2">
-              <CodeBlockContent>{entry.diff}</CodeBlockContent>
-            </CodeBlock>
+            <DiffBlock diff={entry.diff} path={entry.path} />
           )}
         </div>
       );
