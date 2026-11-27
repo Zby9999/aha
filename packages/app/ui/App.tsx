@@ -139,7 +139,7 @@ export function App() {
         }}
       >
         {(learning || reviewing) && (
-          <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson px-3 py-2 text-sm" role="status">
+          <div className="lesson-work-mode mb-2 flex items-center gap-2 rounded-xl bg-lesson py-2 ps-4 pe-2 text-sm" role="status">
             <LearnIcon className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
               {learning ? `Learning: ${session.lessonTitle ?? "starting a Lesson…"}` : `Reviewing: ${reviewTitle ?? "a past Lesson"}`}
@@ -311,7 +311,8 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
     case "file_edit":
       return (
         <div role="group" aria-label={`Edited ${entry.path}`} className="rounded-lg border bg-card px-3 py-3 text-sm">
-          <div className="flex min-w-0 items-center gap-2">
+          {/* The row is as tall as the Why button: indent the icon so it sits as far from the left edge as from the top. */}
+          <div className="flex min-w-0 items-center gap-2 ps-1.5">
             <EditFileIcon className="size-4 shrink-0 text-muted-foreground" />
             <span>Edited</span>
             <Badge variant="outline" className="min-w-0 shrink overflow-hidden font-mono" title={entry.path}><span className="truncate">{entry.path}</span></Badge>

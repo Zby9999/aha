@@ -138,6 +138,8 @@
   /* The mascot's body sits ~0.23rem inside its box; this puts its visible
      left edge as far from the window as its top is from the header's. */
   padding-left: 1rem;
+  /* The last icon button sits as far from the window's edge as from the header's top. */
+  padding-right: 1.25rem;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
@@ -212,7 +214,8 @@
   flex: none;
   align-items: center;
   gap: 0.6rem;
-  padding-inline: 1rem;
+  /* Trailing icon buttons sit as far from the right edge as from the top. */
+  padding-inline: 1rem 0.75rem;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
@@ -284,7 +287,7 @@
 .workspace-main[data-mode="learning"] .lesson-pane-heading { background: var(--lesson); }
 .lesson-pane-title { display: grid; gap: .18rem; min-inline-size: 0; overflow-wrap: anywhere; }
 .lesson-pane-mode { color: var(--lesson-accent); font-size: .75rem; font-weight: 600; }
-.lesson-pane-heading { padding-block: .55rem; }
+.lesson-pane-heading { padding-block: .55rem; padding-inline-start: .75rem; } /* the mascot is larger than an icon: same inset left as top */
 .lesson-pending { padding: .5rem 1rem; }
 .workspace-learn-cards > .lesson-pending { padding-inline: 0; }
 .lesson-work-mode > svg { color: var(--lesson-accent); }
