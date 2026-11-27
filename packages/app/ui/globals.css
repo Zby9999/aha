@@ -296,8 +296,7 @@
 .workspace-user-bubble > [data-slot="bubble-content"] { border-radius: var(--message-radius); }
 .lesson-invitation { background: var(--lesson); box-shadow: none; --tw-ring-shadow: 0 0 transparent; }
 .lesson-invitation[data-offer-state="inactive"] { background: var(--muted); }
-.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 600; }
-.lesson-invitation[data-offer-state="available"] .lesson-offer-caption { color: var(--lesson-accent); }
+.lesson-offer-caption { display: flex; align-items: center; gap: .4rem; color: var(--lesson-accent); font-size: .75rem; font-weight: 600; }
 @media (prefers-reduced-motion: no-preference) {
   [data-agent-pending] .workspace-reply-mark svg { animation: lesson-status-pulse 1.6s ease-in-out infinite; }
   @keyframes lesson-status-pulse { 50% { opacity: .55; } }
