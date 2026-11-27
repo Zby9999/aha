@@ -15,7 +15,6 @@
   "dependencies": {
     "@aha/contracts": "workspace:*",
     "@base-ui/react": "^1.9.0",
-    "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.4.0",
     "@hugeicons/react": "^1.1.10",
@@ -23,6 +22,7 @@
     "@json-render/react": "0.23.2",
     "@json-render/shadcn": "0.23.2",
     "@shadcn/react": "^0.3.1",
+    "allo-font": "1.1.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
     "react": "^19.3.1",
