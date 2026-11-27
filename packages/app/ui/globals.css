@@ -547,3 +547,7 @@
 }
 
 .lesson-card-mascot { width: 2.75rem; height: 2.75rem; margin: -0.35rem -0.25rem -0.5rem 0.25rem; }
+
+/* Cited code bleeds 0.5rem into the card's side padding; when it ends a card, it bleeds as far into the bottom padding. */
+[data-slot="card"]:not(:has(> [data-slot="card-footer"])) > [data-slot="card-content"]:last-child
+  ul[aria-label="Code references"]:last-child > li:last-child [data-slot="collapsible-content"] { margin-bottom: -0.5rem; }

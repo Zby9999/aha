@@ -35,7 +35,7 @@ function Citations({ citations, expandable = false }: { citations: Citation[]; e
                 <ChevronDownIcon aria-hidden="true" className="lesson-citation-chevron size-3.5 shrink-0 transition-transform" />
               </CollapsibleTrigger>
               {/* Only a reference with another below it needs space under its code; the card pads the last one. */}
-              <CollapsibleContent className="px-2 pt-1.5 group-not-last/citation:pb-1">
+              <CollapsibleContent className="pt-1.5 group-not-last/citation:pb-1">
                 <CitedCode path={path} ranges={ranges} />
               </CollapsibleContent>
             </Collapsible>
