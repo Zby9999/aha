@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { activeLesson, type CardAnswer, type TimelineEntry, type TimelineEntryOf, type UserAction } from "@aha/contracts";
+import { AhaMascot } from "@/components/AhaMascot";
 import { BookIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -53,7 +54,7 @@ export function LearningPanel({ entries, cards, answers, flaggedExplanations, ou
   return (
     <>
       <header className="workspace-pane-heading lesson-pane-heading">
-        <BookIcon aria-hidden="true" />
+        <AhaMascot mood="thinking" />
         <div className="lesson-pane-title">
           {lesson && <span className="lesson-pane-mode">Learning mode</span>}
           <h2>{lessonTitle ?? "Learning"}</h2>
