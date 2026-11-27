@@ -196,7 +196,7 @@ test("tabbed layout follows the Lesson and records Probe and Articulation answer
   await page.getByRole("button", { name: "Show me why" }).click();
   await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
   // The conversation pane shows only the Lesson, so the work's Why buttons are out of sight.
-  await expect(page.getByRole("navigation", { name: "breadcrumb" })).toContainText("Learning session");
+  await expect(page.getByRole("button", { name: "Back to work", exact: true })).toBeVisible();
   await expect(why(page)).toHaveCount(0);
   await expect(askWhy(page)).toBeDisabled();
   await expect(page.getByRole("button", { name: "Skip this time", exact: true })).toBeDisabled();
@@ -270,12 +270,9 @@ test("three-pane Why is tied to a file edit and Back to work unlocks lesson entr
 
   await page.getByRole("button", { name: "Tabbed layout" }).click();
   await expect(tab(page, "Explain")).toHaveAttribute("aria-selected", "true");
-  // The project name in the breadcrumb leads back to work.
-  const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
-  await breadcrumb.getByRole("button").click();
+  await page.getByRole("button", { name: "Back to work", exact: true }).click();
   await expect(tab(page, "Preview")).toHaveAttribute("aria-selected", "true");
   await expect(askWhy(page)).toBeEnabled();
-  await expect(breadcrumb).not.toContainText("Learning session");
   await expect(why(page).first()).toBeEnabled();
 });
 

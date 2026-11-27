@@ -63,7 +63,6 @@ export function App() {
       connected={connected}
       modeChange={modeChange}
       defaultTab={session.defaultTab}
-      onBackToWork={() => dispatch({ type: "back_to_work" })}
       preview={<ProjectPreview lastEdit={lastEdit} />}
       explain={(visible) => (
         <LearningPanel
