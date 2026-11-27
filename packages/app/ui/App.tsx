@@ -341,8 +341,9 @@ function Entry({ entry, dispatch, done, canStartLesson, canRetry, onReview }: {
       if (entry.impasse.trigger === "ask_why") {
         return (
           <UserMessage>
-            <span className="inline-flex items-center gap-1.5">
-              <AhaMascot accessory="question" className="size-4 shrink-0" />
+            <span className="inline-flex items-start gap-1.5">
+              {/* Top-left, on the first line, however long the question runs. */}
+              <AhaMascot accessory="question" className="ask-why-mark size-4 shrink-0" />
               {entry.impasse.text ?? entry.impasse.title}
             </span>
           </UserMessage>
